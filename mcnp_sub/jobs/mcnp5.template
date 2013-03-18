@@ -1,0 +1,22 @@
+################################################################################
+#                                                                              #
+#  This Condor job file was created automatically by the batch_job.pl script.  #
+#                                                                              #
+################################################################################
+
+executable       = /mcnp5/bin/crunch
+arguments        = c i=sph_ini.cont o=bttest ru=restart.bin
+universe         = vanilla
+output           = .condor.out
+error            = .condor.err
+log              = .condor.log
+#+Group = "EnergyPhysics_Wilson"
+
+copy_to_spool           = false
+should_transfer_files   = yes
+when_to_transfer_output = on_exit
+transfer_input_files    = sph_ini.cont,restart.bin
+
++AccountingGroup = "EngrPhysics_Wilson"
+
+Queue

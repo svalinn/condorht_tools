@@ -1,0 +1,13 @@
+
+universe = scheduler
+
+executable = XXX/preinitcond.pl
+error = dopreinitcond.err
+output = dopreinitcond.out
+log = dopreinitcond.log
+getenv = true
+arguments = XXXX
++AccountingGroup = "cnerg"
+Notification = never
+
+queue

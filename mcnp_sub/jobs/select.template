@@ -1,0 +1,12 @@
+
+universe = scheduler
+
+executable = XXX/select.pl
+error = doselect.err
+output = doselect.out
+log = doselect.log
+arguments = main YYY
++AccountingGroup = "cnerg"
+Notification = never
+
+queue

@@ -1,0 +1,24 @@
+################################################################################
+#                                                                              #
+#  This Condor job file was created automatically by the batch_job.pl script.  #
+#                                                                              #
+################################################################################
+
+executable       = /home/cnerg/users/cnerg-soar/mcnp5/bin/mcnp5_cae
+arguments        = c i=sph_ini.cont o=bttest ru=restart.bin
+universe         = vanilla
+output           = .condor.out
+error            = .condor.err
+log              = .condor.log
+match_list_length = 5
+rank = ((TARGET.Name != LastMatchName0) * 100)
+requirements = (TARGET.Name =!= LastMatchName1) && ((Site =?= "UWCS B240") || (Site =?= "EngrPhys"))
+
+copy_to_spool           = false
+should_transfer_files   = yes
+when_to_transfer_output = on_exit_or_evict
+transfer_input_files    = sph_ini.cont,restart.bin
+
++AccountingGroup = "cnerg"
+
+Queue

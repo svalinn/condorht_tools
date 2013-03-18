@@ -1,0 +1,520 @@
+#!/usr/bin/env perl
+##########################################################################
+#
+# merge_mctal - merge MCNP mctal files into 1 combined file
+#
+#        - FB Brown, 12/2003, 1/2004
+#        - JE Sweezy,12/2003
+#
+#  Usage:
+#         merge_mctal -i mctal1 mctal2 [...] [-o mctalmrg]
+#
+#     mctalmrg = name of final merged mctal file, default = MCTALMRG
+#     mctal1   = name of first mctal file to merge
+#     mctal2   = name of second mctal file to merge
+#     ...      = names of other mctal files to merge
+#
+##########################################################################
+
+###### get options & filenames
+$MRG  = 'MCTALMRG';
+$DBG  = '';
+$DATE = `date +%m/%d/%y`;    chomp($DATE);
+$TIME = `date +%H:%M:%S`;    chomp($TIME);
+
+$PRECISE_M = 5;    # decimal places for mean
+$PRECISE_R = 4;    # decimal places for relative error
+
+undef @MCTAL_LIST;
+{
+  my $arg;
+  while(   $arg = shift ) {
+    if(    $arg eq '-o'     )  { $MRG = shift; }
+    elsif( $arg eq '-debug' )  { $DBG = 'yes'; }
+    elsif( $arg eq '--'     )  { next; }
+    else { 
+		if( $arg eq '-i' ) {
+			@MCTAL_LIST =  shift; 
+		} else {
+			push(@MCTAL_LIST, $arg);
+		}
+	}
+  }
+  if( @MCTAL_LIST<2 ) {
+    die("\n***** $0 error - need 2 or more mctal files to merge\n");
+  }
+}
+
+##### read the first mctal file
+%M0 = &read_mctal_file( $MCTAL_LIST[0] );
+
+for( $k=1; $k<@MCTAL_LIST; $k++) {
+
+  %M1 = &read_mctal_file( $MCTAL_LIST[$k] );
+
+  print "...Merging  (except TFC)\n";
+  &add_mctal_files( \%M0, \%M1 );
+}
+
+##### write the merged file
+print "\n...Creating merged MCTAL file = $MRG\n\n";
+&write_mctal_file( $MRG, \%M0 );
+
+exit;
+#-----------------------------------------------------------------------------------
+sub add_mctal_files {
+  my $M0 = $_[0];
+  my $M1 = $_[1];
+  my $i, $j, $ntal, $nvals, @tnums;
+  my $nps0, $nps1, $nps;
+
+  $ntal  = $M0->{ntal};
+  @tnums = @{$M0->{tally_numbers}};
+
+  $nps0  = $M0->{nps};
+  $nps1  = $M1->{nps};
+  $nps   = $nps0 + $nps1;
+
+  # checks
+  if( $M0->{ntal}  != $M1->{ntal}  ) {die("error:  mismatch for ntal\n");}
+  if( $M0->{npert} != $M1->{npert} ) {die("error:  mismatch for npert\n");}
+  for( $j=0; $j<$ntal; $j++ ) {
+    if( $tnums[$j] != $M1->{tally_numbers}[$j] ) {
+      die("error:  mismatch for tally numbers\n");
+    }
+  }
+  # checks for all tallies
+  foreach $j (@tnums) {
+    if( $M0->{$j}{f_n}   != $M1->{$j}{f_n}   ) {die("error:  mismatch for f_n\n");}
+    if( $M0->{$j}{d_n}   != $M1->{$j}{d_n}   ) {die("error:  mismatch for d_n\n");}
+    if( $M0->{$j}{u_n}   != $M1->{$j}{u_n}   ) {die("error:  mismatch for u_n\n");}
+    if( $M0->{$j}{s_n}   != $M1->{$j}{s_n}   ) {die("error:  mismatch for s_n\n");}
+    if( $M0->{$j}{m_n}   != $M1->{$j}{m_n}   ) {die("error:  mismatch for m_n\n");}
+    if( $M0->{$j}{c_n}   != $M1->{$j}{c_n}   ) {die("error:  mismatch for c_n\n");}
+    if( $M0->{$j}{e_n}   != $M1->{$j}{e_n}   ) {die("error:  mismatch for e_n\n");}
+    if( $M0->{$j}{t_n}   != $M1->{$j}{t_n}   ) {die("error:  mismatch for t_n\n");}
+    if( $M0->{$j}{nvals} != $M1->{$j}{nvals} ) {die("error:  mismatch for nvals\n");}
+   #if( $M0->{$j}{tfc_n} != $M1->{$j}{tfc_n} ) {die("error:  mismatch for tfc_\n");}
+  }
+  if( $M0->{kcode_nc}  != $M1->{kcode_nc}  ) {die("error:  mismatch for kcode_nc\n");}
+  if( $M0->{kcode_ikz} != $M1->{kcode_ikz} ) {die("error:  mismatch for kcode_ikz\n");}
+  if( $M0->{kcode_mk}  != $M1->{kcode_mk}  ) {die("error:  mismatch for kcode_mk\n");}
+
+  # combine tallies
+  $M0->{nps}  = $nps;
+  $M0->{date} = $DATE;
+  $M0->{time} = $TIME;
+  $M0->{rnr}  = $M0->{rnr}+$M1->{rnr};
+  foreach $j (@tnums) {
+    $nvals = $M0->{$j}{nvals};
+    for( $i=0; $i<$nvals; $i+=2) {
+      my $m, $m0, $m1, $r, $r0, $r1, $t0, $t1;
+      # mean
+      $m0 = $M0->{$j}{vals}[$i];
+      $m1 = $M1->{$j}{vals}[$i];
+      $m  = ( $nps0*$m0 + $nps1*$m1 ) / $nps;
+      # relative error
+      $r0 = $M0->{$j}{vals}[$i+1];
+      $r1 = $M1->{$j}{vals}[$i+1];
+      $t0 = $nps0*$m0**2*($r0**2*($nps0-1.)+1.);
+      $t1 = $nps1*$m1**2*($r1**2*($nps1-1.)+1.);
+      $r  = 0.;
+      if( (($t0+$t1)/$nps-$m**2)>0. ) { $r = sqrt( (($t0+$t1)/$nps-$m**2)/($nps-1.) )/$m; }
+      # store over the $M0 values
+      $M0->{$j}{vals}[$i]   = sprintf( "%.${PRECISE_M}E", $m);
+      $M0->{$j}{vals}[$i+1] = sprintf( "%.${PRECISE_R}f", $r);
+    }
+  }
+
+  # tfc data - for now, don't combine - use unaltered $M0 values
+
+  # kcode data
+  if( @{$M0->{kcode_data}} ) {
+    # combine data using the overall number of histories in each case
+    $nc = $M0->{kcode_nc};
+    $mk = $M0->{kcode_mk};
+    if( $mk==0 ) { $mk=5; }
+    for( $j=0; $j<$nc*$mk; $j+=$mk ) {
+      for( $i=$j; $i<$j+5; $i++ ) {
+        # entries 0-4 are cycle values
+        &average_kcode_data( $M0, $M1, $i );
+      }
+      if( $mk>=19 ) {
+        # entries 5-16 are cumulative + std. dev. (in pairs)
+        for( $i=$j+5; $i<$j+17; $i+=2 ) {
+          &average_stddev_kcode_data( $M0, $M1, $i );
+        }
+        # histories in cycle
+        $m0 = $M0->{kcode_data}[$j+17];
+        $m1 = $M1->{kcode_data}[$j+17];
+        $M0->{kcode_data}[$j+17] = sprintf( "%.${PRECISE_M}E", $m0+$m1);
+        # FOM - just take weighted average for now
+        &average_kcode_data( $M0, $M1, $j+18 );
+      }
+      if( $mk==35 ) {
+        for( my $i=$j+19; $i<$j+34; $i++ ) {
+          if( $i==22 || $i==24 || $i==34 ) {
+            &average_stddev_kcode_data( $M0, $M1, $i );
+            $i++;
+          }
+          else {
+            &average_kcode_data( $M0, $M1, $i );
+          }
+        }
+      }
+    }
+  }
+}
+#-----------------------------------------------------------------------------------
+sub average_kcode_data () {
+  my( $M0, $M1, $i ) = @_;
+  my $m, $m0, $m1, $nps, $nps0, $nps1;
+  $nps0 = $M0->{nps};
+  $nps1 = $M1->{nps};
+  $nps  = $nps0 + $nps1;
+  # weighted average
+  $m0 = $M0->{kcode_data}[$i];
+  $m1 = $M1->{kcode_data}[$i];
+  $m  = ( $nps0*$m0 + $nps1*$m1 ) / $nps;
+  # store over the $M0 values
+  $M0->{kcode_data}[$i] = sprintf( "%.${PRECISE_M}E", $m);
+}
+#-----------------------------------------------------------------------------------
+sub average_stddev_kcode_data () {
+  my( $M0,$M1, $i ) = @_;
+  my $m, $m0, $m1, $nps, $nps0, $nps1;
+  my $r, $r0, $r1, $t0, $t1;
+  $nps0 = $M0->{nps};
+  $nps1 = $M1->{nps};
+  $nps  = $nps0 + $nps1;
+  # weighted average
+  $m0 = $M0->{kcode_data}[$i];
+  $m1 = $M1->{kcode_data}[$i];
+  $m  = ( $nps0*$m0 + $nps1*$m1 ) / $nps;
+  $M0->{kcode_data}[$i]   = sprintf( "%.${PRECISE_M}E", $m);
+  # standard deviation
+  $r0 = $M0->{kcode_data}[$i+1];
+  $r1 = $M1->{kcode_data}[$i+1];
+  $t0 = $nps0*$m0**2*($r0**2*($nps0-1.)+1.);
+  $t1 = $nps1*$m1**2*($r1**2*($nps1-1.)+1.);
+  $r  = 0.;
+  if( (($t0+$t1)/$nps-$m**2)>0. ) { $r = sqrt( (($t0+$t1)/$nps-$m**2)/($nps-1.) ); }
+  $M0->{kcode_data}[$i+1] = sprintf( "%.${PRECISE_M}E", $r);
+}
+#-----------------------------------------------------------------------------------
+sub write_mctal_file {
+  my $F = $_[0];    ### output file name
+  my $M = $_[1];    ### ref to mctal data
+  my $i, $j, $k, $C, $N, $f;
+
+  open(MRG,">$F") || die("***** can't create output file $F\n");
+
+  printf MRG  "%-8s%-8s%10s %8s%5i%11i%15i\n",
+              $M->{kod}, $M->{ver},$M->{date},$M->{time},
+              $M->{knod},$M->{nps},$M->{rnr};
+
+  print  MRG  " $M->{title}\n";
+
+  printf MRG  "ntal%6i npert%6i\n", $M->{ntal}, $M->{npert};
+
+  &print_N( 16, "%5i", @{$M->{tally_numbers}} );
+
+  foreach $i (@{$M->{tally_numbers}}) {
+
+    printf MRG  "tally%5i%5i%5i\n", $M->{$i}{tal_m}, $M->{$i}{tal_i}, $M->{$i}{tal_j};
+
+    &print_N( 1, "%s", @{$M->{$i}{fc_list}} );
+
+    printf MRG    "%-2s%8i\n",     $M->{$i}{f}, $M->{$i}{f_n}; 
+    &print_N( 11, "%7i",         @{$M->{$i}{f_list}} );
+    printf MRG    "%-2s%8i\n",     $M->{$i}{d}, $M->{$i}{d_n};
+    printf MRG    "%-2s%8i\n",     $M->{$i}{u}, $M->{$i}{u_n};
+    printf MRG    "%-2s%8i\n",     $M->{$i}{s}, $M->{$i}{s_n};
+    &print_N(  6, "%13.5E",      @{$M->{$i}{s_list}} );
+    printf MRG    "%-2s%8i\n",     $M->{$i}{m}, $M->{$i}{m_n};
+    printf MRG    "%-2s%8i%4i\n",  $M->{$i}{c}, $M->{$i}{c_n}, $M->{$i}{c_f};
+    &print_N(  6, "%13.5E",      @{$M->{$i}{c_list}} );
+    printf MRG    "%-2s%8i%4i\n",  $M->{$i}{e}, $M->{$i}{e_n}, $M->{$i}{e_f};
+    &print_N(  6, "%13.5E",      @{$M->{$i}{e_list}} );
+    printf MRG    "%-2s%8i%4i\n",  $M->{$i}{t}, $M->{$i}{t_n}, $M->{$i}{t_f};
+    &print_N(  6, "%13.5E",      @{$M->{$i}{t_list}} );
+    print  MRG    "vals\n";
+    &print_N2( 4, "%13.5E%7.4f", @{$M->{$i}{vals}} );
+    printf MRG    "tfc%5i%8i%8i%8i%8i%8i%8i%8i%8i\n", 
+      $M->{$i}{tfc_n}, $M->{$i}{tfc_list}[0], $M->{$i}{tfc_list}[1], 
+                       $M->{$i}{tfc_list}[2], $M->{$i}{tfc_list}[3], 
+                       $M->{$i}{tfc_list}[4], $M->{$i}{tfc_list}[5], 
+                       $M->{$i}{tfc_list}[6], $M->{$i}{tfc_list}[7]; 
+    for($k=0;$k<@{$M->{$i}{tfc_data}}; $k+=4) {
+      printf MRG "%11i%13.5E%13.5E%13.5E\n", 
+                 $M->{$i}{tfc_data}[$k],   $M->{$i}{tfc_data}[$k+1],
+                 $M->{$i}{tfc_data}[$k+2], $M->{$i}{tfc_data}[$k+3];
+    }
+  }
+  if( $M->{kcode_nc} ) {
+    # KCODE nc ikz mk
+    printf MRG "kcode%5i%5i%5i%5i%5i\n",
+      $M->{kcode_nc}, $M->{kcode_ikz}, $M->{kcode_mk},
+      $M->{kcode_4},  $M->{kcode_5};
+    &print_N( 5, "%12.4E",  @{$M->{kcode_data}} );
+  }
+  close(MRG);
+}
+#-----------------------------------------------------------------------------------
+sub print_N () {
+  my( $N, $fmt, @D ) = @_;
+  # print 1 at a time, N per line
+  my $k=0, $d;
+  foreach $d (@D) {
+    printf MRG $fmt, $d;
+    if( ++$k==$N ) { print MRG "\n"; $k=0; }
+  }
+  if( $k ) { print MRG "\n"; }
+  return;
+}
+#-----------------------------------------------------------------------------------
+sub print_N2 () {
+  my( $N, $fmt, @D ) = @_;
+  # print 2 at a time, N pairs per line
+  my $k=0, $j;
+  for( $j=0;$j<@D;$j+=2) {
+    printf MRG $fmt, $D[$j], $D[$j+1];
+    if( ++$k==$N ) { print MRG "\n"; $k=0; }
+  }
+  if( $k ) { print MRG "\n"; }
+  return;
+}
+#-----------------------------------------------------------------------------------
+sub get_list() {
+  my $N = $_[0];
+  my @list;
+  while( <MCTAL> ) {
+    s/^\s*//;
+    s/(\d)\+(\d)/\1E+\2/g;
+    s/(\d)\-(\d)/\1E-\2/g;
+    push( @list, split('\s+') );
+    if( @list==$N ) { last; }
+  }
+  return @list;
+}
+#-----------------------------------------------------------------------------------
+sub read_mctal_file {
+  # read a mctal file, return reference to hashed storage
+  my  $mctal = $_[0];  ### mctal file name 
+  my  $title, $ntal, $npert, @tally_numbers;
+  my  %MCTAL;
+
+  print "...Reading MCTAL file:   $mctal\n";
+  open(MCTAL,"<$mctal") || die("*** error:  can't open $mctal\n");
+
+  # line 1 - info
+  $_ = <MCTAL>;
+  s/^\s*//;
+  my @info = split('\s+');
+  if( @info==3 ) { unshift @info, (' ',' ',' ',' '); }
+
+  ( $MCTAL{kod},  $MCTAL{ver}, $MCTAL{date}, $MCTAL{time},
+    $MCTAL{knod}, $MCTAL{nps}, $MCTAL{rnr}  )  =  @info;
+
+  # line 2 - title
+  $_ = <MCTAL>; chomp;
+  $MCTAL{title} = substr($_,1);
+  print "1: Title = $MCTAL{title}\n";
+
+  # line 3 - ntal, npert?
+  $_ = <MCTAL>;
+
+  # tally numbers
+  if( /^\s*ntal\s+(\d+)(?:\s+npert\s+(\d+))?\s*$/i ) {
+    $MCTAL{ntal}  = $1;
+    $MCTAL{npert} = $2 || 0;
+    undef @tally_numbers;
+    @tally_numbers = &get_list( $MCTAL{ntal} );
+    $MCTAL{tally_numbers} = [ @tally_numbers ];
+  }
+  else {
+    die("*** error: line 3 should contain 'ntal'\n");
+  }
+  print "2: $MCTAL{ntal} $MCTAL{npert} $MCTAL{tally_numbers}\n";
+
+  # tally data
+  for( my $k=0; $k<$MCTAL{ntal}; $k++ ) {
+
+    undef $tal_m;   undef $tal_i;   undef $tal_j;
+
+    # tally line 1
+    $_ = <MCTAL>;
+    if( /^\s*tally\s+(\d+)\s+(\d+)\s*(\d+)?\s*$/i ) {
+      $tal_m = $1;
+      $tal_i = $2;
+      $tal_j = $3;
+    }
+    else {
+      die("*** error: line should contain 'tally'\n");
+    }
+
+    $F='f'; $f_n=1;          undef @f_list;
+    $D='d'; $d_n=1;
+    $U='u'; $u_n=1;
+    $S='s'; $s_n=1;          undef @s_list;
+    $M='m'; $m_n=1;
+    $C='c'; $c_n=1; $c_f=''; undef @c_list;
+    $E='e'; $e_n=1; $e_f=''; undef @e_list;
+    $T='t'; $t_n=1; $t_f=''; undef @t_list;
+    $nvals='';  undef @vals;
+    $tfc_n='';  undef @tfc_list;  undef @tfc_data;
+    $kcode_nc=0; $kcode_ikz=0; $kcode_mk=0; $kcode_4=0; $kcode_5=0;
+    undef @kcode_data;
+    undef @fc_list;
+
+    while( <MCTAL> ) {
+
+      # tally - F
+      if(  /^\s*f\s+(\d+)\s*$/ ) { 
+        $F   = 'f';
+        $f_n = $1;
+        if( $tal_m%10 != 5 ) {
+          @f_list = &get_list( $f_n );
+        }
+      }
+      # tally - D
+      elsif( /^\s*d\s+(\d+)\s*$/i ) {
+        $D   = 'd';
+        $d_n = $1; 
+      }
+      # tally - U
+      elsif( /^\s*(u|ut|uc)\s+(\d+)\s*$/i ) {
+        $U   = $1;
+        $u_n = $2;
+      }
+      # tally - S
+      elsif( /^\s*(s|st|sc)\s+(\d+)\s*$/i ) {
+        $S   = $1;
+        $s_n = $2;
+        my $b = ($s_n>0 && $tal_m%10==5 ) ? $s_n : 0;
+        if( $b>0 ) {
+          @s_list = &get_list( $b );
+        }
+      }
+      # tally - M
+      elsif( /^\s*(m|mt|mc)\s+(\d+)\s*$/i ) {
+        $M   = $1;
+        $m_n = $2;
+      }
+      # tally - C
+      elsif( /^\s*(c|ct|cc)\s+(\d+)(?:\s+(\d+))?\s*$/i ) {
+        $C   = $1;
+        $c_n = $2;
+        $c_f = $3;
+        my $b = ($c_n>0 && $C=~/ct/i && $tal_m%10!=5) ?  $c_n-1 : $c_n;
+        if( $b>0 ) {
+          @c_list = &get_list( $b );
+        }
+      }
+      # tally - R (special case for C)
+      elsif( /^\s*(r|rt|rc)\s+(\d+)(?:\s+(\d+))?\s*$/i ) {
+        $C   = $1;
+        $c_n = $2;
+        $c_f = $3;
+        my $b = ($c_n>0 && $C=~/rt/i && $tal_m%10!=5) ?  $c_n-1 : $c_n;
+        if( $b>0 ) {
+          @c_list = &get_list( $b );
+        }
+      }
+      # tally - E
+      elsif( /^\s*(e|et|ec)\s+(\d+)(?:\s+(\d+))?\s*$/i ) {
+        $E   = $1;
+        $e_n = $2;
+        $e_f = $3;
+        my $b = ($e_n>0 && $E=~/et/i) ?  $e_n-1 : $e_n;
+        if( $b>0 ) {
+          @e_list = &get_list( $b );
+        }
+      }
+      # tally - T
+      elsif( /^\s*(t|tt|tc)\s+(\d+)(?:\s+(\d+))?\s*$/i ) {
+        $T   = $1;
+        $t_n = $2;
+        $t_f = $3;
+        my $b = ($t_n>0 && $T=~/tt/i) ?  $t_n-1 : $t_n;
+        if( $b>0 ) {
+          @t_list = &get_list( $b );
+        }
+      }
+      # tally - VALS
+      elsif( /^\s*vals\s*$/i ) {
+        $nvals = 2 * (($f_n>0)?$f_n:1) * (($d_n>0)?$d_n:1) * (($u_n>0)?$u_n:1)
+                   * (($s_n>0)?$s_n:1) * (($m_n>0)?$m_n:1) * (($c_n>0)?$c_n:1)
+                   * (($e_n>0)?$e_n:1) * (($t_n>0)?$t_n:1);
+        if( $nvals>0 ) {
+          @vals = &get_list( $nvals );
+        }
+      }
+      # tally - TFC
+      elsif( /^\s*tfc\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*$/i ) {
+        $tfc_n     = $1;
+        @tfc_list  = ($2, $3, $4, $5, $6, $7, $8, $9);
+        my $b = 0;
+        while( <MCTAL> ) {
+          s/^\s*//; 
+          my @tfcd = split('\s+');
+          push( @tfc_data, @tfcd );
+          if( @tfcd==3 ) { push @tfc_data, 0; } # add dummy FOM if not there
+          if( $tfc_n == ++$b ) { last; }
+        }
+        last;
+      }
+      # tally - FC
+      elsif( /^     / ) {
+        chomp;
+        push(@fc_list, $_);
+      }
+      else {
+        die("*** error: can't identify line: $_\n");
+      }
+    }
+
+    $MCTAL{$tal_m} = {
+       tal_m => $tal_m,
+       tal_i => $tal_i,
+       tal_j => $tal_j,
+       fc_list => [@fc_list],
+       f=>$F, f_n=>$f_n,            f_list=>[@f_list],
+       d=>$D, d_n=>$d_n,
+       u=>$U, u_n=>$u_n,
+       s=>$S, s_n=>$s_n,            s_list=>[@s_list],
+       m=>$M, m_n=>$m_n,
+       c=>$C, c_n=>$c_n, c_f=>$c_f, c_list=>[@c_list],
+       e=>$E, e_n=>$e_n, e_f=>$e_f, e_list=>[@e_list],
+       t=>$T, t_n=>$t_n, t_f=>$t_f, t_list=>[@t_list],
+       nvals=>$nvals,  vals=>[@vals],
+       tfc_n=>$tfc_n,  tfc_list=>[@tfc_list],  tfc_data=>[@tfc_data]
+    };
+  }
+
+  $_ = <MCTAL> || 0;
+  if( /^\s*kcode\s+(\d+)\s+(\d+)\s+(\d+)(?:\s+(\d+)\s+(\d+))?\s*$/i ) {
+    $kcode_nc  = $1;
+    $kcode_ikz = $2;
+    $kcode_mk  = $3;
+    $kcode_4   = $4;
+    $kcode_5   = $5;
+    @kcode_data= &get_list( -1 );  ### read to eof
+  }
+
+  $MCTAL{kcode_nc }  = $kcode_nc;
+  $MCTAL{kcode_ikz}  = $kcode_ikz;
+  $MCTAL{kcode_mk }  = $kcode_mk;
+  $MCTAL{kcode_4}    = $kcode_4;
+  $MCTAL{kcode_5}    = $kcode_5;
+  $MCTAL{kcode_data} = [ @kcode_data ];
+
+  close(MCTAL);
+  #bt
+  foreach my $val (sort keys %MCTAL) {
+  	print "key $val value $MSCTAL{$val}\n";
+  }
+
+  return ( %MCTAL );
+}
+#-------------------------------------------------------------------------

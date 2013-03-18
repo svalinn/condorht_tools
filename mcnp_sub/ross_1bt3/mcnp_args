@@ -1,0 +1,9 @@
+number = 30
+directory = part
+events = 20t
+input = V6_w1
+output = bttest
+restart = restart.bin
+mctal = mctal_test
+meshtal = meshtal_test
+~

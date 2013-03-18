@@ -1,0 +1,12 @@
+We have added a report writer which will give you an instantaneous report
+on the DAG as it runs.
+
+mydag-status --help to see how.
+
+
+Required files for it to run:
+
+make-graphs  
+mkdag 
+PROFILE 
+RESULTVALUES
