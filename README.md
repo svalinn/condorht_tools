@@ -49,12 +49,10 @@ There are also a number of scoring modes that must be tested
 * Complex Tallies - A large number of complex tallies, energy dependence, fm card multipliers, dose response functions, traditional mesh tally (additional file handling)
 * Advanced Tallies - Newer style, using tetmesh and KDE tallies (additional file handling)
 
-
 | Par Mode | Nat. Geom Simp. Tallies | DAG Geom Simp Tallies | Nat. Geom Comp Tallies | DAG Geom Comp. Tallies | DAG Geom Advanced Tallies | 
 | ------------- |:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
-| **Serial**  | beta | x  | beta | x | x |
-| **HTC**   | beta | x | x | x | x |
+| **Serial**  | beta | beta | beta | beta #11 | beta #17 #12 |
+| **HTC**   | beta | beta #11  #3  | beta #3 | beta | beta |
 | **HPC**    | x | x | x |  x | x |
-| **HTPC**  | #4 | x | x | x | x |
+| **HTPC**  | #4 | #4 | #4 | #4 | #4 |
 | **HyPC**  | x | x | x | x | x |
- 
