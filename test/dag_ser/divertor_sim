@@ -1,0 +1,14 @@
+c driver file for div sim
+c no geometry info
+sdef x=500.0 y=0.0 z=-300.0 erg=14.1 
+c
+c no materials
+nps 1e7
+lost 1e5
+prdmp 1e6 1e6 2 2j
+print
+fmesh4:n geom=dag
+fc4  dagmc inp=divertor_simmesh.h5m
+        out=divertor_simmesh_out.h5m
+c
+c 
