@@ -2,10 +2,12 @@ CXX = mpicxx
 
 # add -g -pg to both CXX and LD flags to profile
 
-all: mpi_test
+all: mpi_test omp_test
 
 mpi_test: mpi_test.cpp
 	$(CXX) mpi_test.cpp -o mpi_test
 
+omp_test: omp_test.cpp
+	$(CXX) -fopenmp omp_test.cpp -o omp_test
 clean:
-	rm -f mpi_test.o mpi_test
+	rm -f mpi_test.o mpi_test omp_test omp_test.o
