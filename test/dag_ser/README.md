@@ -8,5 +8,5 @@ When this runs it will produce a runtpe file, then we can submit
 
 The above command, runs the actual problem containing the normal MCNP arguments, in this case contains
 
-   mcnp5 c i=divertor_sim_cont g=divertor_simgeom.h5m o=ouptut r=runtpe
+    mcnp5 c i=divertor_sim_cont g=divertor_simgeom.h5m o=ouptut r=runtpe
 
