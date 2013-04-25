@@ -1,0 +1,11 @@
+number = 30
+directory = part
+events = 20t
+input = divertor_sim_cont
+output = bttest
+runtpe = restart.bin
+mctal = mctal_test
+dagmc = divertor_simgeom.h5m
+tetmesh = divertor_simmesh.h5m
+meshtal = meshtal_test
+~
