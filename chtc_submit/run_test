@@ -1,0 +1,1 @@
+./mcnp5dag.py --data /home/davisa/chtc_submit/test/ --rundir /home/davisa/run_test --mcpath /home/davisa/dagmc/mcnp5src/bin/mcnp5 --debug on
