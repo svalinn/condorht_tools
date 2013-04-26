@@ -252,6 +252,118 @@ def create_dag_hierarchy(rundir,num_cpu):
 
     return
 
+
+# check_mcnp_directives for validity
+def generate_condor_scripts(datadir,rundir,mcnp_exec):
+
+    """ The purpose of this routine is to create complete condor input command files to run the mcnp
+    problem pointed to by mcnp_args. It should generate command scripts on the basis of files pointed
+    to by including, the tetmesh files and dagmc geometries to copy
+    """
+    
+    # var for truth test
+    # determines the truth vals
+    num_t = False
+    dir_t = False
+    eve_t = False
+    inp_t = False
+    dag_t = False
+    out_t = False
+    mct_t = False
+    mes_t = False
+    tet_t = False
+    run_t = False
+    
+    file = open(datadir+"/mcnp_args")
+
+
+    while 1:
+        line = file.readline()
+        if not line:
+            break
+        
+        if 'number = ' in line:
+            num_cpu = int(''.join(x for x in line if x.isdigit()))
+            num_t = True
+            if not num_cpu > 0:
+                print "number of cpus needs to be greater than 0"
+                sys.exit()
+
+        if 'input = ' in line:
+            inp_t = True
+            mcnp_input_path = line[line.find(" = ")+3:len(line)]
+            if not os.path.isfile(datadir+mcnp_input_path.strip()):
+                print "MCNP input deck does not exist", datadir+mcnp_input_path.strip()
+                sys.exit()
+                
+        if 'dagmc = ' in line:
+            dag_t = True
+            dagmc_input_path = line[line.find(" = ")+3:len(line)]
+            if not os.path.exists(datadir+dagmc_input_path.strip()):
+                print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
+                sys.exit()                                           
+
+        if 'tetmesh = ' in line:
+            tet_t = True
+            tetmesh_input_path = line[line.find(" = ")+3:len(line)]
+            if not os.path.exists(datadir+tetmesh_input_path.strip()):
+                print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
+                sys.exit()
+
+    for i in range(1,num_cpu+1):
+
+        input_files = ""
+        
+        # write the command file
+        string = rundir+'/mcnp5.'+str(i)+'.cmd'
+        print string
+        fp = open(rundir+'/mcnp5.'+str(i)+'.cmd','w')
+
+        fp.write("########################################### \n")
+        fp.write("#                                         # \n")
+        fp.write("# Submission script automatically created # \n")
+        fp.write("#                                         # \n")
+        fp.write("########################################### \n")
+
+        fp.write(" \n")
+        fp.write("executable = "+mcnp_exec+" \n")
+        mcnp_args = " c i="+mcnp_input_path.strip()+str(i)+".cont"+" r=runtpe"+str(i)+" mctal=mctal_"+str(i)+" mesh=meshtal_"+str(i)
+        fp.write("arguments = "+mcnp_args+"\n")
+
+        fp.write("universe = vanilla \n")
+        fp.write("output = mcnp5."+str(i)+".out \n")
+        fp.write("error = mcnp5."+str(i)+".err \n")
+        fp.write("log = mcnp5."+str(i)+".log \n")
+
+
+        input_stream  = mcnp_input_path.strip()+str(i)+","
+        dagmc_mesh    = dagmc_input_path.strip()+str(i)+","
+        tet_mesh      = tetmesh_input_path.strip()+str(i)+","
+        runtpe_stream = "runtpe"+str(i)
+
+        # if the input files exists then copy it
+        if inp_t:
+            input_files += input_stream
+        # if the damgc input exits copy it
+        if dag_t:
+            input_files += dagmc_mesh
+        # if tet mesh exists then copy it
+        if tet_t:
+            input_files += tet_mesh
+
+        input_files += runtpe_stream           
+
+        fp.write(" \n")
+        fp.write("copy_to_spool = false \n")
+        fp.write("should_transfer_files = yes \n")
+        fp.write("when_to_transfer_output = on_exit \n")
+        fp.write("transfer_input_files = "+input_files+"\n")
+        fp.write("+AccountingGroup = EngrPhysics_Wilson \n")
+       
+        
+  
+        fp.close
+
  
 # build the dag nodes
 def make_dag_nodes(datadir,rundir,mcdir,email_address,debug):
@@ -286,10 +398,7 @@ def make_dag_nodes(datadir,rundir,mcdir,email_address,debug):
 def make_dag_scripts(datadir,rundir,mcdir,email_address,debug):
     print "Making the input scripts"
     (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir)
-    
-    for split_run in range(1,int(num_cpu)):
-        print split_run
-#        write_condor_sub(mcnp_input_path,split)
+    generate_condor_scripts(datadir,rundir,mcdir)
     
     print num_cpu
     return
