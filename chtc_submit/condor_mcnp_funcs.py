@@ -327,6 +327,19 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
 
         fp.write(" \n")
         fp.write("executable = "+mcnp_exec+" \n")
+
+        # input command string
+        input_command   = " i="+mcnp_input_path.strip()+str(i)
+        runtpe_command  = " r=runtpe"+str(i)
+        output_command  = " o=output."+str(i)
+        mctal_command   = " mctal=mctal"+str(i)
+        meshtal_command = " mesh=meshtal"+str(i) 
+
+        mcnp_args = input_command+" "+runtpe_command+" "+output_command+" "
+
+        
+        
+                
         mcnp_args = " c i="+mcnp_input_path.strip()+str(i)+".cont"+" r=runtpe"+str(i)+" mctal=mctal_"+str(i)+" mesh=meshtal_"+str(i)
         fp.write("arguments = "+mcnp_args+"\n")
 
@@ -335,7 +348,7 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
         fp.write("error = mcnp5."+str(i)+".err \n")
         fp.write("log = mcnp5."+str(i)+".log \n")
 
-
+        # files to copy to compute node that are required
         input_stream  = mcnp_input_path.strip()+str(i)+","
         dagmc_mesh    = dagmc_input_path.strip()+str(i)+","
         tet_mesh      = tetmesh_input_path.strip()+str(i)+","
