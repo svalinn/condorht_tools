@@ -95,55 +95,64 @@ def check_mcnp(datadir):
     
     file = open(datadir+"/mcnp_args")
 
+    dagmc_input_path=""
+    mcnp_input_path=""
+
     while 1:
         line = file.readline()
+        # we treat #'s as comments
         if not line:
             break
 #        print line
-        if 'number = ' in line:
-            num_cpu = ''.join(x for x in line if x.isdigit())
+        if "#" in line:
+#            print line
+            continue
+        else:
+#            print line
+            if 'number = ' in line:
+                num_cpu = ''.join(x for x in line if x.isdigit())
 #            print re.match(r'\d+',line)
 #            num_cpu=int(re.match(r'\d+', line))
-            num_t = True
-            if not num_cpu > 0:
-                print "number of cpus needs to be greater than 0"
-                sys.exit()
-        if 'directory = ' in line:
-            dir_t = True
-        if 'events = ' in line:
-            eve_t = True
-        if 'input = ' in line:
-            inp_t = True
-            mcnp_input_path = line[line.find(" = ")+3:len(line)]
-            if not os.path.isfile(datadir+mcnp_input_path.strip()):
-                print "MCNP input deck does not exist", datadir+mcnp_input_path.strip()
-                sys.exit()
+                num_t = True
+                if not num_cpu > 0:
+                    print "number of cpus needs to be greater than 0"
+                    sys.exit()
+            if 'directory = ' in line:
+                dir_t = True
+            if 'events = ' in line:
+                eve_t = True
+            if 'input = ' in line:
+                inp_t = True
+                mcnp_input_path = line[line.find(" = ")+3:len(line)]
+                if not os.path.isfile(datadir+mcnp_input_path.strip()):
+                    print "MCNP input deck does not exist", datadir+mcnp_input_path.strip()
+                    sys.exit()
                 
-        if 'dagmc = ' in line:
-            dag_t = True
-            dagmc_input_path = line[line.find(" = ")+3:len(line)]
-            if not os.path.exists(datadir+dagmc_input_path.strip()):
-                print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
-                sys.exit()
+            if 'dagmc = ' in line:
+                dag_t = True
+                dagmc_input_path = line[line.find(" = ")+3:len(line)]
+                if not os.path.exists(datadir+dagmc_input_path.strip()):
+                    print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
+                    sys.exit()
                                             
-        if 'output = ' in line:
-            out_t = True
-        if 'mctal = ' in line:
-            mct_t = True
-        if 'meshtal = ' in line:
-            mes_t = True
-        if 'tetmesh = ' in line:
-            tet_t = True
-            tetmesh_input_path = line[line.find(" = ")+3:len(line)]
-            if not os.path.exists(datadir+tetmesh_input_path.strip()):
-                print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
-                sys.exit()
-        if 'runtpe = ' in line:
-            run_t = True
-            runtpe_input_path = line[line.find(" = ")+3:len(line)]
-            if  not os.path.exists(datadir+runtpe_input_path.strip()):
-                print "Runtpe does not exist", datadir+runtpe_input_path.strip()
-                sys.exit()
+            if 'output = ' in line:
+                out_t = True
+            if 'mctal = ' in line:
+                mct_t = True
+            if 'meshtal = ' in line:
+                mes_t = True
+            if 'tetmesh = ' in line:
+                tet_t = True
+                tetmesh_input_path = line[line.find(" = ")+3:len(line)]
+                if not os.path.exists(datadir+tetmesh_input_path.strip()):
+                    print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
+                    sys.exit()
+            if 'runtpe = ' in line:
+                run_t = True
+                runtpe_input_path = line[line.find(" = ")+3:len(line)]
+                if  not os.path.exists(datadir+runtpe_input_path.strip()):
+                    print "Runtpe does not exist", datadir+runtpe_input_path.strip()
+                    sys.exit()
 
     file.close()
 
@@ -253,6 +262,59 @@ def create_dag_hierarchy(rundir,num_cpu):
     return
 
 
+
+# test for tetmesh information in file
+# return true/false for tet_mesh in file
+# return true/false for meshtal in file
+# return true/false for mctal information
+
+# should also modify the mcnp5 input file to include prdmps based off of nps
+# if prdmp doesnt exist
+
+# also should remove ctme and replace with nps if doesnt exist
+
+# recommend dumping schedule in none exists
+def mcnp_input_query(mcnp_filename,tetmesh):
+
+    tet_mesh_tf = False
+    meshtal_tf = False
+    mctal_tf = False
+
+    fp = open(mcnp_filename,'r')
+    while 1:
+        line = fp.readline()
+        if not line:
+            break
+        else:
+#            print line
+            if not line.startswith('c '):
+                # test for advanced tallies
+                if "geom=dag" in line:
+                   tet_mesh_tf = True
+                # check for normal meshtal
+                if not "geom=dag" in line and "fmesh" in line:
+                   meshtal_tf = True
+                # check for prdmp card
+                if "prdmp" in line:
+                    if "prdmpjj" in line.lower().strip() or \
+                       "prdmp2j" in line.lower().strip():
+                        mctal_tf = True
+                           
+    # if advanced tallies on check for existance of file
+    if(tet_mesh_tf):
+       if not os.path.exists(str(tetmesh)):
+           print "Tetmesh, ",str(tetmesh)," does not exist"
+           sys.exit()
+            
+    fp.close()
+
+    return (tet_mesh_tf,meshtal_tf,mctal_tf)
+
+
+# check that all input data pointed to by mcnp_args points to valid data
+# check that tet meshes exist if pointed to
+# check that the mcnp input deck exists
+# check that the dagmc geometry exists if pointed to
 # check_mcnp_directives for validity
 def generate_condor_scripts(datadir,rundir,mcnp_exec):
 
@@ -273,7 +335,7 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
     mes_t = False
     tet_t = False
     run_t = False
-    
+    tetmesh_input_path=""
     file = open(datadir+"/mcnp_args")
 
 
@@ -281,34 +343,56 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
         line = file.readline()
         if not line:
             break
-        
-        if 'number = ' in line:
-            num_cpu = int(''.join(x for x in line if x.isdigit()))
-            num_t = True
-            if not num_cpu > 0:
-                print "number of cpus needs to be greater than 0"
-                sys.exit()
+        if "#" in line:
+            continue
+        else:
+            print line
+           
+            if 'number = ' in line:
+                num_cpu = int(''.join(x for x in line if x.isdigit()))
+                num_t = True
+                if not num_cpu > 0:
+                    print "number of cpus needs to be greater than 0"
+                    sys.exit()
 
-        if 'input = ' in line:
-            inp_t = True
-            mcnp_input_path = line[line.find(" = ")+3:len(line)]
-            if not os.path.isfile(datadir+mcnp_input_path.strip()):
-                print "MCNP input deck does not exist", datadir+mcnp_input_path.strip()
-                sys.exit()
+            if 'input = ' in line:
+                inp_t = True
+                mcnp_input_path = line[line.find(" = ")+3:len(line)]
+                if not os.path.isfile(datadir+mcnp_input_path.strip()):
+                    print "MCNP input deck does not exist", datadir+mcnp_input_path.strip()
+                    sys.exit()
                 
-        if 'dagmc = ' in line:
-            dag_t = True
-            dagmc_input_path = line[line.find(" = ")+3:len(line)]
-            if not os.path.exists(datadir+dagmc_input_path.strip()):
-                print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
-                sys.exit()                                           
+            if 'dagmc = ' in line:
+                dag_t = True
+                dagmc_input_path = line[line.find(" = ")+3:len(line)]
+                if not os.path.exists(datadir+dagmc_input_path.strip()):
+                    print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
+                    sys.exit()                                           
 
-        if 'tetmesh = ' in line:
-            tet_t = True
-            tetmesh_input_path = line[line.find(" = ")+3:len(line)]
-            if not os.path.exists(datadir+tetmesh_input_path.strip()):
-                print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
-                sys.exit()
+            if 'tetmesh = ' in line:
+                tet_t = True
+                tetmesh_input_path = line[line.find(" = ")+3:len(line)]
+                if not os.path.exists(datadir+tetmesh_input_path.strip()):
+                    print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
+                    sys.exit()
+
+    tet_tf = False
+    mesh_tf = False
+    mctal_tf = False
+
+    # query the mcnp input deck for input information
+    (tet_tf,mesh_tf,mctal_tf)=mcnp_input_query(datadir+mcnp_input_path.strip(),datadir+tetmesh_input_path.strip())
+
+    # check for logic failures, eg if tet mesh pointed to in mcnp_args but no file in input deck
+    if tet_tf and tet_t:
+        print "tetmesh listed in mcnp args and in mcnp input"
+    if tet_tf and not tet_t:
+        print "tetmesh not listed in mcnp args but referenced in mcnp input"
+        sys.exit()
+    if not tet_tf and tet_t:
+        print "tetmesh listed in mcnp args but not in input"
+        sys.exit()
+    # check for mctal data
 
     for i in range(1,num_cpu+1):
 
@@ -333,14 +417,16 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
         runtpe_command  = " r=runtpe"+str(i)
         output_command  = " o=output."+str(i)
         mctal_command   = " mctal=mctal"+str(i)
-        meshtal_command = " mesh=meshtal"+str(i) 
 
-        mcnp_args = input_command+" "+runtpe_command+" "+output_command+" "
-
+        mcnp_args = input_command+" "+runtpe_command+" "+output_command+" "+mctal_command
+        if mesh_tf:
+            mcnp_args += " mesh=meshtal"+str(i)
+        if dag_t:
+            mcnp_args += " g="+dagmc_input_path.strip()
         
         
                 
-        mcnp_args = " c i="+mcnp_input_path.strip()+str(i)+".cont"+" r=runtpe"+str(i)+" mctal=mctal_"+str(i)+" mesh=meshtal_"+str(i)
+       # mcnp_args = " c i="+mcnp_input_path.strip()+str(i)+".cont"+" r=runtpe"+str(i)+" mctal=mctal_"+str(i)+" mesh=meshtal_"+str(i)
         fp.write("arguments = "+mcnp_args+"\n")
 
         fp.write("universe = vanilla \n")
@@ -350,8 +436,6 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
 
         # files to copy to compute node that are required
         input_stream  = mcnp_input_path.strip()+str(i)+","
-        dagmc_mesh    = dagmc_input_path.strip()+str(i)+","
-        tet_mesh      = tetmesh_input_path.strip()+str(i)+","
         runtpe_stream = "runtpe"+str(i)
 
         # if the input files exists then copy it
@@ -359,10 +443,10 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
             input_files += input_stream
         # if the damgc input exits copy it
         if dag_t:
-            input_files += dagmc_mesh
+            input_files += dagmc_input_path.strip()+","
         # if tet mesh exists then copy it
         if tet_t:
-            input_files += tet_mesh
+            input_files += tetmesh_input_path.strip()+","
 
         input_files += runtpe_stream           
 
@@ -408,6 +492,8 @@ def make_dag_nodes(datadir,rundir,mcdir,email_address,debug):
     return
 
 # make the scripts for the problem
+# make all the scripts for the problem being submitted along with
+# all required ancilliary files
 def make_dag_scripts(datadir,rundir,mcdir,email_address,debug):
     print "Making the input scripts"
     (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir)
