@@ -259,7 +259,7 @@ def create_dag_hierarchy(rundir,num_cpu):
     fp.write(" CHILD mcnp5.meshmerge \n")
     fp.close()
 
-    return
+    return dag_name
 
 
 
@@ -309,6 +309,49 @@ def mcnp_input_query(mcnp_filename,tetmesh):
     fp.close()
 
     return (tet_mesh_tf,meshtal_tf,mctal_tf)
+
+###
+### Script to take the mcnp input file pointed to in order to stratify the input deck into
+### a given number of parts determined by how many cpu's we would wish to run on
+###
+def generate_mcnp_inputs(rundir,mcnpfname,cpu_id,n_cpu,nps,seed):
+
+    file = open(rundir+'/'+mcnpfname,'w')
+
+    seed = 12512813139
+
+    print nps
+
+    if int(nps) <= 100000:
+        print "nps is very low, is it really worth a distributed run?"
+
+    if int(nps) > 1000000000:
+        print "nps is large"
+        print "consider chopping the job up into at least 1000 tasks"
+    
+
+    if int(nps) < int(n_cpu):
+        print "number of particles to run is less than the number of cpus"
+        print "do you really need a distributed run"
+        sys.exit()
+
+    num2run = int(nps)/int(n_cpu)
+
+    file.write("continue\n")
+    file.write("seed="+str(seed)+" hist="+str(int(num2run)*(int(cpu_id)-1)+1)+"\n")
+    if ( cpu_id < n_cpu):
+        file.write("nps "+str(num2run)+"\n")
+    else:
+        num2run =( nps - (int(nps)/int(n_cpu)*n_cpu) + (int(nps)/int(n_cpu)))
+        file.write("nps "+str(num2run)+"\n")
+
+    # turn on mctal dumping
+    file.write("prdmp "+str(num2run)+" "+str(num2run)+" 2 2j")
+
+    file.close()
+    
+    return
+
 
 
 # check that all input data pointed to by mcnp_args points to valid data
@@ -423,6 +466,7 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
             mcnp_args += " mesh=meshtal"+str(i)
         if dag_t:
             mcnp_args += " g="+dagmc_input_path.strip()
+
         
         
                 
@@ -456,8 +500,11 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
         fp.write("when_to_transfer_output = on_exit \n")
         fp.write("transfer_input_files = "+input_files+"\n")
         fp.write("+AccountingGroup = EngrPhysics_Wilson \n")
-       
-        
+
+        print "Generating mcnp inputs for job", i
+        seed = 123745775
+        nps = 100000
+        generate_mcnp_inputs(rundir,mcnp_input_path.strip()+str(i),i,num_cpu+1,nps,seed)
   
         fp.close
 
@@ -487,9 +534,9 @@ def make_dag_nodes(datadir,rundir,mcdir,email_address,debug):
     create_dag_file(rundir,num_cpu)
 
     #create the dag hierarchy
-    create_dag_hierarchy(rundir,num_cpu)
+    dag_filename=create_dag_hierarchy(rundir,num_cpu)
 
-    return
+    return dag_filename
 
 # make the scripts for the problem
 # make all the scripts for the problem being submitted along with
@@ -499,5 +546,5 @@ def make_dag_scripts(datadir,rundir,mcdir,email_address,debug):
     (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir)
     generate_condor_scripts(datadir,rundir,mcdir)
     
-    print num_cpu
-    return
+#    print num_cpu
+    return num_cpu
