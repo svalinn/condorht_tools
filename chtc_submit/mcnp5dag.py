@@ -5,6 +5,7 @@
 # converted to python by Andrew Davis and Zach Welch, Department of Engineering Physics, Uw Madison
 
 import sys # for command line args
+from subprocess import call
 
 from condor_mcnp_funcs import *
     
@@ -23,6 +24,13 @@ if(debug):
     print datadir, rundir, mcdir, email_address
 
 print "creating DiGraph Nodes"
-make_dag_nodes(datadir,rundir,mcdir,email_address,debug)
+dagfile=make_dag_nodes(datadir,rundir,mcdir,email_address,debug)
 
-make_dag_scripts(datadir,rundir,mcdir,email_address,debug)
+num_cpu = make_dag_scripts(datadir,rundir,mcdir,email_address,debug)
+
+print "submitting task"
+os.chdir( rundir )
+
+# submit the jobs
+# this would actually submit the jobs
+# call(["condor_submit_dag","--MaxPre","4",dagfile])
