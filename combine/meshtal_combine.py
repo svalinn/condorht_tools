@@ -357,7 +357,7 @@ def Stream(in1,in2,outname):
         file.write(' Tally bin boundaries:\n')
 
         words1 = mesh1.file.readline().split()
-        word2  = mesh2.file.readline().split()
+        words2  = mesh2.file.readline().split()
 
         xBounds = [float(v) for v in words1[2:]]
         xBounds2= [float(v) for v in words2[2:]]
@@ -387,7 +387,7 @@ def Stream(in1,in2,outname):
         words2 = mesh2.file.readline().split()
 
         enBounds= [float(v) for v in words1[3:]]
-        enBounds2= [float(v) for v in words2[2:]]
+        enBounds2= [float(v) for v in words2[3:]]
         if enBounds != enBounds2:
             print 'Energy Bounds for tally number '+str(meshtalNum)+' do not match '
             exit(1)
