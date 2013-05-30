@@ -141,8 +141,49 @@ class Meshtal(object):
 
     def Add(self,Other):
 
+
+        #check that files can be validly added together
+        if self.vers != Other.vers:
+            print 'Versions do not match '+self.filename+': '+str(self.vers)+', '+Other.filename+': '+str(Other.vers)
+            return 
+        if self.ld != Other.ld:
+            print 'ld do not match '+self.filename+': '+str(self.ld)+', '+Other.filename+': '+str(Other.ld)
+            return
+
+        for ndx in range(len(self.type)):
+            if self.meshtalNum[ndx] != Other.meshtalNum[ndx]:
+                print 'Meshtally Numbers do not match '+self.filename+': '+str(self.meshtalNum[ndx])+', '+Other.filename+': '+str(Other.meshtalNum[ndx])
+                return
+
+            if self.type[ndx] != Other.type[ndx]:
+                print 'Types do not match '+self.filename+': '+self.type[ndx]+'\n'+Other.filename+': '+Other.type[ndx]
+                return
+
+            if self.xBounds[ndx] != Other.xBounds[ndx]:
+                print 'X Bounds for tally number '+str(self.meshtalNum[ndx])+' do not match '
+                return
+
+            if self.yBounds[ndx] != Other.yBounds[ndx]:
+                print 'Y Bounds for tally number '+str(self.meshtalNum[ndx])+' do not match '
+                return
+
+            if self.zBounds[ndx] != Other.zBounds[ndx]:
+                print 'Z Bounds for tally number '+str(self.meshtalNum[ndx])+' do not match '
+                return
+
+            if self.enBounds[ndx] != Other.enBounds[ndx]:
+                print 'Energy Bounds for tally number '+str(self.meshtalNum[ndx])+' do not match '
+                return
+
+            if self.xNdx[ndx] != Other.xNdx[ndx] or self.yNdx[ndx] != Other.yNdx[ndx] or self.zNdx[ndx] != Other.zNdx[ndx] or self.enNdx[ndx] != Other.enNdx[ndx]:
+                print 'Data is ordered differently for tally number '+str(self.meshtalNum[ndx])
+                return
+
+
+
         N = self.numHist+Other.numHist
         for ndx in range(len(self.type)):
+
             numData = (len(self.xBounds[ndx])-1)*(len(self.yBounds[ndx])-1)*(len(self.zBounds[ndx])-1)*(len(self.enBounds[ndx])-1)
             for num in range((numData)):
                 S1 = self.resData[ndx][num]*self.numHist
