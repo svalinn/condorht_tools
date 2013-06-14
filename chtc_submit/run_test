@@ -1,3 +1,4 @@
-rm -rf /home/davisa/condorht_tools/chtc_submit/run_dir
+#rm -rf /home/davisa/condorht_tools/chtc_submit/run_dir
+rm -rf run_dir
 
-./mcnp5dag.py --data /home/davisa/condorht_tools/chtc_submit/test/ --rundir /home/davisa/condorht_tools/chtc_submit/run_dir --mcpath /home/davisa/dagmc/mcnp5src/bin/mcnp5 --debug on
+./mcnp5dag.py --data /opt/condorht_tools/chtc_submit/test/ --rundir /opt/condorht_tools/chtc_submit/run_dir --mcpath /opt/mcnp5v16/bin/mcnp5 --debug on
