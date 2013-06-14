@@ -239,24 +239,33 @@ def create_dag_hierarchy(rundir,num_cpu):
 
     # create the dag file
     fp = open(rundir+'/'+dag_name, "w")
-    fp.write("JOB premcnp5.init preinitcond.cmd \n")
-    fp.write("RETRY premcnp5.init 1 \n")
+
+    # preinit now redundant since original logic was wrong
+#    fp.write("JOB premcnp5.init preinitcond.cmd \n")
+#    fp.write("RETRY premcnp5.init 1 \n")
 
     # loop over the job hierarchy, we allow 3 resubmits of the mcnp file
     for jobs in range(1,int(num_cpu)):
-        fp.write("SCRIPT PRE mcnp5.test_"+str(jobs)+" some clever script "+str(jobs)+"\n")
+        #fp.write("SCRIPT PRE mcnp5.test_"+str(jobs)+" some clever script "+str(jobs)+"\n")
+        fp.write("JOB mcnp5.test_"+str(jobs)+" mcnp5."+str(jobs)+".cmd \n")
         fp.write("RETRY mcnp5.test_"+str(jobs)+" 3\n")
+
+#should ultimately perform merge but dont worry for now
                 
     # now create script for merging data
-    fp.write("JOB mcnp5.meshmerge finalmerge.cmd \n")
-    fp.write("SCRIPT POST mcnp5.meshmerge \n")
-    fp.write("RETRY mcnp5.meshmerge 1\n")
+   # fp.write("JOB mcnp5.meshmerge finalmerge.cmd \n")
+   # fp.write("SCRIPT POST mcnp5.meshmerge \n")
+   # fp.write("RETRY mcnp5.meshmerge 1\n")
 
-    fp.write("PARENT")
-    for jobs in range(1,int(num_cpu)):
-        fp.write(" mcnp5.test_"+str(jobs))
+###
+   
+###    fp.write("PARENT")
+###    for jobs in range(1,int(num_cpu)):
+###        fp.write(" mcnp5.test_"+str(jobs))
 
-    fp.write(" CHILD mcnp5.meshmerge \n")
+###    fp.write(" CHILD mcnp5.meshmerge \n")
+
+    
     fp.close()
 
     return dag_name
@@ -338,7 +347,7 @@ def generate_mcnp_inputs(rundir,mcnpfname,cpu_id,n_cpu,nps,seed):
     num2run = int(nps)/int(n_cpu)
 
     file.write("continue\n")
-    file.write("seed="+str(seed)+" hist="+str(int(num2run)*(int(cpu_id)-1)+1)+"\n")
+    file.write("rand gen=2 seed="+str(seed)+" hist="+str(int(num2run)*(int(cpu_id)-1)+1)+"\n")
     if ( cpu_id < n_cpu):
         file.write("nps "+str(num2run)+"\n")
     else:
@@ -500,6 +509,8 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
         fp.write("when_to_transfer_output = on_exit \n")
         fp.write("transfer_input_files = "+input_files+"\n")
         fp.write("+AccountingGroup = EngrPhysics_Wilson \n")
+
+        fp.write("Queue \n")
 
         print "Generating mcnp inputs for job", i
         seed = 123745775
