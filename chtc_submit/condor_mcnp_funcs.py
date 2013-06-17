@@ -3,6 +3,7 @@ import sys # for command line args
 import os  # for filepath tests
 import re  # for regular expressions
 import shutil # for copy files
+#from subprocess import call # for sys calls
 
 # print the help screen
 
@@ -79,7 +80,7 @@ def check_dirs(datadir,rundir,mcdir):
     return
 
 # check_mcnp_directives for validity
-def check_mcnp(datadir):
+def check_mcnp(datadir,rundir):
     # var for truth test
     # determines the truth vals
     num_t = False
@@ -134,6 +135,8 @@ def check_mcnp(datadir):
                 if not os.path.exists(datadir+dagmc_input_path.strip()):
                     print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
                     sys.exit()
+                # if a dag run copy the input geometry
+                #call(["cp",datadir+dagmc_input_path.strip(),rundir+dagmc_input_path.strip()])
                                             
             if 'output = ' in line:
                 out_t = True
@@ -147,13 +150,20 @@ def check_mcnp(datadir):
                 if not os.path.exists(datadir+tetmesh_input_path.strip()):
                     print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
                     sys.exit()
+                # copy the tetmesh if requried
+                # call(["cp",datadir+tetmesh_input_path.strip(),rundir+tetmesh_input_path.strip()])
             if 'runtpe = ' in line:
                 run_t = True
                 runtpe_input_path = line[line.find(" = ")+3:len(line)]
                 if  not os.path.exists(datadir+runtpe_input_path.strip()):
                     print "Runtpe does not exist", datadir+runtpe_input_path.strip()
                     sys.exit()
-
+                # copy the runtpe file 
+                # call(["cp",datadir+runtpe_input_path.strip(),rundir+datadir+runtpe_input_path.strip()])
+                # copy the runtpe ncpu times
+                # for i in range(1,num_t+1):
+                #    print "cp "+datadir+runtpe_input_path.strip()+" "+rundir+datadir+runtpe_input_path.strip()+str(i)
+                #    call(["cp",datadir+runtpe_input_path.strip(),rundir+datadir+runtpe_input_path.strip()+str(i)])
     file.close()
 
 # check the minium prequisites
@@ -374,6 +384,8 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
     problem pointed to by mcnp_args. It should generate command scripts on the basis of files pointed
     to by including, the tetmesh files and dagmc geometries to copy
     """
+
+    print "Generating condor scripts"
     
     # var for truth test
     # determines the truth vals
@@ -419,15 +431,31 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
                 dagmc_input_path = line[line.find(" = ")+3:len(line)]
                 if not os.path.exists(datadir+dagmc_input_path.strip()):
                     print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
-                    sys.exit()                                           
-
+                    sys.exit()
+                # copy dag input data
+                shutil.copyfile(datadir+'/'+dagmc_input_path.strip(),rundir+'/'+dagmc_input_path.strip())
+                print "dagmc"
             if 'tetmesh = ' in line:
                 tet_t = True
                 tetmesh_input_path = line[line.find(" = ")+3:len(line)]
                 if not os.path.exists(datadir+tetmesh_input_path.strip()):
                     print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
                     sys.exit()
+                # copy tetmesh if need be
+                shutil.copyfile(datadir+'/'+tetmesh_input_path.strip(), rundir+'/'+tetmesh_input_path.strip())
+                print "tetmesh"
 
+            if 'runtpe = ' in line:
+                run_t = True
+                runtpe_input_path = line[line.find(" = ")+3:len(line)]
+                if  not os.path.exists(datadir+runtpe_input_path.strip()):
+                    print "Runtpe does not exist", datadir+runtpe_input_path.strip()
+                    sys.exit()
+                for i in range (1,num_cpu+1):
+                    shutil.copyfile(datadir+'/'+runtpe_input_path.strip(),rundir+'/'+runtpe_input_path.strip()+str(i))
+                print "runtpe"
+                                                                                
+                
     tet_tf = False
     mesh_tf = False
     mctal_tf = False
@@ -465,7 +493,7 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
         fp.write("executable = "+mcnp_exec+" \n")
 
         # input command string
-        input_command   = " i="+mcnp_input_path.strip()+str(i)
+        input_command   = " c i="+mcnp_input_path.strip()+str(i)
         runtpe_command  = " r=runtpe"+str(i)
         output_command  = " o=output."+str(i)
         mctal_command   = " mctal=mctal"+str(i)
@@ -475,11 +503,8 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
             mcnp_args += " mesh=meshtal"+str(i)
         if dag_t:
             mcnp_args += " g="+dagmc_input_path.strip()
-
         
-        
-                
-       # mcnp_args = " c i="+mcnp_input_path.strip()+str(i)+".cont"+" r=runtpe"+str(i)+" mctal=mctal_"+str(i)+" mesh=meshtal_"+str(i)
+        # write the arguments
         fp.write("arguments = "+mcnp_args+"\n")
 
         fp.write("universe = vanilla \n")
@@ -523,8 +548,21 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
 # build the dag nodes
 def make_dag_nodes(datadir,rundir,mcdir,email_address,debug):
 
+    """
+    Function to make the Directed Acyclic Graph nodes, links in with
+    create_dag_file
+
+    """
+
+    # args
+    # datadir - directory containing the input data
+    # rundir  - the directory where the run data will be put
+    # mcdir   - is the directory where the mcnp executable will be found
+    # email_address - is a valid email address which can be emailed upon job completion
+    # debug - flag for extra input data
+
     print "checking input data"
-    (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir) #check the directives file for validity, found in datadir/mcnp_args
+    (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir,rundir) #check the directives file for validity, found in datadir/mcnp_args
 
     # echo to screen what we are doing
     print "Creating DiGraph "
@@ -553,9 +591,14 @@ def make_dag_nodes(datadir,rundir,mcdir,email_address,debug):
 # make all the scripts for the problem being submitted along with
 # all required ancilliary files
 def make_dag_scripts(datadir,rundir,mcdir,email_address,debug):
+    """
+    Wrapper function the takes arguments and passes them to functions that
+    check the validity of the arguments and then generate the condor submission
+    files on the basis of the valid inputs
+    """
+    # returns the number of cpus
     print "Making the input scripts"
-    (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir)
+    (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir,rundir)
     generate_condor_scripts(datadir,rundir,mcdir)
     
-#    print num_cpu
     return num_cpu
