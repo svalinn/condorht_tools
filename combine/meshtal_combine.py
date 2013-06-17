@@ -37,8 +37,8 @@ class Meshtal(object):
 
         try:
             self.file = open(filename, 'r')
-        except IOError as e:
-            print "Error Opening {2}. ({0}): {1}".format(e.errno, e.strerror,filename)
+        except IOError, (errno, strerror):
+            print "Error Opening %s. (%s): %s" % (filename,errno, strerror)
             exit(1)
 
         try:
@@ -137,9 +137,9 @@ class Meshtal(object):
                 
                 self.file.readline()
                 line = self.file.readline()
-        except Error as e:
+        except Error, (errno, strerror):
             print 'Error parsing file '+filename
-            print "Error # ({0}): {1}".format(e.errno, e.strerror)
+            print "Error Opening %s. (%s): %s" % (filename,errno, strerror)
             exit(1)
 
         self.file.close()
@@ -211,24 +211,24 @@ class Meshtal(object):
     def Write(self,filename):        
         try:
             file = open(filename,'w')
-        except IOError as e:
-            print "Error Opening outputfile. ({0}): {1}".format(e.errno, e.strerror)
+        except IOError, (errno, strerror):
+            print "Error Opening %s. (%s): %s" % (filename,errno, strerror)
 
         now = datetime.datetime.now()
-        self.date = '{:02d}/{:02d}/{:02d}'.format(now.month,now.day,now.year)
-        self.time = '{:02d}:{:02d}:{:02d}'.format(now.hour,now.minute,now.second)
-        file.write('mcnp   version {0}\tld={1}  probid = {2} {3}\n'.format(self.vers,self.ld,self.date,self.time))
-        file.write('{0}'.format(self.comment))
-        file.write(' Number of histories used for normalizing tallies =\t{:.5e}\n'.format(self.numHist))
+        self.date = '%02d/%02d/%02d'%(now.month,now.day,now.year)
+        self.time = '%02d:%02d:%02d'%(now.hour,now.minute,now.second)
+        file.write('mcnp   version %s\tld=%s  probid = %s %s\n'%(self.vers,self.ld,self.date,self.time))
+        file.write('%s'%(self.comment))
+        file.write(' Number of histories used for normalizing tallies =\t%.5e\n'%(self.numHist))
         
         for ndx in range(len(self.meshtalNum)):
-            file.write('\n Mesh Tally Number   {0}\n'.format(self.meshtalNum[ndx]))
+            file.write('\n Mesh Tally Number   %s\n'%(self.meshtalNum[ndx]))
             file.write(self.type[ndx])
             file.write(' Tally bin boundaries:\n')
-            file.write('    X direction:{0}\n'.format(''.join(str('{:10.2f}'.format(v)) for v in self.xBounds[ndx])))
-            file.write('    Y direction:{0}\n'.format(''.join(str('{:10.2f}'.format(v)) for v in self.yBounds[ndx])))
-            file.write('    Z direction:{0}\n'.format(''.join(str('{:10.2f}'.format(v)) for v in self.zBounds[ndx])))
-            file.write('    Energy bin boundaries:{0}\n'.format(''.join(str('{:9.2e}'.format(v)) for v in self.enBounds[ndx])))
+            file.write('    X direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in self.xBounds[ndx])))
+            file.write('    Y direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in self.yBounds[ndx])))
+            file.write('    Z direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in self.zBounds[ndx])))
+            file.write('    Energy bin boundaries:%s\n'%(''.join(str('%9.2e'%(v)) for v in self.enBounds[ndx])))
             file.write('\n')
             if self.enNdx[ndx] >= 0:
                 file.write('     Energy')
@@ -248,15 +248,15 @@ class Meshtal(object):
             numData *= (len(self.enBounds[ndx])- 1)
             for num in range(numData):
                 if self.enNdx[ndx] >=0:
-                    file.write('{:10s}'.format(self.enData[ndx][num]))
+                    file.write('%10s'%(self.enData[ndx][num]))
                 if self.xNdx[ndx] >=0:
-                    file.write(' {:10.3f}'.format(self.xData[ndx][num]))
+                    file.write(' %10.3f'%(self.xData[ndx][num]))
                 if self.yNdx[ndx] >=0:
-                    file.write(' {:9.3f}'.format(self.yData[ndx][num]))
+                    file.write(' %9.3f'%(self.yData[ndx][num]))
                 if self.zNdx[ndx] >=0:
-                    file.write(' {:9.3f}'.format(self.zData[ndx][num]))
-                file.write(' {:10.5e}'.format(self.resData[ndx][num]))
-                file.write(' {:10.5e}\n'.format(self.errData[ndx][num]))
+                    file.write(' %9.3f'%(self.zData[ndx][num]))
+                file.write(' %10.5e'%(self.resData[ndx][num]))
+                file.write(' %10.5e\n'%(self.errData[ndx][num]))
         file.close()
 
 def Stream(in1,in2,outname):
@@ -267,13 +267,13 @@ def Stream(in1,in2,outname):
 
     try:
         mesh1.file = open(in1,'r')
-    except IOError as e:
-        print "Error Opening {2}. ({0}): {1}".format(e.errno, e.strerror,in1)
+    except IOError, (errno, strerror):
+        print "Error Opening %s. (%s): %s" % (in1,errno, strerror)
         exit(1)
     try:
         mesh2.file = open(in2,'r')     
-    except IOError as e:
-        print "Error Opening {2}. ({0}): {1}".format(e.errno, e.strerror,in2)
+    except IOError, (errno, strerror):
+        print "Error Opening %s. (%s): %s" % (in2,errno, strerror)
         exit(1)
 
     #mesh1 header
@@ -311,17 +311,17 @@ def Stream(in1,in2,outname):
 
     try:
         file = open(outname,'w')
-    except IOError as e:
-        print "Error Opening {2}. ({0}): {1}".format(e.errno, e.strerror,outname)
+    except IOError, (errno, strerror):
+        print "Error Opening %s. (%s): %s" % (outname,errno, strerror)
         exit(1)
 
 
     now = datetime.datetime.now()
-    date = '{:02d}/{:02d}/{:02d}'.format(now.month,now.day,now.year)
-    time = '{:02d}:{:02d}:{:02d}'.format(now.hour,now.minute,now.second)
-    file.write('mcnp   version {0}\tld={1}  probid = {2} {3}\n'.format(mesh1.vers,mesh1.ld,date,time))
-    file.write('{0}'.format(mesh1.comment))
-    file.write(' Number of histories used for normalizing tallies =\t{:.5e}\n'.format(mesh1.numHist +mesh2.numHist))
+    date = '%02d/%02d/%02d'%(now.month,now.day,now.year)
+    time = '%02d:%02d:%02d'%(now.hour,now.minute,now.second)
+    file.write('mcnp   version %s\tld=%s  probid = %s %s\n'%(mesh1.vers,mesh1.ld,date,time))
+    file.write('%s'%(mesh1.comment))
+    file.write(' Number of histories used for normalizing tallies =\t%.5e\n'%(mesh1.numHist +mesh2.numHist))
 
     while len(line1) != 0 :
         words1 = line1.split()
@@ -332,7 +332,7 @@ def Stream(in1,in2,outname):
             print 'Meshtally Numbers do not match '+in1+': '+str(meshtalNum)+', '+in2+': '+str(meshtalNum2)
             exit(1)
         
-        file.write('\n Mesh Tally Number   {0}\n'.format(meshtalNum))
+        file.write('\n Mesh Tally Number   %s\n'%(meshtalNum))
 
         type = mesh1.file.readline()
         type2 = mesh2.file.readline()
@@ -451,10 +451,10 @@ def Stream(in1,in2,outname):
 
         numData = (len(xBounds)-1)*(len(yBounds)-1)*(len(zBounds)-1)*(len(enBounds)-1)
 
-        file.write('    X direction:{0}\n'.format(''.join(str('{:10.2f}'.format(v)) for v in xBounds)))
-        file.write('    Y direction:{0}\n'.format(''.join(str('{:10.2f}'.format(v)) for v in yBounds)))
-        file.write('    Z direction:{0}\n'.format(''.join(str('{:10.2f}'.format(v)) for v in zBounds)))
-        file.write('    Energy bin boundaries:{0}\n'.format(''.join(str('{:9.2e}'.format(v)) for v in enBounds)))
+        file.write('    X direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in xBounds)))
+        file.write('    Y direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in yBounds)))
+        file.write('    Z direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in zBounds)))
+        file.write('    Energy bin boundaries:%s\n'%(''.join(str('%9.2e'%(v)) for v in enBounds)))
         file.write('\n')
         if enNdx>= 0:
             file.write('     Energy')
@@ -501,15 +501,15 @@ def Stream(in1,in2,outname):
                 else:
                     errDataOut = math.sqrt(stddev2)/mean
                 if enNdx >=0:
-                    file.write('{:10s}'.format(enData1))
+                    file.write('%10s'%(enData1))
                 if xNdx >=0:
-                    file.write(' {:10.3f}'.format(xData1))
+                    file.write(' %10.3f'%(xData1))
                 if yNdx >=0:
-                    file.write(' {:9.3f}'.format(yData1))
+                    file.write(' %9.3f'%(yData1))
                 if zNdx >=0:
-                    file.write(' {:9.3f}'.format(zData1))
-                file.write(' {:10.5e}'.format(resDataOut))
-                file.write(' {:10.5e}\n'.format(errDataOut))
+                    file.write(' %9.3f'%(zData1))
+                file.write(' %10.5e'%(resDataOut))
+                file.write(' %10.5e\n'%(errDataOut))
 
         line1 = mesh1.file.readline()
         mesh2.file.readline()
