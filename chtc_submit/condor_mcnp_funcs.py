@@ -6,8 +6,10 @@ import shutil # for copy files
 #from subprocess import call # for sys calls
 
 # print the help screen
-
 def print_usage():
+    """
+    Function to print the use of the main program
+    """
     print "Python based script to launch jobs on condor, use as"
     print " "
     print "mkmcnp5dag --data=ross_1bt3 --rundir=run_dir"
@@ -132,21 +134,28 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
         
     return
 
-def run_mcnp_input(rundir,mcnp_input,run_number,mcnp_input_dir):
+def run_mcnp_input(rundir,mcnp_input,run_number,mcnp_input_dir,dag_t,dagmc_input):
     """
     Function that runs the mcnp input pointed to, to produce the runtpe file with the correct
     data stored.
     """
     working_dir=os.getcwd() #copy cwd
     os.chdir(rundir) # move to run dir
-    print mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' g=divertor_simgeom.h5m r=runtpe'+str(run_number)
-    os.system(mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' g=divertor_simgeom.h5m r=runtpe'+str(run_number))
+
+    #    print mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' g='+dagmc_input.rstrip()+' r=runtpe'+str(run_number)
+    #   sys.exit()
+    #    print mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' g=divertor_simgeom.h5m r=runtpe'+str(run_number)
+    if dag_t:
+        os.system(mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' g='+dagmc_input.rstrip()+' r=runtpe'+str(run_number))
+    else:
+        os.system(mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' r=runtpe'+str(run_number))
+        
     os.system('rm -rf out?')
     os.chdir(working_dir) # go back to original cwd
 
     return
 
-def generate_runtapes(run_num,input_dir,mcnp_input,rundir,mcnp_input_dir):
+def generate_runtapes(run_num,input_dir,mcnp_input,rundir,mcnp_input_dir,dag_t,dagmc_input):
     """
     Args
     num_cpus - the number of cpu's the problem will be divided into
@@ -158,7 +167,7 @@ def generate_runtapes(run_num,input_dir,mcnp_input,rundir,mcnp_input_dir):
     #    for i in range(1,num_cpus+1):
     # loop over each input deck in the problem
     create_mcnp_input(input_dir,mcnp_input,rundir,run_num) # create the input deck
-    run_mcnp_input(rundir,mcnp_input,run_num,mcnp_input_dir) # run the mcnp input problem
+    run_mcnp_input(rundir,mcnp_input,run_num,mcnp_input_dir,dag_t,dagmc_input) # run the mcnp input problem
 
     return
 
@@ -398,6 +407,7 @@ def mcnp_input_query(mcnp_filename,tetmesh):
     tet_mesh_tf = False
     meshtal_tf = False
     mctal_tf = False
+    nps_tf = False
 
     fp = open(mcnp_filename,'r')
     while 1:
@@ -418,16 +428,25 @@ def mcnp_input_query(mcnp_filename,tetmesh):
                     if "prdmpjj" in line.lower().strip() or \
                        "prdmp2j" in line.lower().strip():
                         mctal_tf = True
-                           
+                if "nps" in line:
+                    nps_line=line.split(' ',1)
+                    nps = int(float(nps_line[1])/1.0)
+                    nps_tf = True
+                    
     # if advanced tallies on check for existance of file
     if(tet_mesh_tf):
        if not os.path.exists(str(tetmesh)):
            print "Tetmesh, ",str(tetmesh)," does not exist"
            sys.exit()
+
+    # if nps not set
+    if not nps_tf:
+        print "NPS was not set in the input file \n"
+        sys.exit()
             
     fp.close()
 
-    return (tet_mesh_tf,meshtal_tf,mctal_tf)
+    return (tet_mesh_tf,meshtal_tf,mctal_tf,nps)
 
 ###
 ### Script to take the mcnp input file pointed to in order to stratify the input deck into
@@ -437,9 +456,9 @@ def generate_mcnp_inputs(rundir,mcnpfname,cpu_id,n_cpu,nps,seed):
 
     file = open(rundir+'/'+mcnpfname,'w')
 
-    seed = 12512813139
+ #   seed = 12512813139
 
-    print nps
+ #   print nps
 
     if int(nps) <= 100000:
         print "nps is very low, is it really worth a distributed run?"
@@ -562,7 +581,7 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
     mctal_tf = False
 
     # query the mcnp input deck for input information
-    (tet_tf,mesh_tf,mctal_tf)=mcnp_input_query(datadir+mcnp_input_path.strip(),datadir+tetmesh_input_path.strip())
+    (tet_tf,mesh_tf,mctal_tf,nps)=mcnp_input_query(datadir+mcnp_input_path.strip(),datadir+tetmesh_input_path.strip())
 
     # check for logic failures, eg if tet mesh pointed to in mcnp_args but no file in input deck
     if tet_tf and tet_t:
@@ -643,11 +662,11 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
 
         print "Generating mcnp inputs for job", i
         seed = 123745775 # so should this?
-        nps = 100000 # shouldnt this be set from the input deck?
+#        nps = 100000 # shouldnt this be set from the input deck?
 
         
         # numcpus,input data dir, mcnp_input filename, run path, mcnp exec
-        generate_runtapes(i,datadir,mcnp_input_path,rundir,mcnp_exec)
+        generate_runtapes(i,datadir,mcnp_input_path,rundir,mcnp_exec,dag_t,dagmc_input_path)
         # generate the mcnp inputs for the continue run
         generate_mcnp_inputs(rundir,mcnp_input_path.strip()+str(i),i,num_cpu+1,nps,seed) 
   
