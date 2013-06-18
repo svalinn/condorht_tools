@@ -34,4 +34,4 @@ os.chdir( rundir )
 # submit the jobs
 # this would actually submit the jobs
 
-#call(["condor_submit_dag","--MaxPre","4",dagfile])
+call(["condor_submit_dag","--MaxPre","4",dagfile])
