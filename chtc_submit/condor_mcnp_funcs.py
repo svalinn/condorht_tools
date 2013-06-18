@@ -21,6 +21,12 @@ def print_usage():
 
 # check the command args and ensure valid input
 def command_args(argv):
+
+    """
+    Function to check the validity of the command arguments, tests them to ensure
+    self consistency.
+    """
+
     rundir=""
     datadir=""
     mcnpdir=""
@@ -150,20 +156,14 @@ def check_mcnp(datadir,rundir):
                 if not os.path.exists(datadir+tetmesh_input_path.strip()):
                     print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
                     sys.exit()
-                # copy the tetmesh if requried
-                # call(["cp",datadir+tetmesh_input_path.strip(),rundir+tetmesh_input_path.strip()])
+
             if 'runtpe = ' in line:
                 run_t = True
                 runtpe_input_path = line[line.find(" = ")+3:len(line)]
                 if  not os.path.exists(datadir+runtpe_input_path.strip()):
                     print "Runtpe does not exist", datadir+runtpe_input_path.strip()
                     sys.exit()
-                # copy the runtpe file 
-                # call(["cp",datadir+runtpe_input_path.strip(),rundir+datadir+runtpe_input_path.strip()])
-                # copy the runtpe ncpu times
-                # for i in range(1,num_t+1):
-                #    print "cp "+datadir+runtpe_input_path.strip()+" "+rundir+datadir+runtpe_input_path.strip()+str(i)
-                #    call(["cp",datadir+runtpe_input_path.strip(),rundir+datadir+runtpe_input_path.strip()+str(i)])
+                
     file.close()
 
 # check the minium prequisites
@@ -211,6 +211,11 @@ def check_mcnp(datadir,rundir):
 
 # create the initial dag file
 def create_dag_file(rundir,num_cpu):
+
+    """
+    Function to generate the directed acyclic graph of the run
+    """
+    
     dag_name = "mydag.dag"
 
     print "writing ",dag_name
