@@ -83,7 +83,8 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
     out_t=False
 
     # open the mcnp input file and look for the phrase "dagmc" if absent normal run
-    file = open(input_dir+"/"+mcnp_input)
+    print input_dir+"/"+mcnp_input
+    file = open(input_dir+"/"+mcnp_input.rstrip())
 
     while 1:
         line = file.readline()
@@ -110,8 +111,8 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
         exit()
     elif dagmc_t and out_t:
         # mcnp run with tetmesh
-        file = open(input_dir+"/"+mcnp_input)
-        ofile = open(rundir+'/'+mcnp_input+str(run_num),'w')
+        file = open(input_dir+"/"+mcnp_input.rstrip())
+        ofile = open(rundir+'/'+mcnp_input.rstrip()+str(run_num),'w')
         while 1:
             line = file.readline()
             if not line:
@@ -137,12 +138,15 @@ def run_mcnp_input(rundir,mcnp_input,run_number,mcnp_input_dir):
     data stored.
     """
     working_dir=os.getcwd() #copy cwd
-    os.chdir(rundir) #move to run dir
-    os.system(mcnp_input_dir+' ix '+' i='+mcnp_input+str(run_number)+' g=divertor_simgeom.h5m')
-    os.chdir(working_dir) #go back to original cwd
+    os.chdir(rundir) # move to run dir
+    print mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' g=divertor_simgeom.h5m r=runtpe'+str(run_number)
+    os.system(mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' g=divertor_simgeom.h5m r=runtpe'+str(run_number))
+    os.system('rm -rf out?')
+    os.chdir(working_dir) # go back to original cwd
+
     return
 
-def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,mcnp_input_dir):
+def generate_runtapes(run_num,input_dir,mcnp_input,rundir,mcnp_input_dir):
     """
     Args
     num_cpus - the number of cpu's the problem will be divided into
@@ -151,10 +155,10 @@ def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,mcnp_input_dir):
     rundir - the directory where the run will take place
     """
 
-    for i in range(1,num_cpus+1):
-        # loop over each input deck in the problem
-        create_mcnp_input(input_dir,mcnp_input,rundir,i) # create the input deck
-        run_mcnp_input(rundir,mcnp_input,i,mcnp_input_dir) # run the mcnp input problem
+    #    for i in range(1,num_cpus+1):
+    # loop over each input deck in the problem
+    create_mcnp_input(input_dir,mcnp_input,rundir,run_num) # create the input deck
+    run_mcnp_input(rundir,mcnp_input,run_num,mcnp_input_dir) # run the mcnp input problem
 
     return
 
@@ -229,8 +233,8 @@ def check_mcnp(datadir,rundir):
             if 'dagmc = ' in line:
                 dag_t = True
                 dagmc_input_path = line[line.find(" = ")+3:len(line)]
-                if not os.path.exists(datadir+dagmc_input_path.strip()):
-                    print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
+                if not os.path.exists(datadir+dagmc_input_path.rstrip()):
+                    print "Dagmc input deck does not exist", datadir+dagmc_input_path.rstrip()
                     sys.exit()
                 # if a dag run copy the input geometry
                 #call(["cp",datadir+dagmc_input_path.strip(),rundir+dagmc_input_path.strip()])
@@ -244,15 +248,15 @@ def check_mcnp(datadir,rundir):
             if 'tetmesh = ' in line:
                 tet_t = True
                 tetmesh_input_path = line[line.find(" = ")+3:len(line)]
-                if not os.path.exists(datadir+tetmesh_input_path.strip()):
-                    print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
+                if not os.path.exists(datadir+tetmesh_input_path.rstrip()):
+                    print "Tetmesh does not exist", datadir+tetmesh_input_path.rstrip()
                     sys.exit()
 
             if 'runtpe = ' in line:
                 run_t = True
                 runtpe_input_path = line[line.find(" = ")+3:len(line)]
-                if  not os.path.exists(datadir+runtpe_input_path.strip()):
-                    print "Runtpe does not exist", datadir+runtpe_input_path.strip()
+                if  not os.path.exists(datadir+runtpe_input_path.rstrip()):
+                    print "Runtpe does not exist", datadir+runtpe_input_path.rstrip()
                     sys.exit()
                 
     file.close()
@@ -529,8 +533,9 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
                     print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
                     sys.exit()
                 # copy dag input data
-                shutil.copyfile(datadir+'/'+dagmc_input_path.strip(),rundir+'/'+dagmc_input_path.strip())
+                shutil.copyfile(datadir+'/'+dagmc_input_path.rstrip(),rundir+'/'+dagmc_input_path.rstrip())
                 print "dagmc"
+                
             if 'tetmesh = ' in line:
                 tet_t = True
                 tetmesh_input_path = line[line.find(" = ")+3:len(line)]
@@ -538,7 +543,7 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
                     print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
                     sys.exit()
                 # copy tetmesh if need be
-                shutil.copyfile(datadir+'/'+tetmesh_input_path.strip(), rundir+'/'+tetmesh_input_path.strip())
+                shutil.copyfile(datadir+'/'+tetmesh_input_path.rstrip(), rundir+'/'+tetmesh_input_path.rstrip())
                 print "tetmesh"
 
             if 'runtpe = ' in line:
@@ -547,8 +552,8 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
                 if  not os.path.exists(datadir+runtpe_input_path.strip()):
                     print "Runtpe does not exist", datadir+runtpe_input_path.strip()
                     sys.exit()
-                for i in range (1,num_cpu+1):
-                    shutil.copyfile(datadir+'/'+runtpe_input_path.strip(),rundir+'/'+runtpe_input_path.strip()+str(i))
+                #for i in range (1,num_cpu+1):
+                #    shutil.copyfile(datadir+'/'+runtpe_input_path.rstrip(),rundir+'/'+runtpe_input_path.rstrip()+str(i))
                 print "runtpe"
                                                                                 
                 
@@ -615,14 +620,15 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
         # if the input files exists then copy it
         if inp_t:
             input_files += input_stream
+            shutil.copyfile(datadir+'/'+mcnp_input_path.strip(),rundir+'/'+mcnp_input_path.strip())
         # if the damgc input exits copy it
         if dag_t:
             input_files += dagmc_input_path.strip()+","
-            shutil.copyfile(datadir+'/'+damgc_input_path,rundir+'/'+dagmc_input_path)
+            shutil.copyfile(datadir+'/'+dagmc_input_path.strip(),rundir+'/'+dagmc_input_path)
         # if tet mesh exists then copy it
         if tet_t:
             input_files += tetmesh_input_path.strip()+","
-            shutil.copyfile(datadir+'/'+tetmesh_input_path,rundir+'/'+tetmesh_input_path)
+            shutil.copyfile(datadir+'/'+tetmesh_input_path.strip(),rundir+'/'+tetmesh_input_path)
 
         input_files += runtpe_stream           
 
@@ -641,12 +647,13 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
 
         
         # numcpus,input data dir, mcnp_input filename, run path, mcnp exec
-        generate_runtapes(num_cpu+1,datadir,mcnp_input_path,rundir,mcnp_exec)
+        generate_runtapes(i,datadir,mcnp_input_path,rundir,mcnp_exec)
         # generate the mcnp inputs for the continue run
         generate_mcnp_inputs(rundir,mcnp_input_path.strip()+str(i),i,num_cpu+1,nps,seed) 
   
         fp.close
-
+        
+    return
  
 # build the dag nodes
 def make_dag_nodes(datadir,rundir,mcdir,email_address,debug):
