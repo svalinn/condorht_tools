@@ -39,7 +39,7 @@ class Meshtal(object):
             self.file = open(filename, 'r')
         except IOError, (errno, strerror):
             print "Error Opening %s. (%s): %s" % (filename,errno, strerror)
-            exit(1)
+            sys.exit(1)
 
         try:
             self.filename=filename
@@ -137,10 +137,9 @@ class Meshtal(object):
                 
                 self.file.readline()
                 line = self.file.readline()
-        except Error, (errno, strerror):
-            print 'Error parsing file '+filename
-            print "Error Opening %s. (%s): %s" % (filename,errno, strerror)
-            exit(1)
+        except Exception,inst:
+            print "Error Opening %s.: %s" % (filename, inst.args)
+            sys.exit(1)
 
         self.file.close()
 
@@ -269,85 +268,126 @@ def Stream(in1,in2,outname):
         mesh1.file = open(in1,'r')
     except IOError, (errno, strerror):
         print "Error Opening %s. (%s): %s" % (in1,errno, strerror)
-        exit(1)
+        sys.exit(1)
     try:
         mesh2.file = open(in2,'r')     
     except IOError, (errno, strerror):
         print "Error Opening %s. (%s): %s" % (in2,errno, strerror)
-        exit(1)
+        sys.exit(1)
 
     #mesh1 header
-    
-    words1 = mesh1.file.readline().split()
-    mesh1.vers=int(words1[2])
-    mesh1.ld=int(words1[3][3:])
-    mesh1.comment=mesh1.file.readline()
-    words1 = mesh1.file.readline().split()
-    mesh1.numHist=float(words1[-1])
+    try:
+        words1 = mesh1.file.readline().split()
+        mesh1.vers=int(words1[2])
+        mesh1.ld=int(words1[3][3:])
+        mesh1.comment=mesh1.file.readline()
+        words1 = mesh1.file.readline().split()
+        mesh1.numHist=float(words1[-1])
 
-    mesh1.file.readline()
-    line1 = mesh1.file.readline() 
+        mesh1.file.readline()
+        line1 = mesh1.file.readline() 
+    except Exception,inst:
+        print "Error Reading %s.: %s" % (in1, inst.args)
+        sys.exit(1)
+
 
     #mesh2 header
-    words2 = mesh2.file.readline().split()
-    mesh2.vers=int(words2[2])
-    mesh2.ld=int(words2[3][3:])
-    mesh2.comment=mesh2.file.readline()
-    words2 = mesh2.file.readline().split()
-    mesh2.numHist=float(words2[-1])
+    try:
+        words2 = mesh2.file.readline().split()
+        mesh2.vers=int(words2[2])
+        mesh2.ld=int(words2[3][3:])
+        mesh2.comment=mesh2.file.readline()
+        words2 = mesh2.file.readline().split()
+        mesh2.numHist=float(words2[-1])
 
-    mesh2.file.readline()
-    line2 = mesh2.file.readline() 
+        mesh2.file.readline()
+        line2 = mesh2.file.readline() 
+    except Exception,inst:
+        print "Error Reading %s.: %s" % (in2, inst.args)
+        sys.exit(1)
+
 
 
     if mesh1.vers != mesh2.vers:
         print 'Versions do not match '+in1+': '+str(mesh1.vers)+', '+in2+': '+str(mesh2.vers)
-        exit(1)
+        sys.exit(1)
 
 
     if mesh1.ld != mesh2.ld:
         print 'ld do not match '+in1+': '+str(mesh1.ld)+', '+in2+': '+str(mesh2.ld)
-        exit(1)
+        sys.exit(1)
 
     try:
         file = open(outname,'w')
     except IOError, (errno, strerror):
         print "Error Opening %s. (%s): %s" % (outname,errno, strerror)
-        exit(1)
+        sys.exit(1)
 
 
     now = datetime.datetime.now()
     date = '%02d/%02d/%02d'%(now.month,now.day,now.year)
     time = '%02d:%02d:%02d'%(now.hour,now.minute,now.second)
-    file.write('mcnp   version %s\tld=%s  probid = %s %s\n'%(mesh1.vers,mesh1.ld,date,time))
-    file.write('%s'%(mesh1.comment))
-    file.write(' Number of histories used for normalizing tallies =\t%.5e\n'%(mesh1.numHist +mesh2.numHist))
+
+    try:
+        file.write('mcnp   version %s\tld=%s  probid = %s %s\n'%(mesh1.vers,mesh1.ld,date,time))
+        file.write('%s'%(mesh1.comment))
+        file.write(' Number of histories used for normalizing tallies =\t%.5e\n'%(mesh1.numHist +mesh2.numHist))
+    except Exception,inst:
+        print "Error Writing %s.: %s" % (outname, inst.args)
+        sys.exit(1)
+
+
+
 
     while len(line1) != 0 :
-        words1 = line1.split()
-        meshtalNum = int(words1[-1])
-        words2 = line2.split()
-        meshtalNum2 = int(words2[-1])
+        try:
+            words1 = line1.split()
+            meshtalNum = int(words1[-1])
+        except Exception,inst:
+            print "Error Reading %s.: %s" % (in1, inst.args)
+            sys.exit(1)
+
+
+        try:
+            words2 = line2.split()
+            meshtalNum2 = int(words2[-1])
+        except Exception,inst:
+            print "Error Opening %s.: %s" % (in2, inst.args)
+            sys.exit(1)
+
+
+
         if meshtalNum != meshtalNum2:
             print 'Meshtally Numbers do not match '+in1+': '+str(meshtalNum)+', '+in2+': '+str(meshtalNum2)
-            exit(1)
+            sys.exit(1)
         
         file.write('\n Mesh Tally Number   %s\n'%(meshtalNum))
 
-        type = mesh1.file.readline()
-        type2 = mesh2.file.readline()
-        line1 = mesh1.file.readline()
-        line2 = mesh2.file.readline()
+        try:
+            type = mesh1.file.readline()
+            line1 = mesh1.file.readline()
+        except Exception,inst:
+            print "Error Reading %s.: %s" % (in1, inst.args)
+            sys.exit(1)
+
+        try:
+            type2 = mesh2.file.readline()
+            line2 = mesh2.file.readline()
+        except Exception,inst:
+            print "Error Reading %s.: %s" % (in2, inst.args)
+            sys.exit(1)
+
+
 
         while "Tally bin boundaries:" not in line1 and "Tally bin boundaries:" not in line2:
             type += line1
-            type2+= line2
             line1 = mesh1.file.readline()
+            type2+= line2
             line2 = mesh2.file.readline()
 
         if type != type2:
             print 'Types do not match '+in1+': '+type+'\n'+in2+': '+type2
-            exit(1)
+            sys.exit(1)
 
 
 
@@ -355,166 +395,170 @@ def Stream(in1,in2,outname):
 
         # self.type.append(type)
         file.write(' Tally bin boundaries:\n')
+        try:
+            words1 = mesh1.file.readline().split()
+            words2  = mesh2.file.readline().split()
 
-        words1 = mesh1.file.readline().split()
-        words2  = mesh2.file.readline().split()
+            xBounds = [float(v) for v in words1[2:]]
+            xBounds2= [float(v) for v in words2[2:]]
+            if xBounds != xBounds2:
+                print 'X Bounds for tally number '+str(meshtalNum)+' do not match '
+                sys.exit(1)
 
-        xBounds = [float(v) for v in words1[2:]]
-        xBounds2= [float(v) for v in words2[2:]]
-        if xBounds != xBounds2:
-            print 'X Bounds for tally number '+str(meshtalNum)+' do not match '
-            exit(1)
-
-        words1 = mesh1.file.readline().split()
-        words2 = mesh2.file.readline().split()
-
-        yBounds = [float(v) for v in words1[2:]]
-        yBounds2= [float(v) for v in words2[2:]]
-        if yBounds != yBounds2:
-            print 'Y Bounds for tally number '+str(meshtalNum)+' do not match '
-            exit(1)
-
-        words1 = mesh1.file.readline().split()
-        words2 = mesh2.file.readline().split()
-
-        zBounds = [float(v) for v in words1[2:]]
-        zBounds2= [float(v) for v in words2[2:]]
-        if zBounds != zBounds2:
-            print 'Z Bounds for tally number '+str(meshtalNum)+' do not match '
-            exit(1)
-
-        words1 = mesh1.file.readline().split()
-        words2 = mesh2.file.readline().split()
-
-        enBounds= [float(v) for v in words1[3:]]
-        enBounds2= [float(v) for v in words2[3:]]
-        if enBounds != enBounds2:
-            print 'Energy Bounds for tally number '+str(meshtalNum)+' do not match '
-            exit(1)
-
-        mesh1.file.readline()
-        mesh2.file.readline()
-        
-        dataOrder =mesh1.file.readline().split()
-        dataOrder2=mesh2.file.readline().split()
-        
-        enNdx = -1
-        xNdx = -1
-        yNdx = -1
-        zNdx = -1
-        resNdx = -1
-        errNdx = -1
-
-        for ndx in range(len(dataOrder)):
-            if "Energy" in dataOrder[ndx]:
-                enNdx = ndx
-            elif "X" in dataOrder[ndx]:
-                xNdx=ndx
-            elif "Y" in dataOrder[ndx]:
-                yNdx=ndx
-            elif "Z" in dataOrder[ndx]:
-                zNdx=ndx
-            elif "Result" in dataOrder[ndx]:
-                resNdx=ndx
-            elif "Rel" in dataOrder[ndx]:
-                errNdx=ndx
-
-
-
-        enNdx2 = -1
-        xNdx2 = -1
-        yNdx2 = -1
-        zNdx2 = -1
-        resNdx2 = -1
-        errNdx2 = -1
-
-        for ndx in range(len(dataOrder2)):
-            if "Energy" in dataOrder2[ndx]:
-                enNdx2 = ndx
-            elif "X" in dataOrder2[ndx]:
-                xNdx2=ndx
-            elif "Y" in dataOrder2[ndx]:
-                yNdx2=ndx
-            elif "Z" in dataOrder2[ndx]:
-                zNdx2=ndx
-            elif "Result" in dataOrder2[ndx]:
-                resNdx2=ndx
-            elif "Rel" in dataOrder2[ndx]:
-                errNdx2=ndx
-
-        if xNdx != xNdx2 or yNdx != yNdx2 or zNdx != zNdx2 or enNdx != enNdx2:
-            print 'Data is ordered differently for tally number '+str(meshtalNum)
-            exit(1)
-
-
-
-
-        numData = (len(xBounds)-1)*(len(yBounds)-1)*(len(zBounds)-1)*(len(enBounds)-1)
-
-        file.write('    X direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in xBounds)))
-        file.write('    Y direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in yBounds)))
-        file.write('    Z direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in zBounds)))
-        file.write('    Energy bin boundaries:%s\n'%(''.join(str('%9.2e'%(v)) for v in enBounds)))
-        file.write('\n')
-        if enNdx>= 0:
-            file.write('     Energy')
-        if xNdx >= 0:
-            file.write('        X')
-        if yNdx >= 0:
-            file.write('         Y')
-        if zNdx >= 0:
-            file.write('         Z')
-
-        file.write('     Result     Rel Error\n')
-
-        for ndx in range(numData):
             words1 = mesh1.file.readline().split()
             words2 = mesh2.file.readline().split()
-            if len(words1) > 0:
-                if enNdx >= 0:
-                    enData1 = words1[enNdx]
-                    enData2 = words2[enNdx]
-                if xNdx >= 0:
-                    xData1 = float(words1[xNdx])
-                    xData2 = float(words2[xNdx])
-                if yNdx >= 0:
-                    yData1 = float(words1[yNdx])
-                    yData2 = float(words2[yNdx])
-                if zNdx >= 0:
-                    zData1 =  float(words1[zNdx])
-                    zData2 = float(words2[zNdx])
-                resData1=float(words1[resNdx])
-                resData2=float(words2[resNdx])
-                errData1=float(words1[errNdx])
-                errData2=float(words2[errNdx])
-        
-                N = mesh1.numHist+mesh2.numHist
-                S1 = resData1*mesh1.numHist
-                S2 = resData2*mesh2.numHist
-                T1 = mesh1.numHist*resData1*resData1*(mesh1.numHist*errData1*errData1+1)
-                T2 = mesh2.numHist*resData2*resData2*(mesh2.numHist*errData2*errData2+1)
-                mean = (S1+S2)/N
-                stddev2=((T1+T2)/N-mean*mean)/N
-                resDataOut = mean
-                if mean ==0:
-                    errDataOut=0
-                else:
-                    errDataOut = math.sqrt(stddev2)/mean
-                if enNdx >=0:
-                    file.write('%10s'%(enData1))
-                if xNdx >=0:
-                    file.write(' %10.3f'%(xData1))
-                if yNdx >=0:
-                    file.write(' %9.3f'%(yData1))
-                if zNdx >=0:
-                    file.write(' %9.3f'%(zData1))
-                file.write(' %10.5e'%(resDataOut))
-                file.write(' %10.5e\n'%(errDataOut))
 
-        line1 = mesh1.file.readline()
-        mesh2.file.readline()
-        line1 = mesh1.file.readline()
-        line2 = mesh2.file.readline()
+            yBounds = [float(v) for v in words1[2:]]
+            yBounds2= [float(v) for v in words2[2:]]
+            if yBounds != yBounds2:
+                print 'Y Bounds for tally number '+str(meshtalNum)+' do not match '
+                sys.exit(1)
+
+            words1 = mesh1.file.readline().split()
+            words2 = mesh2.file.readline().split()
+
+            zBounds = [float(v) for v in words1[2:]]
+            zBounds2= [float(v) for v in words2[2:]]
+            if zBounds != zBounds2:
+                print 'Z Bounds for tally number '+str(meshtalNum)+' do not match '
+                sys.exit(1)
+
+            words1 = mesh1.file.readline().split()
+            words2 = mesh2.file.readline().split()
+
+            enBounds= [float(v) for v in words1[3:]]
+            enBounds2= [float(v) for v in words2[3:]]
+            if enBounds != enBounds2:
+                print 'Energy Bounds for tally number '+str(meshtalNum)+' do not match '
+                sys.exit(1)
+
+            mesh1.file.readline()
+            mesh2.file.readline()
+        
+            dataOrder =mesh1.file.readline().split()
+            dataOrder2=mesh2.file.readline().split()
+        
+            enNdx = -1
+            xNdx = -1
+            yNdx = -1
+            zNdx = -1
+            resNdx = -1
+            errNdx = -1
+
+            for ndx in range(len(dataOrder)):
+                if "Energy" in dataOrder[ndx]:
+                    enNdx = ndx
+                elif "X" in dataOrder[ndx]:
+                    xNdx=ndx
+                elif "Y" in dataOrder[ndx]:
+                    yNdx=ndx
+                elif "Z" in dataOrder[ndx]:
+                    zNdx=ndx
+                elif "Result" in dataOrder[ndx]:
+                    resNdx=ndx
+                elif "Rel" in dataOrder[ndx]:
+                    errNdx=ndx
+
+
+
+            enNdx2 = -1
+            xNdx2 = -1
+            yNdx2 = -1
+            zNdx2 = -1
+            resNdx2 = -1
+            errNdx2 = -1
+
+            for ndx in range(len(dataOrder2)):
+                if "Energy" in dataOrder2[ndx]:
+                    enNdx2 = ndx
+                elif "X" in dataOrder2[ndx]:
+                    xNdx2=ndx
+                elif "Y" in dataOrder2[ndx]:
+                    yNdx2=ndx
+                elif "Z" in dataOrder2[ndx]:
+                    zNdx2=ndx
+                elif "Result" in dataOrder2[ndx]:
+                    resNdx2=ndx
+                elif "Rel" in dataOrder2[ndx]:
+                    errNdx2=ndx
+
+            if xNdx != xNdx2 or yNdx != yNdx2 or zNdx != zNdx2 or enNdx != enNdx2:
+                print 'Data is ordered differently for tally number '+str(meshtalNum)
+                sys.exit(1)
+
+
+
+
+            numData = (len(xBounds)-1)*(len(yBounds)-1)*(len(zBounds)-1)*(len(enBounds)-1)
+
+            file.write('    X direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in xBounds)))
+            file.write('    Y direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in yBounds)))
+            file.write('    Z direction:%s\n'%(''.join(str('%10.2f'%(v)) for v in zBounds)))
+            file.write('    Energy bin boundaries:%s\n'%(''.join(str('%9.2e'%(v)) for v in enBounds)))
+            file.write('\n')
+            if enNdx>= 0:
+                file.write('     Energy')
+            if xNdx >= 0:
+                file.write('        X')
+            if yNdx >= 0:
+                file.write('         Y')
+            if zNdx >= 0:
+                file.write('         Z')
+
+            file.write('     Result     Rel Error\n')
+
+            for ndx in range(numData):
+                words1 = mesh1.file.readline().split()
+                words2 = mesh2.file.readline().split()
+                if len(words1) > 0:
+                    if enNdx >= 0:
+                        enData1 = words1[enNdx]
+                        enData2 = words2[enNdx]
+                    if xNdx >= 0:
+                        xData1 = float(words1[xNdx])
+                        xData2 = float(words2[xNdx])
+                    if yNdx >= 0:
+                        yData1 = float(words1[yNdx])
+                        yData2 = float(words2[yNdx])
+                    if zNdx >= 0:
+                        zData1 =  float(words1[zNdx])
+                        zData2 = float(words2[zNdx])
+                    resData1=float(words1[resNdx])
+                    resData2=float(words2[resNdx])
+                    errData1=float(words1[errNdx])
+                    errData2=float(words2[errNdx])
+        
+                    N = mesh1.numHist+mesh2.numHist
+                    S1 = resData1*mesh1.numHist
+                    S2 = resData2*mesh2.numHist
+                    T1 = mesh1.numHist*resData1*resData1*(mesh1.numHist*errData1*errData1+1)
+                    T2 = mesh2.numHist*resData2*resData2*(mesh2.numHist*errData2*errData2+1)
+                    mean = (S1+S2)/N
+                    stddev2=((T1+T2)/N-mean*mean)/N
+                    resDataOut = mean
+                    if mean ==0:
+                        errDataOut=0
+                    else:
+                        errDataOut = math.sqrt(stddev2)/mean
+                    if enNdx >=0:
+                        file.write('%10s'%(enData1))
+                    if xNdx >=0:
+                        file.write(' %10.3f'%(xData1))
+                    if yNdx >=0:
+                        file.write(' %9.3f'%(yData1))
+                    if zNdx >=0:
+                        file.write(' %9.3f'%(zData1))
+                    file.write(' %10.5e'%(resDataOut))
+                    file.write(' %10.5e\n'%(errDataOut))
+
+            line1 = mesh1.file.readline()
+            mesh2.file.readline()
+            line1 = mesh1.file.readline()
+            line2 = mesh2.file.readline()
+        except Exception,inst:
+            print "Error Streaming %s and %s.: %s" % (in1,in2, inst.args)
+            sys.exit(1)
+
 
     file.close()
     mesh1.file.close()
@@ -555,7 +599,7 @@ def main():
     
     if showHelp > 0:
         help()
-        exit(1)        
+        sys.exit(1)        
 
     #figure out where input data is (must be after flags)
 
@@ -570,7 +614,7 @@ def main():
     if len(sys.argv)-filesNdx < 2:
         print 'Error: Not enough files'
         help()
-        exit(1) 
+        sys.exit(1) 
 
     meshfiles = sys.argv[filesNdx:]
 
