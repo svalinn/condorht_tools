@@ -3,10 +3,13 @@ import sys # for command line args
 import os  # for filepath tests
 import re  # for regular expressions
 import shutil # for copy files
+#from subprocess import call # for sys calls
 
 # print the help screen
-
 def print_usage():
+    """
+    Function to print the use of the main program
+    """
     print "Python based script to launch jobs on condor, use as"
     print " "
     print "mkmcnp5dag --data=ross_1bt3 --rundir=run_dir"
@@ -20,6 +23,12 @@ def print_usage():
 
 # check the command args and ensure valid input
 def command_args(argv):
+
+    """
+    Function to check the validity of the command arguments, tests them to ensure
+    self consistency.
+    """
+
     rundir=""
     datadir=""
     mcnpdir=""
@@ -61,6 +70,108 @@ def command_args(argv):
     
     return (datadir,rundir,mcnpdir,debug,email_address)
 
+# a pre initialisation script the produces runtpe files appropriate for use in
+# calculations in condor
+
+def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
+    """
+    function to create mcnp input deck to generate a runtpe appropriate for the problem for example,
+    with advanced tallies we need to pass a new output filename for the mesh tally mesh file. So very simply
+    if there is no dagmc mentioned in the mcnp input deck then we can simply copy the runtpe file by running the
+    normal input deck without modification.
+    """
+
+    dagmc_t=False
+    out_t=False
+
+    # open the mcnp input file and look for the phrase "dagmc" if absent normal run
+    print input_dir+"/"+mcnp_input
+    file = open(input_dir+"/"+mcnp_input.rstrip())
+
+    while 1:
+        line = file.readline()
+        # we treat #'s as comments
+        if not line:
+            break
+        if 'dagmc' in line:
+            dagmc_t=True
+        if dagmc_t:
+            if 'out' in line:
+                out_t=True
+                break
+                
+        # at this juncture we may wish to also check the file pointed to by the dagmc keyword. some users
+        # like to use damgc file= to send the data to. However, currently we will fail unless we find the out
+        # keyword
+
+    # now we can either have dagmc_t = True/False, if dagmc_t then out can be either t or f
+    if not dagmc_t:
+        # normal mcnp run
+        shutil.copyfile(input_dir+'/'+mcnp_input,rundir+'/'+mcnp_input)
+    elif dagmc_t and not out_t:
+        print "dagmc present but output not specified, fail!"
+        exit()
+    elif dagmc_t and out_t:
+        # mcnp run with tetmesh
+        file = open(input_dir+"/"+mcnp_input.rstrip())
+        ofile = open(rundir+'/'+mcnp_input.rstrip()+str(run_num),'w')
+        while 1:
+            line = file.readline()
+            if not line:
+                break
+            else:
+                if 'out' in line:
+                    # if 'out' in line modify and add mesh file number to end
+                    # this ensures uniqueness to mesh filename
+                    pos=line.find('.h5m')
+                    ofile.write('  '+line[0:pos]+str(run_num)+line[pos:len(line)])
+                else:
+                    # if not line containing 'out' dump the line straight to file
+                    ofile.write(line)
+
+        # close the file
+        ofile.close()
+        
+    return
+
+def run_mcnp_input(rundir,mcnp_input,run_number,mcnp_input_dir,dag_t,dagmc_input):
+    """
+    Function that runs the mcnp input pointed to, to produce the runtpe file with the correct
+    data stored.
+    """
+    working_dir=os.getcwd() #copy cwd
+    os.chdir(rundir) # move to run dir
+
+    #    print mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' g='+dagmc_input.rstrip()+' r=runtpe'+str(run_number)
+    #   sys.exit()
+    #    print mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' g=divertor_simgeom.h5m r=runtpe'+str(run_number)
+    if dag_t:
+        os.system(mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' g='+dagmc_input.rstrip()+' r=runtpe'+str(run_number))
+    else:
+        os.system(mcnp_input_dir+' ix '+' i='+mcnp_input.rstrip()+str(run_number)+' r=runtpe'+str(run_number))
+        
+    os.system('rm -rf out?')
+    os.chdir(working_dir) # go back to original cwd
+
+    return
+
+def generate_runtapes(run_num,input_dir,mcnp_input,rundir,mcnp_input_dir,dag_t,dagmc_input):
+    """
+    Args
+    num_cpus - the number of cpu's the problem will be divided into
+    input_dir - the directory containing the input deck
+    mcnp_input - the name of the mcnp input deck
+    rundir - the directory where the run will take place
+    """
+
+    #    for i in range(1,num_cpus+1):
+    # loop over each input deck in the problem
+    create_mcnp_input(input_dir,mcnp_input,rundir,run_num) # create the input deck
+    run_mcnp_input(rundir,mcnp_input,run_num,mcnp_input_dir,dag_t,dagmc_input) # run the mcnp input problem
+
+    return
+
+
 # check the command args to make sure they are valid
 def check_dirs(datadir,rundir,mcdir):
     
@@ -79,7 +190,7 @@ def check_dirs(datadir,rundir,mcdir):
     return
 
 # check_mcnp_directives for validity
-def check_mcnp(datadir):
+def check_mcnp(datadir,rundir):
     # var for truth test
     # determines the truth vals
     num_t = False
@@ -131,9 +242,11 @@ def check_mcnp(datadir):
             if 'dagmc = ' in line:
                 dag_t = True
                 dagmc_input_path = line[line.find(" = ")+3:len(line)]
-                if not os.path.exists(datadir+dagmc_input_path.strip()):
-                    print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
+                if not os.path.exists(datadir+dagmc_input_path.rstrip()):
+                    print "Dagmc input deck does not exist", datadir+dagmc_input_path.rstrip()
                     sys.exit()
+                # if a dag run copy the input geometry
+                #call(["cp",datadir+dagmc_input_path.strip(),rundir+dagmc_input_path.strip()])
                                             
             if 'output = ' in line:
                 out_t = True
@@ -144,16 +257,17 @@ def check_mcnp(datadir):
             if 'tetmesh = ' in line:
                 tet_t = True
                 tetmesh_input_path = line[line.find(" = ")+3:len(line)]
-                if not os.path.exists(datadir+tetmesh_input_path.strip()):
-                    print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
+                if not os.path.exists(datadir+tetmesh_input_path.rstrip()):
+                    print "Tetmesh does not exist", datadir+tetmesh_input_path.rstrip()
                     sys.exit()
+
             if 'runtpe = ' in line:
                 run_t = True
                 runtpe_input_path = line[line.find(" = ")+3:len(line)]
-                if  not os.path.exists(datadir+runtpe_input_path.strip()):
-                    print "Runtpe does not exist", datadir+runtpe_input_path.strip()
+                if  not os.path.exists(datadir+runtpe_input_path.rstrip()):
+                    print "Runtpe does not exist", datadir+runtpe_input_path.rstrip()
                     sys.exit()
-
+                
     file.close()
 
 # check the minium prequisites
@@ -201,6 +315,11 @@ def check_mcnp(datadir):
 
 # create the initial dag file
 def create_dag_file(rundir,num_cpu):
+
+    """
+    Function to generate the directed acyclic graph of the run
+    """
+    
     dag_name = "mydag.dag"
 
     print "writing ",dag_name
@@ -239,24 +358,33 @@ def create_dag_hierarchy(rundir,num_cpu):
 
     # create the dag file
     fp = open(rundir+'/'+dag_name, "w")
-    fp.write("JOB premcnp5.init preinitcond.cmd \n")
-    fp.write("RETRY premcnp5.init 1 \n")
+
+    # preinit now redundant since original logic was wrong
+#    fp.write("JOB premcnp5.init preinitcond.cmd \n")
+#    fp.write("RETRY premcnp5.init 1 \n")
 
     # loop over the job hierarchy, we allow 3 resubmits of the mcnp file
     for jobs in range(1,int(num_cpu)):
-        fp.write("SCRIPT PRE mcnp5.test_"+str(jobs)+" some clever script "+str(jobs)+"\n")
+        #fp.write("SCRIPT PRE mcnp5.test_"+str(jobs)+" some clever script "+str(jobs)+"\n")
+        fp.write("JOB mcnp5.test_"+str(jobs)+" mcnp5."+str(jobs)+".cmd \n")
         fp.write("RETRY mcnp5.test_"+str(jobs)+" 3\n")
+
+#should ultimately perform merge but dont worry for now
                 
     # now create script for merging data
-    fp.write("JOB mcnp5.meshmerge finalmerge.cmd \n")
-    fp.write("SCRIPT POST mcnp5.meshmerge \n")
-    fp.write("RETRY mcnp5.meshmerge 1\n")
+   # fp.write("JOB mcnp5.meshmerge finalmerge.cmd \n")
+   # fp.write("SCRIPT POST mcnp5.meshmerge \n")
+   # fp.write("RETRY mcnp5.meshmerge 1\n")
 
-    fp.write("PARENT")
-    for jobs in range(1,int(num_cpu)):
-        fp.write(" mcnp5.test_"+str(jobs))
+###
+   
+###    fp.write("PARENT")
+###    for jobs in range(1,int(num_cpu)):
+###        fp.write(" mcnp5.test_"+str(jobs))
 
-    fp.write(" CHILD mcnp5.meshmerge \n")
+###    fp.write(" CHILD mcnp5.meshmerge \n")
+
+    
     fp.close()
 
     return dag_name
@@ -279,6 +407,7 @@ def mcnp_input_query(mcnp_filename,tetmesh):
     tet_mesh_tf = False
     meshtal_tf = False
     mctal_tf = False
+    nps_tf = False
 
     fp = open(mcnp_filename,'r')
     while 1:
@@ -299,16 +428,25 @@ def mcnp_input_query(mcnp_filename,tetmesh):
                     if "prdmpjj" in line.lower().strip() or \
                        "prdmp2j" in line.lower().strip():
                         mctal_tf = True
-                           
+                if "nps" in line:
+                    nps_line=line.split(' ',1)
+                    nps = int(float(nps_line[1])/1.0)
+                    nps_tf = True
+                    
     # if advanced tallies on check for existance of file
     if(tet_mesh_tf):
        if not os.path.exists(str(tetmesh)):
            print "Tetmesh, ",str(tetmesh)," does not exist"
            sys.exit()
+
+    # if nps not set
+    if not nps_tf:
+        print "NPS was not set in the input file \n"
+        sys.exit()
             
     fp.close()
 
-    return (tet_mesh_tf,meshtal_tf,mctal_tf)
+    return (tet_mesh_tf,meshtal_tf,mctal_tf,nps)
 
 ###
 ### Script to take the mcnp input file pointed to in order to stratify the input deck into
@@ -318,9 +456,9 @@ def generate_mcnp_inputs(rundir,mcnpfname,cpu_id,n_cpu,nps,seed):
 
     file = open(rundir+'/'+mcnpfname,'w')
 
-    seed = 12512813139
+ #   seed = 12512813139
 
-    print nps
+ #   print nps
 
     if int(nps) <= 100000:
         print "nps is very low, is it really worth a distributed run?"
@@ -338,7 +476,7 @@ def generate_mcnp_inputs(rundir,mcnpfname,cpu_id,n_cpu,nps,seed):
     num2run = int(nps)/int(n_cpu)
 
     file.write("continue\n")
-    file.write("seed="+str(seed)+" hist="+str(int(num2run)*(int(cpu_id)-1)+1)+"\n")
+    file.write("rand gen=2 seed="+str(seed)+" hist="+str(int(num2run)*(int(cpu_id)-1)+1)+"\n")
     if ( cpu_id < n_cpu):
         file.write("nps "+str(num2run)+"\n")
     else:
@@ -365,6 +503,8 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
     problem pointed to by mcnp_args. It should generate command scripts on the basis of files pointed
     to by including, the tetmesh files and dagmc geometries to copy
     """
+
+    print "Generating condor scripts"
     
     # var for truth test
     # determines the truth vals
@@ -410,21 +550,38 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
                 dagmc_input_path = line[line.find(" = ")+3:len(line)]
                 if not os.path.exists(datadir+dagmc_input_path.strip()):
                     print "Dagmc input deck does not exist", datadir+dagmc_input_path.strip()
-                    sys.exit()                                           
-
+                    sys.exit()
+                # copy dag input data
+                shutil.copyfile(datadir+'/'+dagmc_input_path.rstrip(),rundir+'/'+dagmc_input_path.rstrip())
+                print "dagmc"
+                
             if 'tetmesh = ' in line:
                 tet_t = True
                 tetmesh_input_path = line[line.find(" = ")+3:len(line)]
                 if not os.path.exists(datadir+tetmesh_input_path.strip()):
                     print "Tetmesh does not exist", datadir+tetmesh_input_path.strip()
                     sys.exit()
+                # copy tetmesh if need be
+                shutil.copyfile(datadir+'/'+tetmesh_input_path.rstrip(), rundir+'/'+tetmesh_input_path.rstrip())
+                print "tetmesh"
 
+            if 'runtpe = ' in line:
+                run_t = True
+                runtpe_input_path = line[line.find(" = ")+3:len(line)]
+                if  not os.path.exists(datadir+runtpe_input_path.strip()):
+                    print "Runtpe does not exist", datadir+runtpe_input_path.strip()
+                    sys.exit()
+                #for i in range (1,num_cpu+1):
+                #    shutil.copyfile(datadir+'/'+runtpe_input_path.rstrip(),rundir+'/'+runtpe_input_path.rstrip()+str(i))
+                print "runtpe"
+                                                                                
+                
     tet_tf = False
     mesh_tf = False
     mctal_tf = False
 
     # query the mcnp input deck for input information
-    (tet_tf,mesh_tf,mctal_tf)=mcnp_input_query(datadir+mcnp_input_path.strip(),datadir+tetmesh_input_path.strip())
+    (tet_tf,mesh_tf,mctal_tf,nps)=mcnp_input_query(datadir+mcnp_input_path.strip(),datadir+tetmesh_input_path.strip())
 
     # check for logic failures, eg if tet mesh pointed to in mcnp_args but no file in input deck
     if tet_tf and tet_t:
@@ -456,7 +613,7 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
         fp.write("executable = "+mcnp_exec+" \n")
 
         # input command string
-        input_command   = " i="+mcnp_input_path.strip()+str(i)
+        input_command   = " c i="+mcnp_input_path.strip()+str(i)
         runtpe_command  = " r=runtpe"+str(i)
         output_command  = " o=output."+str(i)
         mctal_command   = " mctal=mctal"+str(i)
@@ -466,11 +623,8 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
             mcnp_args += " mesh=meshtal"+str(i)
         if dag_t:
             mcnp_args += " g="+dagmc_input_path.strip()
-
         
-        
-                
-       # mcnp_args = " c i="+mcnp_input_path.strip()+str(i)+".cont"+" r=runtpe"+str(i)+" mctal=mctal_"+str(i)+" mesh=meshtal_"+str(i)
+        # write the arguments
         fp.write("arguments = "+mcnp_args+"\n")
 
         fp.write("universe = vanilla \n")
@@ -485,12 +639,15 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
         # if the input files exists then copy it
         if inp_t:
             input_files += input_stream
+            shutil.copyfile(datadir+'/'+mcnp_input_path.strip(),rundir+'/'+mcnp_input_path.strip())
         # if the damgc input exits copy it
         if dag_t:
             input_files += dagmc_input_path.strip()+","
+            shutil.copyfile(datadir+'/'+dagmc_input_path.strip(),rundir+'/'+dagmc_input_path)
         # if tet mesh exists then copy it
         if tet_t:
             input_files += tetmesh_input_path.strip()+","
+            shutil.copyfile(datadir+'/'+tetmesh_input_path.strip(),rundir+'/'+tetmesh_input_path)
 
         input_files += runtpe_stream           
 
@@ -501,19 +658,40 @@ def generate_condor_scripts(datadir,rundir,mcnp_exec):
         fp.write("transfer_input_files = "+input_files+"\n")
         fp.write("+AccountingGroup = EngrPhysics_Wilson \n")
 
+        fp.write("Queue \n")
+
         print "Generating mcnp inputs for job", i
-        seed = 123745775
-        nps = 100000
-        generate_mcnp_inputs(rundir,mcnp_input_path.strip()+str(i),i,num_cpu+1,nps,seed)
+        seed = 123745775 # so should this?
+#        nps = 100000 # shouldnt this be set from the input deck?
+
+        
+        # numcpus,input data dir, mcnp_input filename, run path, mcnp exec
+        generate_runtapes(i,datadir,mcnp_input_path,rundir,mcnp_exec,dag_t,dagmc_input_path)
+        # generate the mcnp inputs for the continue run
+        generate_mcnp_inputs(rundir,mcnp_input_path.strip()+str(i),i,num_cpu+1,nps,seed) 
   
         fp.close
-
+        
+    return
  
 # build the dag nodes
 def make_dag_nodes(datadir,rundir,mcdir,email_address,debug):
 
+    """
+    Function to make the Directed Acyclic Graph nodes, links in with
+    create_dag_file
+
+    """
+
+    # args
+    # datadir - directory containing the input data
+    # rundir  - the directory where the run data will be put
+    # mcdir   - is the directory where the mcnp executable will be found
+    # email_address - is a valid email address which can be emailed upon job completion
+    # debug - flag for extra input data
+
     print "checking input data"
-    (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir) #check the directives file for validity, found in datadir/mcnp_args
+    (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir,rundir) #check the directives file for validity, found in datadir/mcnp_args
 
     # echo to screen what we are doing
     print "Creating DiGraph "
@@ -542,9 +720,14 @@ def make_dag_nodes(datadir,rundir,mcdir,email_address,debug):
 # make all the scripts for the problem being submitted along with
 # all required ancilliary files
 def make_dag_scripts(datadir,rundir,mcdir,email_address,debug):
+    """
+    Wrapper function the takes arguments and passes them to functions that
+    check the validity of the arguments and then generate the condor submission
+    files on the basis of the valid inputs
+    """
+    # returns the number of cpus
     print "Making the input scripts"
-    (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir)
+    (mcnp_input_path,dag_input_path,num_cpu)=check_mcnp(datadir,rundir)
     generate_condor_scripts(datadir,rundir,mcdir)
     
-#    print num_cpu
     return num_cpu
