@@ -3,7 +3,7 @@ c no geometry info
 sdef x=500.0 y=0.0 z=-300.0 erg=14.1 
 c
 c no materials
-nps 1e8
+nps 1e10
 lost 1e5
 c prdmp 1e6 1e6 2 2j
 print 
