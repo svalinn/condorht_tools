@@ -384,3 +384,8 @@ for inputfile in input_files:
     # creating the script files that are run by the cmd files
     build_job_cmd_file(inputfile,counter)
     build_run_script(files_for_run,counter,inputfile,path_data,job_type,num_batches)
+
+# copy the job tar.gz
+# get the user name since this is where we must put file for squid wget
+username = os.getlogin()
+shutil.copy2(path_data+'/'+files_for_run, '/squid/'+username+'/'+files_for_run)
