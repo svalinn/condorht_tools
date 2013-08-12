@@ -217,6 +217,8 @@ def build_job_cmd_file(inputfile,job_index):
       file.write("copy_to_spool = false \n")
       file.write("should_transfer_files = yes \n")
       file.write("when_to_transfer_output = on_exit \n")
+      file.write("output = job"+str(job_index)+".out\n")
+      file.write("error = job"+str(job_index)+".err\n")
       file.write("transfer_input_files = job"+str(job_index)+".sh\n")
       file.write("+AccountingGroup = EngrPhysics_Wilson \n")
       
