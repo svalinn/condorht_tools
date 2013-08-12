@@ -76,6 +76,9 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
                     nps = int(float(line[pos_in+1:len(line)]))
         if 'dagmc' in line:
             dagmc_t=True
+            if 'inp=' in line:
+                pos_eq = line.find('=')
+                mesh_name = line[pos_eq+1:len(line)-1]
         if dagmc_t:
             if 'out' in line:
                 out_t=True
@@ -94,6 +97,16 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
         exit()
     elif dagmc_t and out_t:
         print "mcnp run with advcancec tallyt"
+        try:
+#           print input_dir+mesh_name
+ #          print rundir+mesh_name
+            shutil.copy(input_dir+mesh_name,rundir+mesh_name)
+        except:
+            print "could not find the  mesh file", mesh_name
+            sys.exit()
+        #else:
+         #   pass
+
         # mcnp run with advanced tally
         file = open(input_dir+"/"+mcnp_input)
         ofile = open(rundir+'/'+mcnp_input+str(run_num),'w')
@@ -140,8 +153,8 @@ def run_mcnp_input(rundir,mcnp_exec,mcnp_commands,run_number):
     working_dir=os.getcwd() #copy cwd
     os.chdir(rundir) #move to run dir
     os.system(mcnp_exec+' ix '+mcnp_commands)
+    os.system("rm -rf outp")
     os.chdir(working_dir) #go back to original cwd
-    sys.exit()
     return
 
 def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,instructions):
@@ -177,6 +190,8 @@ def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,ins
             part1=cmd[0:pos_in+2]
             part2=cmd[pos_in+2:len(cmd)]
             cmd=part1+'../geometry/'+part2
+
+        cmd+=' r=run'+str(i)
        
         run_mcnp_input(rundir,mcnp_command,cmd,i)  # run the mcnp input problem
         mcnp_fname = "job" + str(i)
