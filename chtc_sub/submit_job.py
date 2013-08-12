@@ -9,7 +9,7 @@ from subprocess import call
 
 
 def print_help(NULL):
-    from subprocess import call""" prints instructions on how to use
+    """ prints instructions on how to use
     
     Parameters
     ----------
