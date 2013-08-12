@@ -23,6 +23,14 @@ def print_help(NULL):
     print "--job <type of job> "
     print "--batch < number of jobs to run>"
     print "--combine if you would or would not like the results combined"  
+    print " "
+    print "Directory structure expected"
+    print " "
+    print " ---+--> cwd"
+    print "    | "
+    print "    +------> input where we keep the code input files" 
+    print "    +------> geometry where we keep the dag geometry if any"
+    print "    +------> meshes where we keep meshes if any"
     exit()
 
 
@@ -150,7 +158,7 @@ def pack_for_run(datapath):
         command = 'tar -pczf '+datapath+'/'+tar_gz_name+' -C '+datapath+' input geometry'
         os.system(command)
 
-    return datapath+'/'+tar_gz_name
+    return tar_gz_name
 
 def get_input_file_list(datapath):
     """ look in the directory datapath/inputs anything found there
@@ -288,6 +296,9 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
 
 print 'Number of arguments:', len(sys.argv), 'arguments.'
 print 'Argument List:', str(sys.argv)
+
+if len(sys.argv) < 2:
+    print_help
 
 # check to see if help has been asked for first
 for arg in range(0,len(sys.argv)):
