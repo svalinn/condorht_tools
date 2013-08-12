@@ -244,6 +244,9 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       nothing: writes out script file
       """  
 
+      # get the user name since this is where we must put file for squid wget
+      username = os.getlogin()
+
       # the script may need to copy the zip files of the codes
       
       # the script file must copy the input data from 
@@ -260,24 +263,24 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       file.write("#!/bin/bash"+"\n")
 
       file.write("cwd=$PWD\n")
-      file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+files_for_run+"\n")
+      file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files_for_run+"\n")
 
       # copy the required files to run the code
       file.write("# get and set the gcc compiler suite and set ld and paths \n")
-      file.write("wget http://proxy.chtc.wisc.edu/SQUID/compiler_tools.tar.gz \n")
+      file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/"compiler_tools.tar.gz "\n")
       file.write("tar -zxf compiler_tools.tar.gz \n")
       file.write("export LD_LIBRARY_PATH=$cwd/compiler/gcc-4.8.1/lib:$cwd/compiler/gcc-4.8.1/lib64:$cwd/compiler/gmp-5.1.2/lib:$cwd/compiler/mpc-1.0.1/lib:$cwd/compiler/mpfr-3.1.2/lib \n") #sets the compiler paths
 
       # bring moab with us
       file.write("# get and set the moab and hdf5 libs \n")                 
-      file.write("wget http://proxy.chtc.wisc.edu/SQUID/moab_tools.tar.gz \n")
+      file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/"moab_tools.tar.gz "\n")
       file.write("tar -zxf moab_data.tar.gz \n")
       file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/hdf5-1.8.4/lib\n")
       file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/moab-4.6.0/lib \n")
 
       if "FLUKA" or "FLUDAG" in jobtype:
           file.write("# get and set the required fluka paths \n")
-          file.write("wget http://proxy.chtc.wisc.edu/SQUID/fludag_fluka_run.tar.gz \n")         
+          file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/"fludag_fluka_run.tar.gz "\n")         
           file.write("export FLUPRO=$PWD/fluka \n")
 
       # untar the actual run data
