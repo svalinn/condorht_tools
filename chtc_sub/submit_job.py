@@ -5,9 +5,11 @@ import os
 from os import listdir
 from os.path import isfile, join
 import random
+from subprocess import call
+
 
 def print_help(NULL):
-    """ prints instructions on how to use
+    from subprocess import call""" prints instructions on how to use
     
     Parameters
     ----------
@@ -128,7 +130,7 @@ def generate_dag_graph(input_files,combine):
     for input in input_files:
         counter+=1
         file.write("JOB "+input+" "+"job"+str(counter)+".cmd"+"\n")
-        file.write("RETRY "+input+"\n")
+        file.write("RETRY "+input+" 5 \n")
     if combine:
         file.write("JOB merge_data finalmerge.cmd"+"\n")
         file.write("SCRIPT POST merge_data"+"\n")
@@ -262,32 +264,47 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
 
       file.write("#!/bin/bash"+"\n")
 
+      file.write("# get_until_got function - keeps trying to get file with wget \n")
+      file.write("# until its successful \n")
+      file.write("get_until_got(){ \n")
+      file.write("wget $1 \n")
+      file.write("while [[ $? != 0 ]]\n")
+      file.write("do\n")
+      file.write("wget $1\n")
+      file.write("done\n")
+      file.write("}\n")
+               
       file.write("cwd=$PWD\n")
-      file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files_for_run+"\n")
+      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files_for_run+"\n")
+      # file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files_for_run+"\n")
 
       # copy the required files to run the code
       file.write("# get and set the gcc compiler suite and set ld and paths \n")
-      file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/compiler_tools.tar.gz \n")
+      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/compiler_tools.tar.gz \n")
+      #file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/compiler_tools.tar.gz \n")
       file.write("tar -zxf compiler_tools.tar.gz \n")
       file.write("export LD_LIBRARY_PATH=$cwd/compiler/gcc-4.8.1/lib:$cwd/compiler/gcc-4.8.1/lib64:$cwd/compiler/gmp-5.1.2/lib:$cwd/compiler/mpc-1.0.1/lib:$cwd/compiler/mpfr-3.1.2/lib \n") #sets the compiler paths
 
       # bring moab with us
-      file.write("# get and set the moab and hdf5 libs \n")                 
-      file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/moab_tools.tar.gz \n")
+      file.write("# get and set the moab and hdf5 libs \n")
+      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/moab_data.tar.gz \n")
+      # file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/moab_tools.tar.gz \n")
       file.write("tar -zxf moab_data.tar.gz \n")
       file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/hdf5-1.8.4/lib\n")
       file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/moab-4.6.0/lib \n")
 
       if "FLUKA" or "FLUDAG" in jobtype:
           file.write("# get and set the required fluka paths \n")
-          file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")         
+          file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")
+          # file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")
+          file.write("tar -zxf fludag_fluka_run.tar.gz \n")
           file.write("export FLUPRO=$PWD/fluka \n")
 
       # untar the actual run data
       file.write("tar -zxvf "+files_for_run+"\n")
       file.write("mkdir job"+str(job_index)+"\n")
       file.write("cd job"+str(job_index)+"\n")
-      file.write("cp ../input/"+inputfile+"\n")
+      file.write("cp ../input/"+inputfile+" . \n")
       
       if "MCNP" in jobtype:
           file.write("mcnp5 c="+inputfile+" n=job"+str(job_index)+"\n")
@@ -388,4 +405,9 @@ for inputfile in input_files:
 # copy the job tar.gz
 # get the user name since this is where we must put file for squid wget
 username = os.getlogin()
-shutil.copy2(path_data+'/'+files_for_run, '/squid/'+username+'/'+files_for_run)
+os.system('cp '+path_data+'/'+files_for_run+' /squid/'+username+'/'+files_for_run)
+
+# submit the jobs
+# this would actually submit the jobs
+call(["condor_submit_dag","--MaxPre","4","dagman.dag"])
+
