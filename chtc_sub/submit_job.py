@@ -264,10 +264,8 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       file.write("# get and set the gcc compiler suite and set ld and paths \n")
       file.write("wget http://proxy.chtc.wisc.edu/SQUID/compiler_tools.tar.gz \n")
       file.write("tar -zxf compiler_tools.tar.gz \n")
-      file.write("export LD_LIBRARY_PATH=$cwd/compiler/gcc-4.8.1/lib:$cwd/compiler/gcc-4.8.1/lib64:$cwd/compiler/gmp-5.1.2/lib: \
-                    $cwd/compiler/mpc-1.0.1/lib:$cwd/compiler/mpfr-3.1.2/lib \n)" #sets the compiler paths
-      file.write("export LD_LIBRARY_PATH=$cwd/compiler/gcc-4.8.1/lib:$cwd/compiler/gcc-4.8.1/lib64:$cwd/compiler/gmp-5.1.2/lib: \
-                   $cwd/compiler/mpc-1.0.1/lib:$cwd/compiler/mpfr-3.1.2/lib \n")           
+      file.write("export LD_LIBRARY_PATH=$cwd/compiler/gcc-4.8.1/lib:$cwd/compiler/gcc-4.8.1/lib64:$cwd/compiler/gmp-5.1.2/lib:$cwd/compiler/mpc-1.0.1/lib:$cwd/compiler/mpfr-3.1.2/lib \n)" #sets the compiler paths
+      file.write("export LD_LIBRARY_PATH=$cwd/compiler/gcc-4.8.1/lib:$cwd/compiler/gcc-4.8.1/lib64:$cwd/compiler/gmp-5.1.2/lib:$cwd/compiler/mpc-1.0.1/lib:$cwd/compiler/mpfr-3.1.2/lib \n")           
 
       # bring moab with us
       file.write("# get and set the moab and hdf5 libs \n")                 
