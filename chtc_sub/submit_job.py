@@ -8,7 +8,7 @@ import random
 from subprocess import call
 
 
-def print_help(NULL):
+def print_help():
     """ prints instructions on how to use
     
     Parameters
@@ -276,7 +276,6 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
                
       file.write("cwd=$PWD\n")
       file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files_for_run+"\n")
-      # file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files_for_run+"\n")
 
       # copy the required files to run the code
       file.write("# get and set the gcc compiler suite and set ld and paths \n")
@@ -288,7 +287,6 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       # bring moab with us
       file.write("# get and set the moab and hdf5 libs \n")
       file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/moab_data.tar.gz \n")
-      # file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/moab_tools.tar.gz \n")
       file.write("tar -zxf moab_data.tar.gz \n")
       file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/hdf5-1.8.4/lib\n")
       file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/moab-4.6.0/lib \n")
@@ -296,7 +294,6 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       if "FLUKA" or "FLUDAG" in jobtype:
           file.write("# get and set the required fluka paths \n")
           file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")
-          # file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")
           file.write("tar -zxf fludag_fluka_run.tar.gz \n")
           file.write("export FLUPRO=$PWD/fluka \n")
 
@@ -307,11 +304,13 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       file.write("cp ../input/"+inputfile+" . \n")
       
       if "MCNP" in jobtype:
-          file.write("mcnp5 c="+inputfile+" n=job"+str(job_index)+"\n")
+          file.write("cp ../runtpe/run"+str(job_index)+"  . \n")
+          file.write("mcnp5 c="+inputfile+" n=job"+str(job_index)+" r=run"+str(job_index)+"\n")
       if "DAG-MCNP" in jobtype:
           file.write("cp ../geometry/* ."+"\n")
+          file.write("cp ../runtpe/run"+str(job_index)+"  . \n")
           file.write("geom_file=`ls geometry/* | grep 'h5m' | head -n1`"+"\n")
-          file.write("mcnp5 c="+inputfile+" g=$geom_file n=job"+str(job_index)+"\n")
+          file.write("mcnp5 c="+inputfile+" g=$geom_file n=job"+str(job_index)+" r=run"+str(job_index)+"\n")
       if "FLUKA" in jobtype:
           file.write("$FLUPRO/flutil/rfluka -M"+str(num_batches)+" "+inputfile+"\n")
       if "FLUDAG" in jobtype:
@@ -341,13 +340,13 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
 print 'Number of arguments:', len(sys.argv), 'arguments.'
 print 'Argument List:', str(sys.argv)
 
-if len(sys.argv) < 2:
-    print_help
+if len(sys.argv) <= 2:
+    print_help()
 
 # check to see if help has been asked for first
 for arg in range(0,len(sys.argv)):
     if '-h ' or '--help' or '--h ' in sys.argv[arg]:
-        print_help
+        print_help()
 
 combine = False
 #loop over the args      			
