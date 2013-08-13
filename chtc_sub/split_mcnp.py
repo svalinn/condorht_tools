@@ -6,6 +6,29 @@ import shutil
 
 from subprocess import call
 
+# print help, how to use etc
+def print_help():
+    """ print help
+
+    Parameters
+    -------------
+    None
+
+    Returns
+    --------------
+    Doesnt
+    """
+
+    print "split_mcnp "
+    print "--rundir the directory where you would like the runtpe files to be put" 
+    print "--inputdir where the input file can be found" 
+    print "--mcnp the command you would launch to run this input"  
+    print "--cpu the number of splits you would like"  
+    print "--seed the starting RN seed, if left blanks defaults" 
+    sys.exit()
+
+
+
 # a pre initialisation script the produces runtpe files appropriate for use in
 # calculations in condor
 
@@ -91,7 +114,11 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
         # now we can either have dagmc_t = True/False, if dagmc_t then out can be either t or f
     if not dagmc_t:
         # normal mcnp run
-        shutil.copyfile(input_dir+'/'+mcnp_input,rundir+'/'+mcnp_input)
+        try:
+            shutil.copyfile(input_dir+'/'+mcnp_input,rundir+'/'+mcnp_input+str(run_num))
+        except:
+            print "could not copy file"
+            sys.exit()
     elif dagmc_t and not out_t:
         print "dagmc present but output not specified, fail!"
         exit()
@@ -101,11 +128,10 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
 #           print input_dir+mesh_name
  #          print rundir+mesh_name
             shutil.copy(input_dir+mesh_name,rundir+mesh_name)
+)
         except:
             print "could not find the  mesh file", mesh_name
             sys.exit()
-        #else:
-         #   pass
 
         # mcnp run with advanced tally
         file = open(input_dir+"/"+mcnp_input)
@@ -192,7 +218,6 @@ def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,ins
             cmd=part1+'../geometry/'+part2
 
         cmd+=' r=run'+str(i)
-       
         run_mcnp_input(rundir,mcnp_command,cmd,i)  # run the mcnp input problem
         mcnp_fname = "job" + str(i)
         generate_mcnp_inputs(rundir,mcnp_fname,i,num_cpus,nps,seed)
@@ -261,6 +286,12 @@ if (len(sys.argv) < 2):
     print "No arguments provided"
     sys.exit()
     # loop over the args and check for the keywords    
+
+# check for help first
+for arg in range(1,len(sys.argv)):
+    print sys.argv[arg]
+    if "--help"  in sys.argv[arg]:
+        print_help()
 
 for arg in range(1,len(sys.argv)):
     if "--rundir" in sys.argv[arg]:
@@ -338,6 +369,7 @@ if not seed:
     seed = 12512813139
 else:
     seed = convert_int(seed)
+
 
 # generate runtpe files
 generate_runtapes(num_cpu,input_dir,mcnp_input,rundir,seed,mcnp_command,instructions)
