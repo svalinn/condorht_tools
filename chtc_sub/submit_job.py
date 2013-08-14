@@ -138,12 +138,13 @@ def generate_dag_graph(input_files,combine):
 
     return
 
-def pack_for_run(datapath):
+def pack_for_run(datapath,type_run):
     """ pack everything in the directory for the run
 
     Parameters
     ----------
-    datapath: string directory where the input data are
+    datapath: string :: directory where the input data are
+    type_run: string :: type of run 
 
     Returns
     ----------
@@ -157,10 +158,17 @@ def pack_for_run(datapath):
         exit()
     else:
         tar_gz_name = str(os.urandom(16).encode('hex'))+'.tar.gz'
-        command = 'tar -pczf '+datapath+'/'+tar_gz_name+' -C '+datapath+' input geometry'
+        command = 'tar -pczf '+datapath+'/'+tar_gz_name+' -C '+datapath+' input' # always need input
+        if 'MCNP' in type_run:
+            command += ' runtpe' # need runtpe for mcnps
+        if 'DAG-MCNP' in type_run:
+            command += ' geometry' # need geometry for dag geom
+        if 'FLUDAG' in type_run:
+            command += ' geoemtry' # need geometry for dag geom
+    
         os.system(command)
 
-    return tar_gz_name
+    return tar_gz_name # return name of the targz file
 
 def get_input_file_list(datapath):
     """ look in the directory datapath/inputs anything found there
@@ -291,11 +299,18 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/hdf5-1.8.4/lib\n")
       file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/moab-4.6.0/lib \n")
 
-      if "FLUKA" or "FLUDAG" in jobtype:
+      if "FLUKA" in jobtype:
           file.write("# get and set the required fluka paths \n")
           file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")
           file.write("tar -zxf fludag_fluka_run.tar.gz \n")
           file.write("export FLUPRO=$PWD/fluka \n")
+      if "FLUDAG" in jobtype:
+          file.write("# get and set the required fluka paths \n")
+          file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")
+          file.write("tar -zxf fludag_fluka_run.tar.gz \n")
+          file.write("export FLUPRO=$PWD/fluka \n")
+
+          
 
       # untar the actual run data
       file.write("tar -zxvf "+files_for_run+"\n")
@@ -345,7 +360,7 @@ if len(sys.argv) <= 2:
 
 # check to see if help has been asked for first
 for arg in range(0,len(sys.argv)):
-    if '-h ' or '--help' or '--h ' in sys.argv[arg]:
+    if '--help'  in sys.argv[arg]:
         print_help()
 
 combine = False
@@ -387,7 +402,7 @@ print input_files
 
 generate_dag_graph(input_files,combine)
 print "Zipping files for run..."
-files_for_run = pack_for_run(path_data)
+files_for_run = pack_for_run(path_data,job_type)
 
 counter=0
 
@@ -408,5 +423,5 @@ os.system('cp '+path_data+'/'+files_for_run+' /squid/'+username+'/'+files_for_ru
 
 # submit the jobs
 # this would actually submit the jobs
-call(["condor_submit_dag","--MaxPre","4","dagman.dag"])
+# call(["condor_submit_dag","--MaxPre","4","dagman.dag"])
 
