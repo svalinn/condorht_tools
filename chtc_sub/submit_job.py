@@ -294,8 +294,8 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
 
       # bring moab with us
       file.write("# get and set the moab and hdf5 libs \n")
-      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/moab_data.tar.gz \n")
-      file.write("tar -zxf moab_data.tar.gz \n")
+      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/moab_tools.tar.gz \n")
+      file.write("tar -zxf moab_tools.tar.gz \n")
       file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/hdf5-1.8.4/lib\n")
       file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/moab-4.6.0/lib \n")
 
