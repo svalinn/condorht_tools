@@ -128,7 +128,7 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
 #           print input_dir+mesh_name
  #          print rundir+mesh_name
             shutil.copy(input_dir+mesh_name,rundir+mesh_name)
-)
+
         except:
             print "could not find the  mesh file", mesh_name
             sys.exit()
@@ -180,6 +180,13 @@ def run_mcnp_input(rundir,mcnp_exec,mcnp_commands,run_number):
     os.chdir(rundir) #move to run dir
     os.system(mcnp_exec+' ix '+mcnp_commands)
     os.system("rm -rf outp")
+    os.system("mv run1 ../runtpe/.") #move the runtpe file to the runtpe directory
+
+    for token in mcnp_commands.split():
+        if "i=" in token:
+            input_name = token[2:len(token)]
+            os.system('rm '+input_name)             # remove the created output file
+
     os.chdir(working_dir) #go back to original cwd
     return
 
@@ -202,7 +209,11 @@ def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,ins
 
     for i in range(1,num_cpus+1):
         # loop over each input deck in the problem
-        nps=create_mcnp_input(input_dir,mcnp_input,rundir,i) # create the input deck
+        if i == 1:
+            nps=create_mcnp_input(input_dir,mcnp_input,rundir,i) # create the input deck 
+        else:
+            pass
+
         # modify the mcnp command line to reflect the fact that we now have n input decks
         cmd=""
         for token in instructions.split():
@@ -216,9 +227,14 @@ def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,ins
             part1=cmd[0:pos_in+2]
             part2=cmd[pos_in+2:len(cmd)]
             cmd=part1+'../geometry/'+part2
-
+ 
         cmd+=' r=run'+str(i)
-        run_mcnp_input(rundir,mcnp_command,cmd,i)  # run the mcnp input problem
+
+        if i == 1:
+            run_mcnp_input(rundir,mcnp_command,cmd,i)  # run the mcnp input problem // only the first time to get the runtpe file
+        else:
+            pass
+
         mcnp_fname = "job" + str(i)
         generate_mcnp_inputs(rundir,mcnp_fname,i,num_cpus,nps,seed)
     return
