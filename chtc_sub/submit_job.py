@@ -332,8 +332,17 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
           file.write("cp ../geometry/* ."+"\n")
           file.write("geom_file=`ls geometry/* | grep 'h5m' | head -n1`"+"\n")
           file.write("$FLUPRO/flutil/rfluka -e $FLUDAGPATH -d $geom_file -M"+str(num_batches)+" "+inputfile+"\n")
+       
 
       # may need to remove all original input data
+      if "MCNP" in jobtype:
+          file.write("cd ..")
+          file.write("tar -pczf job"+str(job_index)+"_results.tar.gz job"+str(index)+"\n") # add the dir to folder 
+      if "DAG-MCNP" in jobtype:
+          file.write("cd ..")
+          file.write("tar -pczf job"+str(job_index)+"_results.tar.gz job"+str(index)+"\n") # add the dir to folder 
+
+      # fluka or fludag
       file.write("tar -pczf job"+str(job_index)+"_results.tar.gz *"+"\n")
       file.write("cd .."+"\n")
       file.write("cp job"+str(job_index)+"/"+"job"+str(job_index)+"_results.tar.gz ."+"\n")
