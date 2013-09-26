@@ -1,12 +1,13 @@
 Instructions for use
 ====================================
 
-Within this directory you should find split_mcnp and submit_job. The purpose
+Within this directory you should find split_mcnp.py, submit_job.py and combine_data.py. The purpose
 of split_mcnp is to be used on your OWN machine to create runtpe files that can
 then be transferred to condor and used. The purpose of  submit_job is to take
-the directory structure created by split_mcnp and launch those tasks on chtc
+the directory structure created by split_mcnp and launch those tasks on chtc. The purpose of combine_data.py is to 
+take the results pointed to and collapse to a single set of results.
 
-split_mcnp
+split_mcnp.py
 =====================================
 To use split mcnp create a folder, for example mcnp_run, and copy the mcnp 
 file you would like to split for running. Bring with it any ancilliary files
@@ -29,17 +30,13 @@ Run the script as follows
 Which will split the MCNP jobs mcnp_inp, into 100 sub tasks, striding through 
 the Random number seed appropriately. All the script does is launch mcnp with 
 the arguments you specify in addition to 'ix'. The 'ix' command tells MCNP
-to initialise the calculation, creating all the arrys and reading all the xsdata
-that you required and writing it all to a runtpe file.
+to initialise the calculation, creating all the arrays and reading all the 
+cross section data that are required and writing it all to a runtpe file.
 
 The submit job command, looks in the run directory for the input files and 
 sumits each one as an mcnp continue run.
 
-split_fluka
-=====================================
-<< to be continued >>
-
-submit_job
+submit_job.py
 =====================================
 To run submit job
 
@@ -51,18 +48,29 @@ case where --job is FLUKA or FLUDAG -batch means run 20 statistically
 independent runs, in the case of MCNP is will mean lauch 20 mpi tasks, 
 currently it is ignored.
 
+    $> submit_job.py --path /data/opt/fludag-v-and-v/fng-dose/job_chtc 
+       --job MCNP 
+
+
 Submit job assumes a certain directory structure for the input data. It assumes
 
     ----> input_dir
        +---> geometry
-       |
        +---> run
-       |
-       +---> ????
+       +---> tet_mesh
 
 The script collects all the input files in the run directory and adds them
 to a list to run. The input directory is tar.gz'ed up and copied to volatile
-remote storage (this is important on CHTC). The script creates a Directed 
-Acyclic Graph to control and resubmit the jobs upon failiure. Currently
-the script does not collect the output data and produce averagaes, but there is
-a flag for it.
+remote storage SQUID (this is important on CHTC). The script creates a Directed 
+Acyclic Graph to control and resubmit the jobs upon failiure.
+
+combine_data.py
+=====================================
+To run the combine script, 
+
+      $> ./combine_data.py --path /data/prod/chtc_test/mcnp/results/ --job MCNP 
+      
+Will produce a collection of CHTC job files and scripts and a DAG graph that will collapse the data. Create a directory in your squid directory
+and copy the produced *.sh *.dag and *.cmd files to this location, along with the results files produced earlier.
+
+
