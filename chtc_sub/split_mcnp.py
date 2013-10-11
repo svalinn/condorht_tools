@@ -27,6 +27,19 @@ def print_help():
     print "--seed the starting RN seed, if left blanks defaults" 
     sys.exit()
 
+# takes string, and if last char is '/' removes it
+def remove_slash(string):
+    """ removes the trailing '/'
+
+    Parameters
+    -------------
+    string :: string :: typically a directory path to remove trailing / from
+
+    Returns string, either changed or not
+    --------------
+    """
+
+    return string
 
 
 # a pre initialisation script the produces runtpe files appropriate for use in
@@ -80,8 +93,9 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
     # open the mcnp input file and look for the phrase "dagmc" if absent then we 
     # have no advanced tallies
     try:
-        file = open(input_dir+mcnp_input)
+        file = open(input_dir+'/'+mcnp_input)
     except:
+        print input_dir+'/'+mcnp_input
         print "Could not open the input file, ",mcnp_input," in directory ", input_dir
         sys.exit()
 
@@ -115,8 +129,10 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
     if not dagmc_t:
         # normal mcnp run
         try:
-            shutil.copyfile(input_dir+'/'+mcnp_input,rundir+'/'+mcnp_input+str(run_num))
+            shutil.copy(input_dir+'/'+mcnp_input,rundir+'/'+mcnp_input+str(run_num))
         except:
+            print input_dir+'/'+mcnp_input
+            print rundir+'/'+mcnp_input+str(run_num)
             print "could not copy file"
             sys.exit()
     elif dagmc_t and not out_t:
@@ -178,9 +194,17 @@ def run_mcnp_input(rundir,mcnp_exec,mcnp_commands,run_number):
     """
     working_dir=os.getcwd() #copy cwd
     os.chdir(rundir) #move to run dir
+    print rundir
     os.system(mcnp_exec+' ix '+mcnp_commands)
     os.system("rm -rf outp")
-    os.system("mv run1 ../runtpe/.") #move the runtpe file to the runtpe directory
+    sys.exit()
+    # ensure the runtpe was produced
+    if not os.path.isfile(input_dir+'/'+dag_file):
+        print "There was a problem producing the runtpe, please check output messages"
+        sys.exit()
+    else:
+        # move the runtpe file
+        os.system("mv run1 ../runtpe/.") #move the runtpe file to the runtpe directory
 
     for token in mcnp_commands.split():
         if "i=" in token:
@@ -259,7 +283,7 @@ def generate_mcnp_inputs(rundir,mcnpfname,cpu_id,n_cpu,nps,seed):
     Nothing
     """
 
-    file = open(rundir+mcnpfname,'w')
+    file = open(rundir+'/'+mcnpfname,'w')
 
     if int(nps) <= 100000:
         print "nps is very low, is it really worth a distributed run?"
@@ -340,16 +364,16 @@ if "g=" in mcnp_cmd:
             pos_in = token.find('=')
             dag_file = token[pos_in+1:len(token)]
     # check to see if the file exists
-    if not os.path.isfile(input_dir+dag_file):
+    if not os.path.isfile(input_dir+'/'+dag_file):
         print "The dag file specified, ",dag_file," does not exist"
         sys.exit()
     # create 
     try:
-        os.mkdir(input_dir+'geometry')
+        os.mkdir(input_dir+'/geometry')
     except:
         pass
 
-    shutil.copy(input_dir+dag_file,input_dir+'geometry/'+dag_file)
+    shutil.copy(input_dir+'/'+dag_file,input_dir+'/geometry/'+dag_file)
 
 if "wwinp=" in mcnp_cmd:
     wwinp = True
@@ -371,7 +395,8 @@ if "i=" in mcnp_cmd:
             pos_in = token.find('=')
             mcnp_input = token[pos_in+1:len(token)]
     # check to see if the file exists
-    if not os.path.isfile(input_dir+mcnp_input):
+    if not os.path.isfile(input_dir+'/'+mcnp_input):
+        print input_dir+'/'+mcnp_input
         print "The mcnp input file specified, ",mcnp_input," does not exist"
         sys.exit()
 
