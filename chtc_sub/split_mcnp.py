@@ -38,6 +38,9 @@ def remove_slash(string):
     Returns string, either changed or not
     --------------
     """
+    last_char = len(string)
+    if string[last_char-1] == '/':
+        del string[-1]
 
     return string
 
@@ -197,7 +200,6 @@ def run_mcnp_input(rundir,mcnp_exec,mcnp_commands,run_number):
     print rundir
     os.system(mcnp_exec+' ix '+mcnp_commands)
     os.system("rm -rf outp")
-    sys.exit()
     # ensure the runtpe was produced
     if not os.path.isfile(input_dir+'/'+dag_file):
         print "There was a problem producing the runtpe, please check output messages"
@@ -336,14 +338,29 @@ for arg in range(1,len(sys.argv)):
 for arg in range(1,len(sys.argv)):
     if "--rundir" in sys.argv[arg]:
         rundir=sys.argv[arg+1]
+        rundir=remove_slash(rundir) # remove ending slash
     if "--inputdir" in sys.argv[arg]:
         input_dir=sys.argv[arg+1]
+        input_dir=remove_slash(input_dir)
     if "--mcnp" in sys.argv[arg]:
         mcnp_cmd = sys.argv[arg+1]
     if "--cpu" in sys.argv[arg]:
         num_cpu = sys.argv[arg+1]        
     if "--seed" in sys.argv[arg]:
         seed = sys.argv[arg+1]
+
+if not num_cpu:
+    print "Num Cpu not set"
+    sys.exit()
+if not mcnp_cmd:
+    print "MCNP command not set"
+    sys.exit()
+if not input_dir:
+    print "Input dir not set"
+    sys.exit()
+if not rundir:
+    print "Runddir not set"
+    sys.exit()
 
 # get the mcnp command
 instructions=""
