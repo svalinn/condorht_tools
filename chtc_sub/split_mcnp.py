@@ -40,7 +40,7 @@ def remove_slash(string):
     """
     last_char = len(string)
     if string[last_char-1] == '/':
-        del string[-1]
+        string=string[:-1]
 
     return string
 
