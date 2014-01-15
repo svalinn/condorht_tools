@@ -198,14 +198,21 @@ def run_mcnp_input(rundir,mcnp_exec,mcnp_commands,run_number):
     working_dir=os.getcwd() #copy cwd
     os.chdir(rundir) #move to run dir
     print rundir
+    print mcnp_commands
     os.system(mcnp_exec+' ix '+mcnp_commands)
     os.system("rm -rf outp")
     # ensure the runtpe was produced
-    if not os.path.isfile(input_dir+'/'+dag_file):
+
+    # get dag file from 
+
+    if not os.path.isfile(rundir+'/run'+str(run_number)):
+        print input_dir+'/run'+str(run_number)
         print "There was a problem producing the runtpe, please check output messages"
         sys.exit()
     else:
         # move the runtpe file
+        if not os.path.exists('../runtpe'): #check is exists
+            os.makedirs('../runtpe')     
         os.system("mv run1 ../runtpe/.") #move the runtpe file to the runtpe directory
 
     for token in mcnp_commands.split():
