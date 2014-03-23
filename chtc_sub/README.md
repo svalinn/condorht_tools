@@ -7,23 +7,12 @@ then be transferred to condor and used. The purpose of  submit_job is to take
 the directory structure created by split_mcnp and launch those tasks on chtc. The purpose of combine_data.py is to 
 take the results pointed to and collapse to a single set of results.
 
+
 split_mcnp.py
-=====================================
-To use split mcnp create a folder, for example mcnp_run, and copy the mcnp 
-file you would like to split for running. Bring with it any ancilliary files
-that you may want, weight windows, DAG geometry inputs, mesh inputs etc.
-
-      $> mkdir mcnp_run
-      $> cp mcnp_inp .
-      $> cp mcnp_geom.h5m
-
-The script takes direction from the MCNP input deck, if you have not specified
-the random number seed the script takes the MCNP default. You can also specify
-is on the argument line. 
-
+-----------------------------------------------------
 Run the script as follows
 
-      $> ./split_mcnp.py --rundir /data/opt/condorht_tools/mcnp_run/run/ 
+      $> ./split_mcnp.py 
          --inputdir /data/opt/condorht_tools/mcnp_run/ 
          --mcnp "mcnp5 i=mcnp_inp g=mcnp_geom.h5m" --cpu 100 
 
@@ -37,7 +26,7 @@ The submit job command, looks in the run directory for the input files and
 sumits each one as an mcnp continue run.
 
 submit_job.py
-=====================================
+-----------------------------------------------------
 To run submit job
 
     $> submit_job.py --path /data/opt/fludag-v-and-v/fng-dose/job_chtc 
@@ -65,12 +54,10 @@ remote storage SQUID (this is important on CHTC). The script creates a Directed
 Acyclic Graph to control and resubmit the jobs upon failiure.
 
 combine_data.py
-=====================================
+-----------------------------------------------------
 To run the combine script, 
 
       $> ./combine_data.py --path /data/prod/chtc_test/mcnp/results/ --job MCNP 
       
 Will produce a collection of CHTC job files and scripts and a DAG graph that will collapse the data. Create a directory in your squid directory
 and copy the produced *.sh *.dag and *.cmd files to this location, along with the results files produced earlier.
-
-

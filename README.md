@@ -1,33 +1,60 @@
 Collection of tools that allow the arbitrary splitting of MCNP input runs into many serial runs for submission onto the CHTC computing system. These runs are queued and submitted using Directed Acylic Graph (DAG) such that sub input decks are subservient to some master input file and allow resubmissions of failed runs.
 
-CHTC Login Instructions
-Login to  submit-1.chtc.wisc.edu with your assigned username and password
+Run Instructions
+=====================================================
+split_mcnp.py
+-----------------------------------------------------
+Run the script as follows
 
-Instructions
-The directory structure shows the layout of scrips and other folders
+      $> ./split_mcnp.py 
+         --inputdir /data/opt/condorht_tools/mcnp_run/ 
+         --mcnp "mcnp5 i=mcnp_inp g=mcnp_geom.h5m" --cpu 100 
 
-    /mcnp5dag
-	|- /jobs (contains all jobs submission script and preprocessing scripts)
-	+- /input (contains the mcnp driver file and run options for condor)
+Which will split the MCNP jobs mcnp_inp, into 100 sub tasks, striding through 
+the Random number seed appropriately. All the script does is launch mcnp with 
+the arguments you specify in addition to 'ix'. The 'ix' command tells MCNP
+to initialise the calculation, creating all the arrays and reading all the 
+cross section data that are required and writing it all to a runtpe file.
 
-Submitting a job
-In order to submit a job the input file should be stored in /input along with the control file (example shown below)
+The submit job command, looks in the run directory for the input files and 
+sumits each one as an mcnp continue run.
 
-    number = 30
-    directory = part
-    events = 20t
-    input = V6_w1
-    output = bttest
-    restart = restart.bin
-    mctal = mctal_test
-    meshtal = meshtal_test
-    ~
+submit_job.py
+-----------------------------------------------------
+To run submit job
 
-To run the job, in directory below /input run
+    $> submit_job.py --path /data/opt/fludag-v-and-v/fng-dose/job_chtc 
+       --job FLUKA --batch 20
 
-    ./mkmcnp5dag --jobscripts=jobs --data=ross_1bt3 --rundir=run_dir
+Will launch each input file in the --path directory --batch times 20. In the 
+case where --job is FLUKA or FLUDAG -batch means run 20 statistically 
+independent runs, in the case of MCNP is will mean lauch 20 mpi tasks, 
+currently it is ignored.
 
-NB --run_dir should be an empty directory
+    $> submit_job.py --path /data/opt/fludag-v-and-v/fng-dose/job_chtc 
+       --job MCNP 
+
+
+Submit job assumes a certain directory structure for the input data. It assumes
+
+    ----> input_dir
+       +---> geometry
+       +---> run
+       +---> tet_mesh
+
+The script collects all the input files in the run directory and adds them
+to a list to run. The input directory is tar.gz'ed up and copied to volatile
+remote storage SQUID (this is important on CHTC). The script creates a Directed 
+Acyclic Graph to control and resubmit the jobs upon failiure.
+
+combine_data.py
+-----------------------------------------------------
+To run the combine script, 
+
+      $> ./combine_data.py --path /data/prod/chtc_test/mcnp/results/ --job MCNP 
+      
+Will produce a collection of CHTC job files and scripts and a DAG graph that will collapse the data. Create a directory in your squid directory
+and copy the produced *.sh *.dag and *.cmd files to this location, along with the results files produced earlier.
 
 Documenting Matrix of Computing Modes and Use Cases
 =====================================================
