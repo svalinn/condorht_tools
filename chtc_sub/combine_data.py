@@ -391,15 +391,12 @@ def build_combine_script(filename,gen,count,code_type,code_options,username,file
           file.write("# get_until_got function - keeps trying to get file with wget \n")
           file.write("# until its successful \n")
           file.write("get_until_got(){ \n")
-          file.write("wget $1 \n")
-          file.write("while [[ $? != 0 ]]\n")
-          file.write("do\n")
-          file.write("wget $1\n")
-          file.write("done\n")
+#          wget -c -t 5 --waitretry=20 --read-timeout=10
+          file.write("wget -c -t 5 --waitretry=20 --read-timeout=10 $1 \n")
           file.write("}\n")
           file.write("cwd=$PWD\n")
           file.write("# copy the data to compress\n")
-          print files[0],files[1]
+#          print files[0],files[1]
           file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files[0]+"  \n")
           file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files[1]+"  \n")
           file.write("# get the merge tools \n")
