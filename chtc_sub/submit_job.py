@@ -161,7 +161,7 @@ def pack_for_run(datapath,type_run):
         command = 'tar -pczf '+datapath+'/'+tar_gz_name+' -C '+datapath+' input' # always need input
         if 'MCNP' in type_run:
             command += ' runtpe' # need runtpe for mcnps
-        if 'DAG-MCNP' in type_run:
+        if 'DAGMCNP' in type_run:
             command += ' geometry' # need geometry for dag geom
         if 'FLUDAG' in type_run:
             command += ' geoemtry' # need geometry for dag geom
@@ -328,14 +328,15 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       file.write("cd job"+str(job_index)+"\n")
       file.write("cp ../input/"+inputfile+" . \n")
       
-      if "MCNP" in jobtype:
+      if "DAGMCNP" in jobtype:
+          file.write("cp ../geometry/* ."+"\n")
+          file.write("cp ../runtpe/run1 run"+str(job_index)+" \n")
+          file.write("geom_file=`ls ../geometry/* | grep 'h5m' | head -n1`"+"\n")
+          file.write("mcnp5 c i="+inputfile+" g=$geom_file n=job"+str(job_index)+". r=run"+str(job_index)+"\n")
+      elif "MCNP" in jobtype:
           file.write("cp ../runtpe/run1 run"+str(job_index)+"\n")
           file.write("mcnp5 c i="+inputfile+" n=job"+str(job_index)+". r=run"+str(job_index)+"\n")
-      if "DAG-MCNP" in jobtype:
-          file.write("cp ../geometry/* ."+"\n")
-          file.write("cp ../runtpe/run"+str(job_index)+"  . \n")
-          file.write("geom_file=`ls geometry/* | grep 'h5m' | head -n1`"+"\n")
-          file.write("mcnp5 c i="+inputfile+" g=$geom_file n=job"+str(job_index)+". r=run"+str(job_index)+"\n")
+          
       if "FLUKA" in jobtype:
           file.write("$FLUPRO/flutil/rfluka -M"+str(num_batches)+" "+inputfile+"\n")
       if "FLUDAG" in jobtype:
@@ -346,12 +347,12 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
 
       # may need to remove all original input data
       
-      if "MCNP" in jobtype:
+      if "DAGMCNP" in jobtype:
           file.write("cd ..\n")
           file.write("tar -pczf job"+str(job_index)+"_results.tar.gz job"+str(job_index)+"\n") # add the dir to folder
-      if "DAG-MCNP" in jobtype:
+      elif "MCNP" in jobtype:
           file.write("cd ..\n")
-          file.write("tar -pczf job"+str(job_index)+"_results.tar.gz job"+str(job_index)+"\n") # add the dir to folder 
+          file.write("tar -pczf job"+str(job_index)+"_results.tar.gz job"+str(job_index)+"\n") # add the dir to folder
 
       # fluka or fludag
       if "FLUKA" in jobtype:
@@ -407,16 +408,16 @@ for arg in range(0,len(sys.argv)):
 # ensure all vars exist
 if not job_type:
     print "The job type has not been defined"
-    exit()
+    sys.exit()
 elif not path_data:
     print "Path to data has not been defined"
-    exit()
+    sys.exit()
 elif num_batches < 1:
     print "there are no jobs to run, batches < 1"
-    exit()
+    sys.exit()
 elif not check_valid_job(job_type):
     print job_type, " is not a valid job name"
-    exit()
+    sys.exit()
 else:
     pass
 
