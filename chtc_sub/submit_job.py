@@ -164,7 +164,7 @@ def pack_for_run(datapath,type_run):
         if 'DAGMCNP' in type_run:
             command += ' geometry' # need geometry for dag geom
         if 'FLUDAG' in type_run:
-            command += ' geoemtry' # need geometry for dag geom
+            command += ' geometry' # need geometry for dag geom
     
         os.system(command)
 
@@ -310,6 +310,7 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
           file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")
           file.write("tar -zxf fludag_fluka_run.tar.gz \n")
           file.write("export FLUPRO=$PWD/fluka \n")
+          file.write("export FLUDAGPATH=$FLUPRO/mainfludag \n")
 
       if "MCNP" in jobtype:
           file.write("# get and set the required mcnp5 paths \n")
@@ -341,7 +342,7 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
           file.write("$FLUPRO/flutil/rfluka -M"+str(num_batches)+" "+inputfile+"\n")
       if "FLUDAG" in jobtype:
           file.write("cp ../geometry/* ."+"\n")
-          file.write("geom_file=`ls geometry/* | grep 'h5m' | head -n1`"+"\n")
+          file.write("geom_file=`ls * | grep 'h5m' | head -n1`"+"\n")
           file.write("$FLUPRO/flutil/rfluka -e $FLUDAGPATH -d $geom_file -M"+str(num_batches)+" "+inputfile+"\n")
        
 
