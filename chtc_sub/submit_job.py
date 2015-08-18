@@ -444,10 +444,21 @@ for inputfile in input_files:
     build_job_cmd_file(inputfile,counter)
     build_run_script(files_for_run,counter,inputfile,path_data,job_type,num_batches)
 
+
+# 
+print "---------------------------------------------"
+print "All done"
+print " "
+print "Copy this containing folder, "+os.getcwd()+" to CHTC"
+print "Copy the file, "+files_for_run+", to your squid directory"
+print "To submit this job, login to CHTC, eg. ssh davisa@submit-1.chtc.wisc.edu"
+print "then type, condor_submit_dag --MaxPre 10 dagman.dag"
+print "---------------------------------------------"
+
 # copy the job tar.gz
 # get the user name since this is where we must put file for squid wget
-username = os.getlogin()
-os.system('cp '+path_data+'/'+files_for_run+' /squid/'+username+'/'+files_for_run)
+# username = os.getlogin()
+# os.system('cp '+path_data+'/'+files_for_run+' /squid/'+username+'/'+files_for_run)
 
 # submit the jobs
 # this would actually submit the jobs
