@@ -47,14 +47,14 @@ def write_fluka_input(filestub,seed,idx):
         if("RANDOMIZ" in line):
             # replace whatever ranomdiz was in the original input deck
             # with the new one
-            f.write('RANDOMIZ        '+str(seed)+'\n')
+            f.write('RANDOMIZ            '+str(seed)+'.\n')
             found_randomiz = True
         else:
             f.write(line)
 
     # if we are here and randomiz wasn't found print it out
     if(not found_randomiz):
-        f.write('RANDOMIZ        '+str(seed)+'\n')
+        f.write('RANDOMIZ            '+str(seed)+'.\n')
 
     f.close()
     return

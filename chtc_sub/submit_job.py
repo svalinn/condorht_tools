@@ -165,7 +165,20 @@ def pack_for_run(datapath,type_run):
             command += ' geometry' # need geometry for dag geom
         if 'FLUDAG' in type_run:
             command += ' geometry' # need geometry for dag geom
-    
+
+        if 'FLUDAG' in type_run or 'DAGMCNP' in type_run:
+            try:
+                test = listdir(datapath+'/geometry')
+            except:
+                print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                print "                ERROR "
+                print "The geometry subdirectory has not been found, "
+                print " this is required for a DAG type run "
+                print "                ERROR "
+                print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                exit()
+            
+        # everythin ok go ahead and zip
         os.system(command)
 
     return tar_gz_name # return name of the targz file
@@ -277,10 +290,10 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       file.write("# until its successful \n")
       file.write("get_until_got(){ \n")
       file.write("wget -c -t 5 --waitretry=20 --read-timeout=10 $1\n")
-      file.write("while [[ $? != 0 ]]\n")
-      file.write("do\n")
-      file.write("wget $1\n")
-      file.write("done\n")
+#      file.write("while [[ $? != 0 ]]\n")
+#      file.write("do\n")
+#      file.write("wget $1\n")
+#      file.write("done\n")
       file.write("}\n")
                
       file.write("cwd=$PWD\n")
@@ -288,10 +301,10 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
 
       # copy the required files to run the code
       file.write("# get and set the gcc compiler suite and set ld and paths \n")
-      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/compiler.tar.gz \n")
+      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/compile.tar.gz \n")
       #file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/compiler_tools.tar.gz\n")
-      file.write("tar -zxf compiler.tar.gz \n")
-      file.write("export LD_LIBRARY_PATH=$cwd/compiler/gcc/lib:$cwd/compiler/gcc/lib64:$cwd/compiler/gmp/lib:$cwd/compiler/mpc/lib:$cwd/compiler/mpfr/lib  \n") #sets the compiler paths
+      file.write("tar -zxf compile.tar.gz \n")
+      file.write("export LD_LIBRARY_PATH=$cwd/compile/gcc/lib:$cwd/compile/gcc/lib64:$cwd/compile/gmp/lib:$cwd/compile/mpc/lib:$cwd/compile/mpfr/lib  \n") #sets the compiler paths
 
       # bring moab with us
       file.write("# get and set the moab and hdf5 libs \n")

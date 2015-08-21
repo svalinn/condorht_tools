@@ -40,7 +40,7 @@ submit_job.py
 -----------------------------------------------------
 To run submit job
 
-    $> submit_job.py --path /data/opt/fludag-v-and-v/fng-dose/job_chtc 
+    $> submit_job.py 
        --job FLUKA --batch 20
 
 Will launch each input file in the --path directory --batch times 20. In the 
