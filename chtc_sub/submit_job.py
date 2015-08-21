@@ -410,9 +410,9 @@ for arg in range(0,len(sys.argv)):
 if not job_type:
     print "The job type has not been defined"
     sys.exit()
-elif not path_data:
-    print "Path to data has not been defined"
-    sys.exit()
+#elif not path_data:
+#    print "Path to data has not been defined"
+#    sys.exit()
 elif num_batches < 1:
     print "there are no jobs to run, batches < 1"
     sys.exit()
@@ -422,7 +422,7 @@ elif not check_valid_job(job_type):
 else:
     pass
 
-
+path_data = os.getcwd()
 # get the input files from the path+'/input'
 input_files = get_input_file_list(path_data+'/input')
 

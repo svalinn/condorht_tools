@@ -25,6 +25,17 @@ cross section data that are required and writing it all to a runtpe file.
 The submit job command, looks in the run directory for the input files and 
 sumits each one as an mcnp continue run.
 
+split_fluka.py
+-----------------------------------------------------
+Run the script as follows
+
+      $> ./split_fluka.py 
+	 --input <filename>
+	 --cpu <num cpu>
+
+The submit job command, looks in the run directory for the input files and 
+sumits each one as an mcnp continue run.
+
 submit_job.py
 -----------------------------------------------------
 To run submit job
