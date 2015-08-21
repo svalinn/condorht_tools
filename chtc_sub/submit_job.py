@@ -276,7 +276,7 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       file.write("# get_until_got function - keeps trying to get file with wget \n")
       file.write("# until its successful \n")
       file.write("get_until_got(){ \n")
-      file.write("wget $1 \n")
+      file.write("wget -c -t 5 --waitretry=20 --read-timeout=10 $1\n")
       file.write("while [[ $? != 0 ]]\n")
       file.write("do\n")
       file.write("wget $1\n")
@@ -288,29 +288,28 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
 
       # copy the required files to run the code
       file.write("# get and set the gcc compiler suite and set ld and paths \n")
-      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/compiler_tools.tar.gz \n")
+      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/compiler.tar.gz \n")
       #file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/compiler_tools.tar.gz\n")
-      file.write("tar -zxf compiler_tools.tar.gz \n")
-      file.write("export LD_LIBRARY_PATH=$cwd/compiler/gcc-4.8.1/lib:$cwd/compiler/gcc-4.8.1/lib64:$cwd/compiler/gmp-5.1.2/lib:$cwd/compiler/mpc-1.0.1/lib:$cwd/compiler/mpfr-3.1.2/lib  \n") #sets the compiler paths
+      file.write("tar -zxf compiler.tar.gz \n")
+      file.write("export LD_LIBRARY_PATH=$cwd/compiler/gcc/lib:$cwd/compiler/gcc/lib64:$cwd/compiler/gmp/lib:$cwd/compiler/mpc/lib:$cwd/compiler/mpfr/lib  \n") #sets the compiler paths
 
       # bring moab with us
       file.write("# get and set the moab and hdf5 libs \n")
-      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/moab_tools.tar.gz \n")
-      file.write("tar -zxf moab_tools.tar.gz \n")
-      file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/moab_tools/hdf5-1.8.4/lib\n")
-      file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/moab_tools/moab-4.6.0/lib \n")
-
+      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/runtime.tar.gz \n")
+      file.write("tar -zxf runtime.tar.gz \n")
+      file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/runtime/hdf5/lib\n")
+      file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/runtime/moab/lib\n")
+      file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/runtime/DAGMC/lib\n")
+      
       if "FLUKA" in jobtype:
           file.write("# get and set the required fluka paths \n")
-          file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")
-          file.write("tar -zxf fludag_fluka_run.tar.gz \n")
-          file.write("export FLUPRO=$PWD/fluka \n")
+          file.write("export FLUPRO=$PWD/runtime/fluka \n")
       if "FLUDAG" in jobtype:
           file.write("# get and set the required fluka paths \n")
           file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")
           file.write("tar -zxf fludag_fluka_run.tar.gz \n")
-          file.write("export FLUPRO=$PWD/fluka \n")
-          file.write("export FLUDAGPATH=$FLUPRO/mainfludag \n")
+          file.write("export FLUPRO=$PWD/runtime/fluka \n")
+          file.write("export FLUDAGPATH=$PWD/runtime/DAGMC/bin/mainfludag \n")
 
       if "MCNP" in jobtype:
           file.write("# get and set the required mcnp5 paths \n")
@@ -343,7 +342,7 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       if "FLUDAG" in jobtype:
           file.write("cp ../geometry/* ."+"\n")
           file.write("geom_file=`ls * | grep 'h5m' | head -n1`"+"\n")
-          file.write("$FLUPRO/flutil/rfluka -e $FLUDAGPATH -d $geom_file -M"+str(num_batches)+" "+inputfile+"\n")
+          file.write("$FLUPRO/flutil/rfluka -e $FLUDAGPATH -d $geom_file -N0 -M"+str(num_batches)+" "+inputfile+"\n")
        
 
       # may need to remove all original input data
