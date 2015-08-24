@@ -100,8 +100,6 @@ build_mpfr
 build_mpc
 build_gcc
 
-exit
-
 pack_libs
 
 cleanup

@@ -19,6 +19,19 @@ cross section data that are required and writing it all to a runtpe file.
 The submit job command, looks in the run directory for the input files and 
 sumits each one as an mcnp continue run.
 
+split_fluka.py
+-----------------------------------------------------
+Run the script as follows
+
+      $> ./split_fluka.py 
+         --input fluka_inp.inp  --cpu 100 
+
+Which will split the Fluka job fluka_inp.inp, into 100 sub tasks, assigning
+each one a unique random number seed. 
+
+The submit job command, looks in the run directory for the input files and 
+sumits each one as an mcnp continue run.
+
 submit_job.py
 -----------------------------------------------------
 To run submit job
@@ -38,6 +51,7 @@ currently it is ignored.
 Submit job assumes a certain directory structure for the input data. It assumes
 
     ----> input_dir
+       +---> input
        +---> geometry
        +---> run
        +---> tet_mesh

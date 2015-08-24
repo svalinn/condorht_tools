@@ -50,6 +50,8 @@ BUILD_STRING="-DCMAKE_C_COMPILER=$cwd/../compile/gcc/bin/gcc -DCMAKE_CXX_COMPILE
 
 if [ "$1" == "fluka" ] || [ "$2" == "fluka" ] || [ "$3" == "fluka" ] ; then
     BUILD_STRING="$BUILD_STRING -DBUILD_FLUKA=ON -DFLUKA_DIR=$FLUPRO"
+    # patch rfluka to support dagmc
+    patch $cwd/fluka/flutil/rfluka ../fluka/rfluka.patch
 fi
 if [ "$1" == "geant4" ] || [ "$2" == "geant4" ] || [ "$3" == "geant4" ] ; then
     BUILD_STRING="$BUILD_STRING -DBUILD_GEANT4=ON -DGEANT4_DIR=$GEANT4DIR"
