@@ -39,30 +39,34 @@ cd ..
 }
 
 build_dagmc() {
-cd runtime
 export cwd=$PWD
+cd runtime
 git clone https://github.com/svalinn/DAGMC
 cd DAGMC
 mkdir bld
 cd bld
 
-BUILD_STRING="-DCMAKE_C_COMPILER=$cwd/../compile/gcc/bin/gcc -DCMAKE_CXX_COMPILER=$cwd/../compile/gcc/bin/g++ -DCMAKE_Fortran_COMPILER=$cwd/../compile/gcc/bin/gfortran "
+BUILD_STRING="-DCMAKE_C_COMPILER=$cwd/compile/gcc/bin/gcc -DCMAKE_CXX_COMPILER=$cwd/compile/gcc/bin/g++ -DCMAKE_Fortran_COMPILER=$cwd/compile/gcc/bin/gfortran "
 
 if [ "$1" == "fluka" ] || [ "$2" == "fluka" ] || [ "$3" == "fluka" ] ; then
     BUILD_STRING="$BUILD_STRING -DBUILD_FLUKA=ON -DFLUKA_DIR=$FLUPRO"
     # patch rfluka to support dagmc
-    patch $cwd/fluka/flutil/rfluka ../fluka/rfluka.patch
+    patch $cwd/runtime/fluka/flutil/rfluka ../fluka/rfluka.patch
 fi
 if [ "$1" == "geant4" ] || [ "$2" == "geant4" ] || [ "$3" == "geant4" ] ; then
     BUILD_STRING="$BUILD_STRING -DBUILD_GEANT4=ON -DGEANT4_DIR=$GEANT4DIR"
 fi
 if [ "$1" == "mcnp5" ] || [ "$2" == "mcnp5" ] || [ "$3" == "mcnp5" ] ; then
     BUILD_STRING="$BUILD_STRING -DBUILD_MCNP5=ON"
+    cp ../../../mcnp5v16src.tar.gz $cwd/runtime/DAGMC/mcnp5/.
+    cd $cwd/runtime/DAGMC/mcnp5/
+    tar -zxf mcnp5v16src.tar.gz
+    patch -p1 < patch/dagmc.patch.5.1.60
+    cd ../bld
 fi
 
-echo "BUILD STRING = "$BUILD_STRING
-
-cmake ../. $BUILD_STRING -DCMAKE_INSTALL_PREFIX=$cwd/DAGMC
+BUILD_STRING="$BUILD_STRING -DCMAKE_INSTALL_PREFIX=$cwd/runtime/DAGMC"
+cmake ../. $BUILD_STRING 
 make
 make install
 cd ..
@@ -130,19 +134,22 @@ fi
 if [ "$1" == "geant4" ] || [ "$2" == "geant4" ] || [ "$3" == "geant4" ] ; then
     PACK_STRING="$PACK_STRING runtime/geant4 "
 fi
-if [ "$1" == "mcnp5" ] || [ "$2" == "mcnp5" ] || [ "$3" == "mcnp5" ] ; then
-    PACK_STRING="$PACK_STRING runtime/mcnp5 "
-fi
 
 echo "Packing up " $PACK_STRING
 tar -pczf runtime.tar.gz $PACK_STRING
+}
+
+# get and patch mcnp5
+function get_mcnp5() {
+cwd=$PWD
+wget http://proxy.chtc.wisc.edu/SQUID/$1/mcnp5v16src.tar.gz
 }
 
 # first get the compile env
 get_compile_env $1
 
 mkdir runtime
-# build hdf5
+# build hdf5A
 build_hdf5
 # build moab
 build_moab
@@ -154,6 +161,10 @@ fi
 if [ "$2" == "geant4" ] || [ "$3" == "geant4" ] || [ "$4" == "geant4" ]; then
     build_geant4
 fi
+if [ "$2" == "mcnp5" ] || [ "$3" == "mcnp5" ] || [ "$4" == "mcnp5" ]; then
+    get_mcnp5 $1
+fi
+
 
 # build dagmc
 build_dagmc $2 $3 $4
