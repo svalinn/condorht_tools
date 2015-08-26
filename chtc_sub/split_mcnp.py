@@ -20,7 +20,7 @@ def print_help():
     """
 
     print "split_mcnp "
-    print "--inputdir where the input file can be found" 
+    print "--nps the number of particles to simulate" 
     print "--mcnp the command you would launch to run this input"  
     print "--cpu the number of splits you would like"  
     print "--seed the starting RN seed, if left blanks defaults" 
@@ -92,6 +92,7 @@ def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
     out_t=False
 
     shutil.copy(mcnp_input,input_dir+'/'+mcnp_input)
+
 
     # open the mcnp input file and look for the phrase "dagmc" if absent then we 
     # have no advanced tallies
@@ -200,13 +201,14 @@ def run_mcnp_input(mcnp_command):
 #    sys.exit()
     os.system(mcnp_command+' ix')
     os.system("rm -rf outp")
-    os.makedirs('runtapes')     
-    os.system("mv runtpe runtapes/run1") #move the runtpe file to the runtpe directory
+    os.makedirs('runtpes')     
+    os.system("mv runtpe runtpes/run1") #move the runtpe file to the runtpe directory
        
     return
 
 
     working_dir=os.getcwd() #copy cwd
+
     os.chdir(rundir) #move to run dir
     print "rundir = ", rundir
     print mcnp_commands
@@ -225,9 +227,9 @@ def run_mcnp_input(mcnp_command):
         sys.exit()
     else:
         # move the runtpe file
-        if not os.path.exists('../runtpe'): #check is exists
-            os.makedirs('../runtpe')     
-        os.system("mv run1 ../runtpe/.") #move the runtpe file to the runtpe directory
+        if not os.path.exists('../runtpes'): #check is exists
+            os.makedirs('../runtpes')     
+        os.system("mv run1 ../runtpes/.") #move the runtpe file to the runtpe directory
 
     for token in mcnp_commands.split():
         if "i=" in token:
@@ -237,7 +239,7 @@ def run_mcnp_input(mcnp_command):
     os.chdir('..') #go back to original cwd
     return
 
-def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,instructions):
+def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,instructions,nps):
     """
     Arguments
     --------------------
@@ -258,14 +260,16 @@ def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,ins
     print mcnp_command
     run_mcnp_input(mcnp_command)  
 
-
     # builds the continue run files
     for i in range(1,num_cpus+1):
         mcnp_fname = "job" + str(i)
+        if not os.path.exists(input_dir+'/input'):
+            os.mkdir(input_dir+'/input')
         generate_mcnp_inputs(input_dir+'/input',mcnp_fname,i,num_cpus,nps,seed)
 
 
     return
+"""
     for i in range(1,num_cpus+1):
         # loop over each input deck in the problem
         if i == 1:
@@ -301,7 +305,7 @@ def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,ins
         mcnp_fname = "job" + str(i)
         generate_mcnp_inputs(input_dir+'/input',mcnp_fname,i,num_cpus,nps,seed)
     return
-
+"""
 
 def generate_mcnp_inputs(rundir,mcnpfname,cpu_id,n_cpu,nps,seed):
     """
@@ -409,6 +413,7 @@ def check_and_setup(mcnp_cmd,input_dir):
 
     copy_and_create(input_dir,"geometry",dag_file)
 
+    wwinp = False
     if "wwinp=" in mcnp_cmd or "w=" in mcnp_cmd:
         wwinp = True
         # step through bits looking for g=
@@ -419,12 +424,12 @@ def check_and_setup(mcnp_cmd,input_dir):
                 inputs.add(wwinp_file)
                 # check to see if the file exists
 
-    if not os.path.isfile(input_dir+'/'+wwinp_file):
-        print "The wwinp file specified, ",input_dir+'/'+wwinp_file," does not exist"
-        sys.exit()
-        # create wwinp dir
+        if not os.path.isfile(input_dir+'/'+wwinp_file):
+            print "The wwinp file specified, ",input_dir+'/'+wwinp_file," does not exist"
+            sys.exit()
+            # create wwinp dir
+            copy_and_create(input_dir,"wwinp",wwinp_file)
 
-    copy_and_create(input_dir,"wwinp",wwinp_file)
 
     if "i=" in mcnp_cmd:
         input = True
@@ -481,9 +486,8 @@ for arg in range(1,len(sys.argv)):
     if "--help"  in sys.argv[arg]:
         print_help()
 # set input args
+nps=0
 for arg in range(1,len(sys.argv)):
-    if "--inputdir" in sys.argv[arg]:
-        input_dir=sys.argv[arg+1]
     if "--mcnp" in sys.argv[arg]:
         mcnp_cmd = sys.argv[arg+1]
         print mcnp_cmd
@@ -491,6 +495,9 @@ for arg in range(1,len(sys.argv)):
         num_cpu = sys.argv[arg+1]        
     if "--seed" in sys.argv[arg]:
         seed = sys.argv[arg+1]
+    if "--nps" in sys.argv[arg]:
+        nps = sys.argv[arg+1]
+
 
 # basic checks
 if not num_cpu:
@@ -499,15 +506,13 @@ if not num_cpu:
 if not mcnp_cmd:
     print "MCNP command not set"
     sys.exit()
-if not input_dir:
-    print "Input dir not set"
-    input_dir = os.cwd()
-else:
-    input_dir=remove_slash(input_dir) # dir containing the input deck
+if nps == 0:
+    print "NPS == 0!!!"
+    sys.exit()
 
-#if not rundir:
-#    print "Runddir not set"
-#    sys.exit()
+
+# input dir is always the cwd
+input_dir = os.getcwd()
 
 # get the mcnp command
 instructions=""
@@ -532,10 +537,10 @@ else:
 
 
 # generate runtpe files
-rundir=input_dir+"/runtpe"
+rundir=input_dir+"/runtpes"
 print "woo ",mcnp_cmd," ",rundir
 mcnp_input=''
-generate_runtapes(num_cpu,input_dir,mcnp_input,rundir,seed,mcnp_cmd,instructions)
+generate_runtapes(num_cpu,input_dir,mcnp_input,rundir,seed,mcnp_cmd,instructions,nps)
 
 
 #for arg in range(1,len(sys.argv)):
