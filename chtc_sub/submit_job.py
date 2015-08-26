@@ -160,7 +160,7 @@ def pack_for_run(datapath,type_run):
         tar_gz_name = str(os.urandom(16).encode('hex'))+'.tar.gz'
         command = 'tar -pczf '+datapath+'/'+tar_gz_name+' -C '+datapath+' input' # always need input
         if 'MCNP' in type_run:
-            command += ' runtpe' # need runtpe for mcnps
+            command += ' runtpes' # need runtpe for mcnps
         if 'DAGMCNP' in type_run:
             command += ' geometry' # need geometry for dag geom
         if 'FLUDAG' in type_run:
@@ -319,20 +319,15 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
           file.write("export FLUPRO=$PWD/runtime/fluka \n")
       if "FLUDAG" in jobtype:
           file.write("# get and set the required fluka paths \n")
-          file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/fludag_fluka_run.tar.gz \n")
-          file.write("tar -zxf fludag_fluka_run.tar.gz \n")
           file.write("export FLUPRO=$PWD/runtime/fluka \n")
           file.write("export FLUDAGPATH=$PWD/runtime/DAGMC/bin/mainfludag \n")
 
       if "MCNP" in jobtype:
-          file.write("# get and set the required mcnp5 paths \n")
-          file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/mcnp5.tar.gz \n")
-          file.write("mkdir mcnp5 \n")
-          file.write("cp mcnp5.tar.gz mcnp5/. \n")
-          file.write("cd mcnp5 \n")
-          file.write("tar -zxf mcnp5.tar.gz \n")
-          file.write("cd .. \n")
-          file.write("export PATH=$cwd/mcnp5:$PATH \n")
+          file.write("# get and set the required fluka paths \n")
+          file.write("export PATH=$PWD/runtime/DAGMC/bin/:$PATH \n")
+      if "DAGMCNP" in jobtype:
+          file.write("# get and set the required fluka paths \n")
+          file.write("export PATH=$PWD/runtime/DAGMC/bin/:$PATH \n")
             
 
       # untar the actual run data
@@ -343,11 +338,11 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       
       if "DAGMCNP" in jobtype:
           file.write("cp ../geometry/* ."+"\n")
-          file.write("cp ../runtpe/run1 run"+str(job_index)+" \n")
+          file.write("cp ../runtpes/run1 run"+str(job_index)+" \n")
           file.write("geom_file=`ls ../geometry/* | grep 'h5m' | head -n1`"+"\n")
           file.write("mcnp5 c i="+inputfile+" g=$geom_file n=job"+str(job_index)+". r=run"+str(job_index)+"\n")
       elif "MCNP" in jobtype:
-          file.write("cp ../runtpe/run1 run"+str(job_index)+"\n")
+          file.write("cp ../runtpes/run1 run"+str(job_index)+"\n")
           file.write("mcnp5 c i="+inputfile+" n=job"+str(job_index)+". r=run"+str(job_index)+"\n")
           
       if "FLUKA" in jobtype:
