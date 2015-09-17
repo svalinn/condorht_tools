@@ -23,7 +23,7 @@ when_to_transfer_output = ON_EXIT
 # to the build machine when your interactive session starts.
 # Make sure to create a different tarball of the files you want
 # transfered back to the submit node when you're done compiling.
-executable = build_stacks.sh
+executable = build_stack.sh
 transfer_input_files = build_stack.sh
 
 # We don't want email about our jobs. (If you do, let us know,
