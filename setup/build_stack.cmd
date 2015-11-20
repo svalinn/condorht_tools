@@ -10,7 +10,7 @@ error = process.err
 # Where to write a log of your jobs' statuses.
 log = process.log
 
-# All interactive compiling jobs (compiling MatLab, R, Python, etc.) 
+# All interactive compiling jobs (compiling MatLab, R, Python, etc.)
 # are pointed to our build machines
 +IsBuildJob = true
 requirements = (OpSysAndVer =?= "SL6") && ( IsBuildSlot == true )
@@ -30,8 +30,8 @@ transfer_input_files = build_stack.sh
 # there may be some additional configuration necessary.)
 notification = never
 
-# We should still request the amount of memory and disk we 
-# anticipate needing for the compilation.  Change these values 
+# We should still request the amount of memory and disk we
+# anticipate needing for the compilation.  Change these values
 # if you believe your code will need more (or fewer) resources.
 request_cpus = 1
 request_memory = 1GB
