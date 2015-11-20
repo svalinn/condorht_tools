@@ -15,6 +15,7 @@ log = process.log
 +IsBuildJob = true
 requirements = (OpSysAndVer =?= "SL6") && ( IsBuildSlot == true )
 
+
 # Indicate if/when files should be transfered
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
@@ -23,8 +24,8 @@ when_to_transfer_output = ON_EXIT
 # to the build machine when your interactive session starts.
 # Make sure to create a different tarball of the files you want
 # transfered back to the submit node when you're done compiling.
-executable = build_stack.sh
-transfer_input_files = build_stack.sh
+executable = build_compile.sh
+transfer_input_files = build_compile.sh
 
 # We don't want email about our jobs. (If you do, let us know,
 # there may be some additional configuration necessary.)
@@ -33,8 +34,8 @@ notification = never
 # We should still request the amount of memory and disk we
 # anticipate needing for the compilation.  Change these values
 # if you believe your code will need more (or fewer) resources.
-request_cpus = 1
-request_memory = 1GB
-request_disk = 500MB
+request_cpus = 8
+request_memory = 2GB
+request_disk = 4GB
 
 queue

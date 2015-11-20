@@ -1,47 +1,96 @@
 #!/bin/bash
 
-build_moab() {
-  cd runtime
-  export cwd=$PWD
-  git clone https://bitbucket.org/fathomteam/moab
-  cd moab
-  git checkout Version4.9.0
-  autoreconf -fi
-  mkdir bld
-  cd bld
-  ../configure --enable-dagmc \
-               --enable-shared \
-               --disable-debug \
-               --enable-optimize \
-               --with-hdf5=$cwd/hdf5 \
-               --prefix=$cwd/moab
-  make
-  make install
-  export LD_LIBRARY_PATH=$cwd/moab/lib/:$LD_LIBRARY_PATH
-  export PATH=$cwd/moab/bin:$PATH
-  cd ../../..
+# Get compilers and set up paths
+function get_compile() {
+  cd $base_dir
+  wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$compile_tar"
+  tar -xzvf $compile_tar
+  export PATH="$compile_dir"/gcc/bin:"$PATH"
+  export LD_LIBRARY_PATH="$compile_dir"/gmp/lib:"$LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH="$compile_dir"/mpfr/lib:"$LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH="$compile_dir"/mpc/lib:"$LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH="$compile_dir"/gcc/lib:"$LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH="$compile_dir"/gcc/lib64:"$LD_LIBRARY_PATH"
 }
 
-build_hdf5() {
-  cd runtime
-  export cwd=$PWD
-  wget https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.16/src/hdf5-1.8.16.tar.gz
-  tar -xzvf hdf5-1.8.16.tar.gz
-  mv hdf5-1.8.16 hdf5
+# Build HDF5
+function build_hdf5() {
+  cd $build_dir
+  mkdir -p hdf5/bld
   cd hdf5
-  mkdir bld
+  wget https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-"$hdf5_version"/src/hdf5-"$hdf5_version".tar.gz
+  tar -xzvf hdf5-"$hdf5_version".tar.gz
+  ln -s hdf5-"$hdf5_version" src
   cd bld
-  ../configure --enable-shared \
-               --disable-debug \
-               --prefix=$cwd/hdf5
-  make
+  ../src/configure --enable-shared \
+                   --disable-debug \
+                   --prefix="$runtime_dir"/hdf5
+  make -j $jobs  # 307912 kB
   make install
-  export LD_LIBRARY_PATH=$cwd/hdf5/lib:$LD_LIBRARY_PATH
-  export PATH=$cwd/hdf5/bin:$PATH
-  cd ../../..
+  export PATH="$runtime_dir"/hdf5/bin:$PATH
+  export LD_LIBRARY_PATH="$runtime_dir"/hdf5/lib:$LD_LIBRARY_PATH
+  cd $base_dir
 }
 
-build_dagmc() {
+# Build CUBIT
+function build_cubit() {
+  cd $runtime_dir
+  mkdir cubit
+  cd cubit
+  wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$cubit_tar"
+  tar -xzvf $cubit_tar
+  rm -f $cubit_tar
+  export PATH="$runtime_dir"/cubit/bin:$PATH
+  export LD_LIBRARY_PATH="$runtime_dir"/cubit/bin:$LD_LIBRARY_PATH
+  cd $base_dir
+}
+
+# Build CGM
+function build_cgm() {
+  cd $build_dir
+  mkdir -p cgm/bld
+  cd cgm
+  git clone https://bitbucket.org/fathomteam/cgm -b cgm"$cgm_version"
+  ln -s cgm src
+  cd cgm
+  autoreconf -fi
+  cd ../bld
+  ../src/configure --enable-optimize \
+                   --enable-shared \
+                   --disable-debug \
+                   --with-cubit="$runtime_dir"/cubit \
+                   --prefix="$runtime_dir"/cgm
+  make -j $jobs  # 123180 kB
+  make install
+  export LD_LIBRARY_PATH="$runtime_dir"/cgm/lib/:"$LD_LIBRARY_PATH"
+  cd $base_dir
+}
+
+# Build MOAB
+function build_moab() {
+  cd $build_dir
+  mkdir -p moab/bld
+  cd moab
+  git clone https://bitbucket.org/fathomteam/moab -b Version"$moab_version"
+  ln -s moab src
+  cd moab
+  autoreconf -fi
+  cd ../bld
+  ../src/configure --enable-dagmc \
+                   --enable-optimize \
+                   --enable-shared \
+                   --disable-debug \
+                   --with-hdf5="$runtime_dir"/hdf5 \
+                   --with-cgm="$runtime_dir"/cgm \
+                   --prefix="$runtime_dir"/moab
+  make -j $jobs  # 156772 kB
+  make install
+  export PATH="$runtime_dir"/moab/bin:"$PATH"
+  export LD_LIBRARY_PATH="$runtime_dir"/moab/lib/:"$LD_LIBRARY_PATH"
+  cd $base_dir
+}
+
+function build_dagmc() {
   export cwd=$PWD
   cd runtime
   git clone https://github.com/svalinn/DAGMC
@@ -75,7 +124,7 @@ build_dagmc() {
   cd ../../..
 }
 
-build_geant4() {
+function build_geant4() {
   cd runtime
   export cwd=$PWD
   wget http://geant4.cern.ch/support/source/geant4.10.00.p02.tar.gz
@@ -93,7 +142,7 @@ build_geant4() {
   cd ../../..
 }
 
-build_fluka() {
+function build_fluka() {
   cd runtime
   cwd=$PWD
   mkdir fluka
@@ -106,20 +155,6 @@ build_fluka() {
   export FLUPRO=$PWD
   make
   cd ../..
-}
-
-
-# gets the compile env and sets up
-get_compile_env() {
-  export USERNAME=$1
-  wget http://proxy.chtc.wisc.edu/SQUID/$USERNAME/compile.tar.gz
-  tar -xzvf compile.tar.gz
-  export LD_LIBRARY_PATH=$PWD/compile/gcc/lib64:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$PWD/compile/gcc/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$PWD/compile/mpfr/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$PWD/compile/mpc/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$PWD/compile/gmp/lib:$LD_LIBRARY_PATH
-  export PATH=$PWD/compile/gcc/bin:$PATH
 }
 
 # pack up the runtime to bring home
@@ -142,17 +177,39 @@ pack_runtime() {
 
 # get and patch mcnp5
 function get_mcnp5() {
-  cwd=$PWD
-  wget http://proxy.chtc.wisc.edu/SQUID/$1/mcnp5v16src.tar.gz
+  wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$mcnp_tar"
 }
 
-# first get the compile env
-get_compile_env $1
+# Software versions
+hdf5_version=1.8.16
+cubit_version=12.2
+cgm_version=12.2
+moab_version=4.9.0
 
-mkdir runtime
-# build hdf5A
+# Parallel jobs
+jobs=8
+
+# Tarball names
+compile_tar=compile.tar.gz
+cubit_tar=Cubit_LINUX64."$cubit_version".tar.gz
+mcnp_tar=mcnp5_dist.tgz
+
+# Directory names
+base_dir="$PWD"
+compile_dir="$base_dir"/compile
+build_dir="$base_dir"/build
+runtime_dir="$base_dir"/runtime
+mkdir -p $build_dir
+mkdir -p $runtime_dir
+
+# Unpack the compiler tarball
+username=$1
+get_compile
+
+# Build DAGMC dependencies
 build_hdf5
-# build moab
+build_cubit
+build_cgm
 build_moab
 
 # build dagmc deps if needed
