@@ -158,6 +158,7 @@ function build_geant4() {
   cd $base_dir
 }
 
+# Build DAGMC
 function build_dagmc() {
   cd $build_dir
   mkdir -p dagmc/bld
@@ -203,27 +204,21 @@ function build_dagmc() {
   make install
 }
 
-# pack up the runtime to bring home
-pack_runtime() {
-  PACK_STRING=""
-  PACK_STRING="$PACK_STRING runtime/hdf5 "
-  PACK_STRING="$PACK_STRING runtime/moab "
-  PACK_STRING="$PACK_STRING runtime/DAGMC "
-
-  if [ "$1" == "fluka" ] || [ "$2" == "fluka" ] || [ "$3" == "fluka" ]; then
-    PACK_STRING="$PACK_STRING runtime/fluka "
-  fi
-  if [ "$1" == "geant4" ] || [ "$2" == "geant4" ] || [ "$3" == "geant4" ]; then
-    PACK_STRING="$PACK_STRING runtime/geant4 "
-  fi
-
-  echo "Packing up " $PACK_STRING
-  tar -pczf runtime.tar.gz $PACK_STRING
+# Pack runtime tarball
+function pack_runtime() {
+  cd $base_dir
+  tar -pczvf $runtime_tar runtime
+  mv $runtime_tar $copy_dir
 }
 
-# get and patch mcnp5
-function get_mcnp5() {
-  wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$mcnp5_tar"
+# Delete unneeded stuff
+function cleanup() {
+  rm -rf $compile_dir
+  rm -rf $build_dir
+  rm -rf $runtime_dir
+  rm -rf $base_dir/"$compile_tar"
+  cd $copy_dir
+  ls | grep -v $runtime_tar | xargs rm -rf
 }
 
 # Software versions
@@ -240,10 +235,11 @@ jobs=8
 # Compiler tarball
 compile_tar=compile.tar.gz
 
+# Runtime tarball
+runtime_tar=runtime.tar.gz
+
 # Username where tarballs are found (/squid/$username)
 username=ljjacobson
-
-# Output tarball
 
 # Directory names
 copy_dir=$PWD
@@ -270,15 +266,12 @@ fi
 if [[ "$@" == "geant4" ]]; then
   build_geant4
 fi
-if [[ "$@" == "mcnp5" ]]; then
-  get_mcnp5
-fi
 
-# build dagmc
-build_dagmc $2 $3 $4
+# Build DAGMC
+build_dagmc $@
 
-# pack up the runtime
-pack_runtime $2 $3 $4
+# Pack the runtime tarball
+pack_runtime $@
 
-# remove everything except runtime.tar.gz
-ls | grep -v runtime.tar.gz | xargs rm -rf
+# Delete unneeded stuff
+cleanup

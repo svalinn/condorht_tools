@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Build GMP
 function build_gmp() {
   cd $build_dir
   mkdir gmp
@@ -22,6 +23,7 @@ function build_gmp() {
   cd $base_dir
 }
 
+# Build MPFR
 function build_mpfr() {
   cd $build_dir
   mkdir mpfr
@@ -45,6 +47,7 @@ function build_mpfr() {
   cd $base_dir
 }
 
+# Build MPC
 function build_mpc() {
   cd $build_dir
   mkdir mpc
@@ -69,6 +72,7 @@ function build_mpc() {
   cd $base_dir
 }
 
+# Build GCC
 function build_gcc() {
   cd $build_dir
   mkdir gcc
@@ -96,15 +100,17 @@ function build_gcc() {
   cd $base_dir
 }
 
+# Pack compiler tarball
 function pack_compile() {
   cd $base_dir
   tar -pczvf $compile_tar compile
   mv $compile_tar $copy_dir
 }
 
+# Delete unneeded stuff
 function cleanup() {
-  rm -rf $build_dir
   rm -rf $compile_dir
+  rm -rf $build_dir
   cd $copy_dir
   ls | grep -v $compile_tar | xargs rm -rf
 }
@@ -121,7 +127,7 @@ export jobs=8
 # Username where tarballs are found (/squid/$username)
 export username=ljjacobson
 
-# Output tarball
+# Compiler tarball
 export compile_tar=compile.tar.gz
 
 # Directory names
@@ -132,13 +138,13 @@ export build_dir="$base_dir"/build
 mkdir -p $compile_dir
 mkdir -p $build_dir
 
-# Build the compilers
+# Build compilers
 build_gmp
 build_mpfr
 build_mpc
 build_gcc
 
-# Make the output tarball
+# Pack compiler tarball
 pack_compile
 
 # Delete unneeded stuff
