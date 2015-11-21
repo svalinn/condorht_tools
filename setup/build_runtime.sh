@@ -3,7 +3,13 @@
 # Get compilers and set up paths
 function get_compile() {
   cd $base_dir
-  wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$compile_tar"
+  wget --spider http://proxy.chtc.wisc.edu/SQUID/"$username"/"$compile_tar"
+  if [ $? == 0 ]; then
+    wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$compile_tar"
+  else
+    echo $compile_tar not found
+    exit
+  fi
   tar -xzvf $compile_tar
   export PATH="$compile_dir"/gcc/bin:"$PATH"
   export LD_LIBRARY_PATH="$compile_dir"/gmp/lib:"$LD_LIBRARY_PATH"
@@ -18,14 +24,20 @@ function build_hdf5() {
   cd $build_dir
   mkdir -p hdf5/bld
   cd hdf5
-  wget https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-"$hdf5_version"/src/hdf5-"$hdf5_version".tar.gz
+  hdf5_tar=hdf5-"$hdf5_version".tar.gz
+  wget --spider http://proxy.chtc.wisc.edu/SQUID/"$username"/"$hdf5_tar"
+  if [ $? == 0 ]; then
+    wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$hdf5_tar"
+  else
+    wget https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-"$hdf5_version"/src/"$hdf5_tar"
+  fi
   tar -xzvf hdf5-"$hdf5_version".tar.gz
   ln -s hdf5-"$hdf5_version" src
   cd bld
   ../src/configure --enable-shared \
                    --disable-debug \
                    --prefix="$runtime_dir"/hdf5
-  make -j $jobs  # 307912 kB
+  make -j $jobs  # 307912 kB mem
   make install
   export PATH="$runtime_dir"/hdf5/bin:$PATH
   export LD_LIBRARY_PATH="$runtime_dir"/hdf5/lib:$LD_LIBRARY_PATH
@@ -37,7 +49,14 @@ function build_cubit() {
   cd $runtime_dir
   mkdir cubit
   cd cubit
-  wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$cubit_tar"
+  cubit_tar=Cubit_LINUX64."$cubit_version".tar.gz
+  wget --spider http://proxy.chtc.wisc.edu/SQUID/"$username"/"$cubit_tar"
+  if [ $? == 0 ]; then
+    wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$cubit_tar"
+  else
+    echo $cubit_tar not found
+    exit
+  fi
   tar -xzvf $cubit_tar
   rm -f $cubit_tar
   export PATH="$runtime_dir"/cubit/bin:$PATH
@@ -60,7 +79,7 @@ function build_cgm() {
                    --disable-debug \
                    --with-cubit="$runtime_dir"/cubit \
                    --prefix="$runtime_dir"/cgm
-  make -j $jobs  # 123180 kB
+  make -j $jobs  # 123180 kB mem
   make install
   export LD_LIBRARY_PATH="$runtime_dir"/cgm/lib/:"$LD_LIBRARY_PATH"
   cd $base_dir
@@ -83,10 +102,59 @@ function build_moab() {
                    --with-hdf5="$runtime_dir"/hdf5 \
                    --with-cgm="$runtime_dir"/cgm \
                    --prefix="$runtime_dir"/moab
-  make -j $jobs  # 156772 kB
+  make -j $jobs  # 156772 kB mem
   make install
   export PATH="$runtime_dir"/moab/bin:"$PATH"
   export LD_LIBRARY_PATH="$runtime_dir"/moab/lib/:"$LD_LIBRARY_PATH"
+  cd $base_dir
+}
+
+# Build FLUKA (not working)
+function build_fluka() {
+  cd $build_dir
+  mkdir -p fluka/bld
+  cd fluka
+  fluka_tar=fluka"$fluka_version"-linux-gfor64bitAA.tar.gz
+  wget --spider http://proxy.chtc.wisc.edu/SQUID/"$username"/"$fluka_tar"
+  if [ $? == 0 ]; then
+    wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$fluka_tar"
+  else
+    echo $fluka_tar not found
+    exit
+  fi
+  mkdir fluka
+  ln -s fluka src
+  tar -xzvf $fluka_tar -C src
+  cd src
+  export FLUFOR=gfortran
+  export FLUPRO=$PWD
+  make
+  cd $base_dir
+}
+
+# Build Geant4
+function build_geant4() {
+  cd $build_dir
+  mkdir -p geant4/bld
+  cd geant4
+  geant4_tar=geant4."$geant4_version".tar.gz
+  wget --spider http://proxy.chtc.wisc.edu/SQUID/"$username"/"$geant4_tar"
+  if [ $? == 0 ]; then
+    wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$geant4_tar"
+  else
+    wget http://geant4.cern.ch/support/source/"$geant4_tar"
+  fi
+  tar -xzvf $geant4_tar
+  ln -s geant4."$geant4_version" src
+  cd bld
+  cmake ../src -DGEANT4_USE_SYSTEM_EXPAT=OFF \
+               -DCMAKE_INSTALL_PREFIX="$runtime_dir"/geant4
+  make -j $jobs
+  make install
+  export PATH="$runtime_dir"/geant4/bin:"$PATH"
+  export LD_LIBRARY_PATH="$runtime_dir"/geant4/lib64/:"$LD_LIBRARY_PATH"
+  #export GEANT4DIR=$cwd/geant4
+  #source $cwd/geant4/bld/geant4make.sh
   cd $base_dir
 }
 
@@ -124,39 +192,6 @@ function build_dagmc() {
   cd ../../..
 }
 
-function build_geant4() {
-  cd runtime
-  export cwd=$PWD
-  wget http://geant4.cern.ch/support/source/geant4.10.00.p02.tar.gz
-  tar -xzvf geant4.10.00.p02.tar.gz
-  mv geant4.10.00.p02 geant4
-  cd geant4
-  mkdir bld
-  cd bld
-  cmake ../. -DGEANT4_USE_SYSTEM_EXPAT=OFF -DCMAKE_INSTALL_PREFIX=$cwd/geant4
-  export GEANT4DIR=$cwd/geant4
-  export LD_LIBRARY_PATH="$cwd/geant4/lib:$LD_LIBRARY_PATH"
-  make
-  make install
-  source $cwd/geant4/bld/geant4make.sh
-  cd ../../..
-}
-
-function build_fluka() {
-  cd runtime
-  cwd=$PWD
-  mkdir fluka
-  cd fluka
-  wget http://proxy.chtc.wisc.edu/SQUID/$USERNAME/fluka2011.2c-linux-gfor64bitAA.tar.gz
-  tar -xzvf fluka2011.2c-linux-gfor64bitAA.tar.gz
-  echo $PATH
-  echo $LD_LIBRARY_PATH
-  export FLUFOR=gfortran
-  export FLUPRO=$PWD
-  make
-  cd ../..
-}
-
 # pack up the runtime to bring home
 pack_runtime() {
   PACK_STRING=""
@@ -185,17 +220,24 @@ hdf5_version=1.8.16
 cubit_version=12.2
 cgm_version=12.2
 moab_version=4.9.0
+fluka_version=2011.2c
+geant4_version=10.00.p02
 
 # Parallel jobs
 jobs=8
 
-# Tarball names
+# Compiler tarball
 compile_tar=compile.tar.gz
-cubit_tar=Cubit_LINUX64."$cubit_version".tar.gz
-mcnp_tar=mcnp5_dist.tgz
+#mcnp_tar=mcnp5_dist.tgz
+
+# Username where tarballs are found (/squid/$username)
+username=ljjacobson
+
+# Output tarball
 
 # Directory names
-base_dir="$PWD"
+copy_dir=$PWD
+base_dir=$HOME
 compile_dir="$base_dir"/compile
 build_dir="$base_dir"/build
 runtime_dir="$base_dir"/runtime
@@ -203,7 +245,6 @@ mkdir -p $build_dir
 mkdir -p $runtime_dir
 
 # Unpack the compiler tarball
-username=$1
 get_compile
 
 # Build DAGMC dependencies
@@ -212,17 +253,16 @@ build_cubit
 build_cgm
 build_moab
 
-# build dagmc deps if needed
-if [ "$2" == "fluka" ] || [ "$3" == "fluka" ] || [ "$4" == "fluka" ]; then
+# Build physics packages
+if [[ "$@" == "fluka" ]]; then
   build_fluka
 fi
-if [ "$2" == "geant4" ] || [ "$3" == "geant4" ] || [ "$4" == "geant4" ]; then
+if [[ "$@" == "geant4" ]]; then
   build_geant4
 fi
-if [ "$2" == "mcnp5" ] || [ "$3" == "mcnp5" ] || [ "$4" == "mcnp5" ]; then
-  get_mcnp5 $1
+if [[ "$@" == "mcnp5" ]]; then
+  get_mcnp5
 fi
-
 
 # build dagmc
 build_dagmc $2 $3 $4
