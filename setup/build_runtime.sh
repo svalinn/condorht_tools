@@ -159,37 +159,48 @@ function build_geant4() {
 }
 
 function build_dagmc() {
-  export cwd=$PWD
-  cd runtime
-  git clone https://github.com/svalinn/DAGMC
-  cd DAGMC
-  mkdir bld
-  cd bld
-
-  BUILD_STRING="-DCMAKE_C_COMPILER=$cwd/compile/gcc/bin/gcc -DCMAKE_CXX_COMPILER=$cwd/compile/gcc/bin/g++ -DCMAKE_Fortran_COMPILER=$cwd/compile/gcc/bin/gfortran "
-
-  if [ "$1" == "fluka" ] || [ "$2" == "fluka" ] || [ "$3" == "fluka" ]; then
-    BUILD_STRING="$BUILD_STRING -DBUILD_FLUKA=ON -DFLUKA_DIR=$FLUPRO"
-    # patch rfluka to support dagmc
-    patch $cwd/runtime/fluka/flutil/rfluka ../fluka/rfluka.patch
+  cd $build_dir
+  mkdir -p dagmc/bld
+  cd dagmc
+  git clone https://github.com/svalinn/DAGMC -b develop
+  ln -s DAGMC src
+  build_string=
+  if [[ "$@" == "mcnp5" ]]; then
+    cd DAGMC/mcnp5
+    mcnp5_tar=mcnp5_dist.tgz
+    wget --spider http://proxy.chtc.wisc.edu/SQUID/"$username"/"$mcnp5_tar"
+    if [ $? == 0 ]; then
+      wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$mcnp5_tar"
+    else
+      echo $mcnp5_tar not found
+      exit
+    fi
+    tar -xzvf $mcnp5_tar Source
+    cd Source
+    patch -p2 < ../patch/dagmc.patch.5.1.60
+    cd ../../../bld
+    build_string+=" "-DBUILD_MCNP5=ON
+    build_string+=" "-DMCNP5_DATAPATH="$build_dir"/mcnp_data
   fi
-  if [ "$1" == "geant4" ] || [ "$2" == "geant4" ] || [ "$3" == "geant4" ]; then
-    BUILD_STRING="$BUILD_STRING -DBUILD_GEANT4=ON -DGEANT4_DIR=$GEANT4DIR"
+  if [[ "$@" == "geant4" ]]; then  # not working
+    cd bld
+    build_string+=" "-DBUILD_GEANT4=ON
+    build_string+=" "-DGEANT4_DIR="$runtime_dir"/geant4
   fi
-  if [ "$1" == "mcnp5" ] || [ "$2" == "mcnp5" ] || [ "$3" == "mcnp5" ]; then
-    BUILD_STRING="$BUILD_STRING -DBUILD_MCNP5=ON"
-    cp ../../../mcnp5v16src.tar.gz $cwd/runtime/DAGMC/mcnp5/
-    cd $cwd/runtime/DAGMC/mcnp5
-    tar -xzvf mcnp5v16src.tar.gz
-    patch -p1 < patch/dagmc.patch.5.1.60
-    cd ../bld
+  if [[ "$@" == "fluka" ]]; then  # not working
+    patch "$runtime_dir"/fluka/flutil/rfluka DAGMC/fluka/rfluka.patch
+    cd bld
+    build_string+=" "-DBUILD_FLUKA=ON
+    build_string+=" "-DFLUKA_DIR=$FLUPRO
   fi
-
-  BUILD_STRING="$BUILD_STRING -DCMAKE_INSTALL_PREFIX=$cwd/runtime/DAGMC"
-  cmake ../. $BUILD_STRING
-  make
+  build_string+=" "-DCMAKE_C_COMPILER="$compile_dir"/gcc/bin/gcc
+  build_string+=" "-DCMAKE_CXX_COMPILER="$compile_dir"/gcc/bin/g++
+  build_string+=" "-DCMAKE_FORTRAN_COMPILER="$compile_dir"/gcc/bin/gfortran
+  build_string+=" "-DCMAKE_INSTALL_PREFIX="$runtime_dir"/dagmc
+  build_string+=" $build_dir"/dagmc/src
+  cmake ../. $build_string
+  make -j $jobs
   make install
-  cd ../../..
 }
 
 # pack up the runtime to bring home
@@ -212,7 +223,7 @@ pack_runtime() {
 
 # get and patch mcnp5
 function get_mcnp5() {
-  wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$mcnp_tar"
+  wget http://proxy.chtc.wisc.edu/SQUID/"$username"/"$mcnp5_tar"
 }
 
 # Software versions
@@ -228,7 +239,6 @@ jobs=8
 
 # Compiler tarball
 compile_tar=compile.tar.gz
-#mcnp_tar=mcnp5_dist.tgz
 
 # Username where tarballs are found (/squid/$username)
 username=ljjacobson
