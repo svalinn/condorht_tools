@@ -34,27 +34,25 @@ to return to the submit node, where the newly-created tarball `compile.tar.gz` w
 
 `$ cp compile.tar.gz /squid/$USER`.
 
-build_dagmc.sub / build_dagmc.sh
+Build DAGMC
 ----------------------------------------
-You need to modifiy this script in order to build the correct toolchain, right now
-we only support building Geant4 and Fluka. Edit the line in build_runtime.cmd
+The submit file `build_dagmc.sub` launches a job which copies the build script `build_dagmc.sh` to an execute node. The build script contains instructions for compiling the following packages:
 
-In order to build you should modify the build_stack.cmd file with either
+1. HDF5
+2. CUBIT
+3. CGM
+4. MOAB
+5. DAGMC with FLUKA/Geant4/MCNP5
 
-  arguments = username fluka
+You will need to modify the line starting with `arguments =` in `build_dagmc.sub` to get the compiler tarball from the right location and to build DAGMC with the correct physics packages. For example, if `compile.tar.gz` is located in `/squid/ljjacobson` and you wish to install DAG-Geant4 and DAG-MCNP5, you should modify the line to be
 
-  arguments = username geant4
+`arguments = ljjacobson geant4 mcnp5`.
 
-  arguments = username fluka geant4
+As before, run
 
-In order to build you should run the following command from CHTC.
-
-  $> condor_submit build_runtime.cmd
-
-When the job returns to you compiler.tar.gz you should run
-
-  $> cp runtime.tar.gz /squid/$USER/.
-
-Complete
-----------------------------------------
-When this is done you are ready to launch your first CHTC Fluka or Geant4 job!
+```
+$ condor_submit -i build_dagmc.sub
+$ bash build_compile.sh
+$ exit
+$ cp dagmc.tar.gz /squid/$USER
+```
