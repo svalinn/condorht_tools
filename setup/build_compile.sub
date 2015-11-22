@@ -34,7 +34,7 @@ notification = never
 # We should still request the amount of memory and disk we
 # anticipate needing for the compilation.  Change these values
 # if you believe your code will need more (or fewer) resources.
-request_cpus = 8
+request_cpus = 12
 request_memory = 2GB
 request_disk = 4GB
 

@@ -16,7 +16,7 @@ function build_gmp() {
   ln -s gmp-$gmp_version src
   cd bld
   ../src/configure --prefix=$compile_dir/gmp
-  make -j $jobs  # 29168 kB mem
+  make -j $jobs  # j=12: 0:17.26 wall time, 29168 kB mem
   make install
   export LD_LIBRARY_PATH=$compile_dir/gmp/lib:$LD_LIBRARY_PATH
   cd $base_dir
@@ -39,7 +39,7 @@ function build_mpfr() {
   cd bld
   ../src/configure --with-gmp=$compile_dir/gmp \
                    --prefix=$compile_dir/mpfr
-  make -j $jobs  # 23744 kB mem
+  make -j $jobs  # j=12: 0:07.28 wall time, 23744 kB mem
   make install
   export LD_LIBRARY_PATH=$compile_dir/mpfr/lib:$LD_LIBRARY_PATH
   cd $base_dir
@@ -63,7 +63,7 @@ function build_mpc() {
   ../src/configure --with-gmp=$compile_dir/gmp \
                    --with-mpfr=$compile_dir/mpfr \
                    --prefix=$compile_dir/mpc
-  make -j $jobs  # 16340 kB mem
+  make -j $jobs  # j=12: 0:02.81 wall time, 16340 kB mem
   make install
   export LD_LIBRARY_PATH=$compile_dir/mpc/lib:$LD_LIBRARY_PATH
   cd $base_dir
@@ -89,7 +89,7 @@ function build_gcc() {
                    --with-mpfr=$compile_dir/mpfr \
                    --with-mpc=$compile_dir/mpc \
                    --prefix=$compile_dir/gcc
-  make -j $jobs  # 766268 kB mem
+  make -j $jobs  # j=12: 18:35.61 wall time, 766024 kB mem
   make install
   export LD_LIBRARY_PATH=$compile_dir/gcc/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$compile_dir/gcc/lib64:$LD_LIBRARY_PATH
@@ -112,7 +112,7 @@ function build_openmpi() {
   ln -s openmpi-$openmpi_version src
   cd bld
   ../src/configure --prefix=$compile_dir/openmpi
-  make -j $jobs  # 303292 kB mem
+  make -j $jobs  # j=12: 3:26.41 wall time, 311132 kB mem
   make install
   export PATH=$compile_dir/openmpi/bin:$PATH
   export LD_LIBRARY_PATH=$compile_dir/openmpi/lib:$LD_LIBRARY_PATH
@@ -142,7 +142,7 @@ export gcc_version=4.9.3
 export openmpi_version=1.10.1
 
 # Parallel jobs
-export jobs=8
+export jobs=12
 
 # Username where tarballs are found (/squid/$username)
 export username=ljjacobson

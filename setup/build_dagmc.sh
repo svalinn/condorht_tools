@@ -38,17 +38,17 @@ function build_hdf5() {
   cd bld
   ../src/configure --enable-shared \
                    --disable-debug \
-                   --prefix=$runtime_dir/hdf5
-  make -j $jobs  # 307912 kB mem
+                   --prefix=$dagmc_dir/hdf5
+  make -j $jobs  # j=12: 1:02.21 wall time, 307884 kB mem
   make install
-  export PATH=$runtime_dir/hdf5/bin:$PATH
-  export LD_LIBRARY_PATH=$runtime_dir/hdf5/lib:$LD_LIBRARY_PATH
+  export PATH=$dagmc_dir/hdf5/bin:$PATH
+  export LD_LIBRARY_PATH=$dagmc_dir/hdf5/lib:$LD_LIBRARY_PATH
   cd $base_dir
 }
 
 # Build CUBIT
 function build_cubit() {
-  cd $runtime_dir
+  cd $dagmc_dir
   mkdir cubit
   cd cubit
   cubit_tar=Cubit_LINUX64.$cubit_version.tar.gz
@@ -61,8 +61,8 @@ function build_cubit() {
   fi
   tar -xzvf $cubit_tar
   rm -f $cubit_tar
-  export PATH=$runtime_dir/cubit/bin:$PATH
-  export LD_LIBRARY_PATH=$runtime_dir/cubit/bin:$LD_LIBRARY_PATH
+  export PATH=$dagmc_dir/cubit/bin:$PATH
+  export LD_LIBRARY_PATH=$dagmc_dir/cubit/bin:$LD_LIBRARY_PATH
   cd $base_dir
 }
 
@@ -79,11 +79,11 @@ function build_cgm() {
   ../src/configure --enable-optimize \
                    --enable-shared \
                    --disable-debug \
-                   --with-cubit=$runtime_dir/cubit \
-                   --prefix=$runtime_dir/cgm
-  make -j $jobs  # 123180 kB mem
+                   --with-cubit=$dagmc_dir/cubit \
+                   --prefix=$dagmc_dir/cgm
+  make -j $jobs  # j=12: 0:09.20 wall time, 124360 kB mem
   make install
-  export LD_LIBRARY_PATH=$runtime_dir/cgm/lib/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$dagmc_dir/cgm/lib/:$LD_LIBRARY_PATH
   cd $base_dir
 }
 
@@ -101,13 +101,13 @@ function build_moab() {
                    --enable-optimize \
                    --enable-shared \
                    --disable-debug \
-                   --with-hdf5=$runtime_dir/hdf5 \
-                   --with-cgm=$runtime_dir/cgm \
-                   --prefix=$runtime_dir/moab
-  make -j $jobs  # 156772 kB mem
+                   --with-hdf5=$dagmc_dir/hdf5 \
+                   --with-cgm=$dagmc_dir/cgm \
+                   --prefix=$dagmc_dir/moab
+  make -j $jobs  # j=12: 0:48.45 wall time, 159624 kB mem
   make install
-  export PATH=$runtime_dir/moab/bin:$PATH
-  export LD_LIBRARY_PATH=$runtime_dir/moab/lib/:$LD_LIBRARY_PATH
+  export PATH=$dagmc_dir/moab/bin:$PATH
+  export LD_LIBRARY_PATH=$dagmc_dir/moab/lib/:$LD_LIBRARY_PATH
   cd $base_dir
 }
 
@@ -150,11 +150,11 @@ function build_geant4() {
   ln -s geant4.$geant4_version src
   cd bld
   cmake ../src -DGEANT4_USE_SYSTEM_EXPAT=OFF \
-               -DCMAKE_INSTALL_PREFIX=$runtime_dir/geant4
+               -DCMAKE_INSTALL_PREFIX=$dagmc_dir/geant4
   make -j $jobs
   make install
-  export PATH=$runtime_dir/geant4/bin:$PATH
-  export LD_LIBRARY_PATH=$runtime_dir/geant4/lib64/:$LD_LIBRARY_PATH
+  export PATH=$dagmc_dir/geant4/bin:$PATH
+  export LD_LIBRARY_PATH=$dagmc_dir/geant4/lib64/:$LD_LIBRARY_PATH
   #export GEANT4DIR=$cwd/geant4
   #source $cwd/geant4/bld/geant4make.sh
   cd $base_dir
@@ -183,15 +183,16 @@ function build_dagmc() {
     patch -p2 < ../patch/dagmc.patch.5.1.60
     cd ../../../bld
     build_string+=" "-DBUILD_MCNP5=ON
+    build_string+=" "-DMPI_BUILD=ON
     build_string+=" "-DMCNP5_DATAPATH=$build_dir/mcnp_data
   fi
   if [[ "$@" == "geant4" ]]; then  # not working
     cd bld
     build_string+=" "-DBUILD_GEANT4=ON
-    build_string+=" "-DGEANT4_DIR=$runtime_dir/geant4
+    build_string+=" "-DGEANT4_DIR=$dagmc_dir/geant4
   fi
   if [[ "$@" == "fluka" ]]; then  # not working
-    patch $runtime_dir/fluka/flutil/rfluka DAGMC/fluka/rfluka.patch
+    patch $dagmc_dir/fluka/flutil/rfluka DAGMC/fluka/rfluka.patch
     cd bld
     build_string+=" "-DBUILD_FLUKA=ON
     build_string+=" "-DFLUKA_DIR=$FLUPRO
@@ -199,28 +200,30 @@ function build_dagmc() {
   build_string+=" "-DCMAKE_C_COMPILER=$compile_dir/gcc/bin/gcc
   build_string+=" "-DCMAKE_CXX_COMPILER=$compile_dir/gcc/bin/g++
   build_string+=" "-DCMAKE_FORTRAN_COMPILER=$compile_dir/gcc/bin/gfortran
-  build_string+=" "-DCMAKE_INSTALL_PREFIX=$runtime_dir/dagmc
+  build_string+=" "-DCMAKE_INSTALL_PREFIX=$dagmc_dir/dagmc
   build_string+=" "$build_dir/dagmc/src
   cmake ../. $build_string
-  make -j $jobs
+  make -j $jobs  # j=12: 0:22.98 wall time, 610716 kB mem (mcnp5 only)
   make install
+  export PATH=$dagmc_dir/dagmc/bin:$PATH
+  export LD_LIBRARY_PATH=$dagmc_dir/dagmc/lib:$LD_LIBRARY_PATH
 }
 
-# Pack runtime tarball
-function pack_runtime() {
+# Pack dagmc tarball
+function pack_dagmc() {
   cd $base_dir
-  tar -pczvf $runtime_tar runtime
-  mv $runtime_tar $copy_dir
+  tar -pczvf $dagmc_tar dagmc
+  mv $dagmc_tar $copy_dir
 }
 
 # Delete unneeded stuff
 function cleanup() {
   rm -rf $compile_dir
   rm -rf $build_dir
-  rm -rf $runtime_dir
+  rm -rf $dagmc_dir
   rm -rf $base_dir/$compile_tar
   cd $copy_dir
-  ls | grep -v $runtime_tar | xargs rm -rf
+  ls | grep -v $dagmc_tar | xargs rm -rf
 }
 
 # Software versions
@@ -232,13 +235,13 @@ fluka_version=2011.2c
 geant4_version=10.00.p02
 
 # Parallel jobs
-jobs=8
+jobs=12
 
 # Compiler tarball
 compile_tar=compile.tar.gz
 
-# Runtime tarball
-runtime_tar=runtime.tar.gz
+# DAGMC tarball
+dagmc_tar=dagmc.tar.gz
 
 # Username where tarballs are found (/squid/$username)
 username=ljjacobson
@@ -248,9 +251,9 @@ copy_dir=$PWD
 base_dir=$HOME
 compile_dir=$base_dir/compile
 build_dir=$base_dir/build
-runtime_dir=$base_dir/runtime
+dagmc_dir=$base_dir/dagmc
 mkdir -p $build_dir
-mkdir -p $runtime_dir
+mkdir -p $dagmc_dir
 
 # Unpack the compiler tarball
 get_compile
@@ -272,8 +275,8 @@ fi
 # Build DAGMC
 build_dagmc $@
 
-# Pack the runtime tarball
-pack_runtime $@
+# Pack the DAGMC tarball
+pack_dagmc $@
 
 # Delete unneeded stuff
 cleanup
