@@ -39,14 +39,20 @@ Build DAGMC
 The submit file `build_dagmc.sub` launches a job which copies the build script `build_dagmc.sh` to an execute node. The build script contains instructions for compiling the following packages:
 
 1. HDF5
-2. CUBIT
-3. CGM
+2. CUBIT (optional)
+3. CGM (optional)
 4. MOAB
-5. DAGMC with FLUKA/Geant4/MCNP5
+5. FLUKA (optional)
+6. Geant4 (optional)
+7. DAGMC with FLUKA/Geant4/MCNP5
 
-You will need to modify the line starting with `arguments =` in `build_dagmc.sub` to get the compiler tarball from the right location and to build DAGMC with the correct physics packages. For example, if `compile.tar.gz` is located in `/squid/ljjacobson` and you wish to install DAG-Geant4 and DAG-MCNP5, you should modify the line to be
+You will need to modify the line starting with `arguments =` in `build_dagmc.sub` to get the compiler tarball from the right location and to build DAGMC with the correct physics packages. For example, if your tarballs are located in `/squid/ljjacobson` and you wish to install DAG-Geant4 and DAG-MCNP5 with CUBIT/CGM support, you should modify the line to be
 
-`arguments = ljjacobson geant4 mcnp5`.
+`arguments = ljjacobson cubit geant4 mcnp5`.
+
+If you wish to install DAG-FLUKA without CUBIT/CGM support, you should use
+
+`arguments = ljjacobson fluka`.
 
 As before, run
 
