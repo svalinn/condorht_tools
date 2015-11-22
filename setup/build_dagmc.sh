@@ -36,9 +36,11 @@ function build_hdf5() {
   tar -xzvf $hdf5_tar
   ln -s hdf5-$hdf5_version src
   cd bld
-  ../src/configure --enable-shared \
-                   --disable-debug \
-                   --prefix=$dagmc_dir/hdf5
+  config_string=
+  config_string+=" "--enable-shared
+  config_string+=" "--disable-debug
+  config_string+=" "--prefix=$dagmc_dir/hdf5
+  ../src/configure $config_string
   make -j $jobs  # j=12: 1:02.21 wall time, 307884 kB mem
   make install
   export PATH=$dagmc_dir/hdf5/bin:$PATH
@@ -76,11 +78,13 @@ function build_cgm() {
   cd cgm
   autoreconf -fi
   cd ../bld
-  ../src/configure --enable-optimize \
-                   --enable-shared \
-                   --disable-debug \
-                   --with-cubit=$dagmc_dir/cubit \
-                   --prefix=$dagmc_dir/cgm
+  config_string=
+  config_string+=" "--enable-optimize
+  config_string+=" "--enable-shared
+  config_string+=" "--disable-debug
+  config_string+=" "--with-cubit=$dagmc_dir/cubit
+  config_string+=" "--prefix=$dagmc_dir/cgm
+  ../src/configure $config_string
   make -j $jobs  # j=12: 0:09.20 wall time, 124360 kB mem
   make install
   export LD_LIBRARY_PATH=$dagmc_dir/cgm/lib/:$LD_LIBRARY_PATH
@@ -97,13 +101,17 @@ function build_moab() {
   cd moab
   autoreconf -fi
   cd ../bld
-  ../src/configure --enable-dagmc \
-                   --enable-optimize \
-                   --enable-shared \
-                   --disable-debug \
-                   --with-hdf5=$dagmc_dir/hdf5 \
-                   --with-cgm=$dagmc_dir/cgm \
-                   --prefix=$dagmc_dir/moab
+  config_string=
+  config_string+=" "--enable-dagmc
+  config_string+=" "--enable-optimize
+  config_string+=" "--enable-shared
+  config_string+=" "--disable-debug
+  config_string+=" "--with-hdf5=$dagmc_dir/hdf5
+  if [[ "$@" == "with_cubit" ]]; then
+    config_string+=" "--with-cgm=$dagmc_dir/cgm
+  fi
+  config_string+=" "--prefix=$dagmc_dir/moab
+  ../src/configure $config_string
   make -j $jobs  # j=12: 0:48.45 wall time, 159624 kB mem
   make install
   export PATH=$dagmc_dir/moab/bin:$PATH
@@ -167,7 +175,7 @@ function build_dagmc() {
   cd dagmc
   git clone https://github.com/svalinn/DAGMC -b develop
   ln -s DAGMC src
-  build_string=
+  cmake_string=
   if [[ "$@" == "mcnp5" ]]; then
     cd DAGMC/mcnp5
     mcnp5_tar=mcnp5_dist.tgz
@@ -182,27 +190,27 @@ function build_dagmc() {
     cd Source
     patch -p2 < ../patch/dagmc.patch.5.1.60
     cd ../../../bld
-    build_string+=" "-DBUILD_MCNP5=ON
-    build_string+=" "-DMPI_BUILD=ON
-    build_string+=" "-DMCNP5_DATAPATH=$build_dir/mcnp_data
+    cmake_string+=" "-DBUILD_MCNP5=ON
+    cmake_string+=" "-DMPI_BUILD=ON
+    cmake_string+=" "-DMCNP5_DATAPATH=$build_dir/mcnp_data
   fi
   if [[ "$@" == "geant4" ]]; then  # not working
     cd bld
-    build_string+=" "-DBUILD_GEANT4=ON
-    build_string+=" "-DGEANT4_DIR=$dagmc_dir/geant4
+    cmake_string+=" "-DBUILD_GEANT4=ON
+    cmake_string+=" "-DGEANT4_DIR=$dagmc_dir/geant4
   fi
   if [[ "$@" == "fluka" ]]; then  # not working
     patch $dagmc_dir/fluka/flutil/rfluka DAGMC/fluka/rfluka.patch
     cd bld
-    build_string+=" "-DBUILD_FLUKA=ON
-    build_string+=" "-DFLUKA_DIR=$FLUPRO
+    cmake_string+=" "-DBUILD_FLUKA=ON
+    cmake_string+=" "-DFLUKA_DIR=$FLUPRO
   fi
-  build_string+=" "-DCMAKE_C_COMPILER=$compile_dir/gcc/bin/gcc
-  build_string+=" "-DCMAKE_CXX_COMPILER=$compile_dir/gcc/bin/g++
-  build_string+=" "-DCMAKE_FORTRAN_COMPILER=$compile_dir/gcc/bin/gfortran
-  build_string+=" "-DCMAKE_INSTALL_PREFIX=$dagmc_dir/dagmc
-  build_string+=" "$build_dir/dagmc/src
-  cmake ../. $build_string
+  cmake_string+=" "-DCMAKE_C_COMPILER=$compile_dir/gcc/bin/gcc
+  cmake_string+=" "-DCMAKE_CXX_COMPILER=$compile_dir/gcc/bin/g++
+  cmake_string+=" "-DCMAKE_FORTRAN_COMPILER=$compile_dir/gcc/bin/gfortran
+  cmake_string+=" "-DCMAKE_INSTALL_PREFIX=$dagmc_dir/dagmc
+  cmake_string+=" "$build_dir/dagmc/src
+  cmake ../. $cmake_string
   make -j $jobs  # j=12: 0:22.98 wall time, 610716 kB mem (mcnp5 only)
   make install
   export PATH=$dagmc_dir/dagmc/bin:$PATH
@@ -240,11 +248,11 @@ jobs=12
 # Compiler tarball
 compile_tar=compile.tar.gz
 
-# DAGMC tarball
+# Output DAGMC tarball
 dagmc_tar=dagmc.tar.gz
 
 # Username where tarballs are found (/squid/$username)
-username=ljjacobson
+username=$1
 
 # Directory names
 copy_dir=$PWD
@@ -260,9 +268,13 @@ get_compile
 
 # Build DAGMC dependencies
 build_hdf5
-build_cubit
-build_cgm
-build_moab
+if [[ "$@" == "cubit" ]]; then
+  build_cubit
+  build_cgm
+  build_moab with_cubit
+else
+  build_moab without_cubit
+fi
 
 # Build physics packages
 if [[ "$@" == "fluka" ]]; then
@@ -275,7 +287,7 @@ fi
 # Build DAGMC
 build_dagmc $@
 
-# Pack the DAGMC tarball
+# Pack output DAGMC tarball
 pack_dagmc $@
 
 # Delete unneeded stuff

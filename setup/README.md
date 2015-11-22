@@ -6,7 +6,7 @@ The Center for High Throughput Computing (CHTC) offers an on-demand compute serv
 
 You must take care to build your own tools as the bare-bones tools are generally not sufficient. In our case, we need to build our own GCC toolchain as well as DAGMC and its dependencies. The scripts in this folder accomplish these tasks by compiling the requisite packages and returning them as a tarball.
 
-HTCondor uses the SQUID web proxy to handle the transfer of large files to the execute nodes. If you need to copy large files such as tarballs to the execute node, you should first copy them to your squid directory (/squid/$USER on the submit node).
+HTCondor uses the SQUID web proxy to handle the transfer of large files to the execute nodes. If you need to copy large files such as tarballs to the execute node, you should first copy them to your squid directory (`/squid/$USER` on the submit node).
 
 Build the compilers
 ----------------------------------------
@@ -17,6 +17,12 @@ The submit file `build_compile.sub` launches a job which copies the build script
 3. MPC
 4. GCC
 5. OpenMPI
+
+You may want to modify the line starting with `arguments =` in `build_compile.sub` if you have pre-downloaded the tarballs for any of the five compiler packages. For example, if your tarballs are located in `/squid/ljjacobson`, you should modify the line to be
+
+`arguments = ljjacobson`.
+
+This is not required, however. If the tarballs are not found, they will simply be downloded off the internet.
 
 The submit file should be submitted with the `-i` flag to declare it as an interactive job:
 
@@ -50,9 +56,11 @@ You will need to modify the line starting with `arguments =` in `build_dagmc.sub
 
 `arguments = ljjacobson cubit geant4 mcnp5`.
 
-If you wish to install DAG-FLUKA without CUBIT/CGM support, you should use
+If you wish to install only DAG-FLUKA without CUBIT/CGM support, you should use
 
 `arguments = ljjacobson fluka`.
+
+Note that if you are installing CUBIT, FLUKA, or MCNP5, you are required to provide your own tarballs as they are not freely available on the internet.
 
 As before, run
 

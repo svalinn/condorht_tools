@@ -15,7 +15,9 @@ function build_gmp() {
   tar -xjvf $gmp_tar
   ln -s gmp-$gmp_version src
   cd bld
-  ../src/configure --prefix=$compile_dir/gmp
+  config_string=
+  config_string+=" "--prefix=$compile_dir/gmp
+  ../src/configure $config_string
   make -j $jobs  # j=12: 0:17.26 wall time, 29168 kB mem
   make install
   export LD_LIBRARY_PATH=$compile_dir/gmp/lib:$LD_LIBRARY_PATH
@@ -37,8 +39,10 @@ function build_mpfr() {
   tar -xzvf $mpfr_tar
   ln -s mpfr-$mpfr_version src
   cd bld
-  ../src/configure --with-gmp=$compile_dir/gmp \
-                   --prefix=$compile_dir/mpfr
+  config_string=
+  config_string+=" "--with-gmp=$compile_dir/gmp
+  config_string+=" "--prefix=$compile_dir/mpfr
+  ../src/configure $config_string
   make -j $jobs  # j=12: 0:07.28 wall time, 23744 kB mem
   make install
   export LD_LIBRARY_PATH=$compile_dir/mpfr/lib:$LD_LIBRARY_PATH
@@ -60,9 +64,11 @@ function build_mpc() {
   tar -xzvf $mpc_tar
   ln -s mpc-$mpc_version src
   cd bld
-  ../src/configure --with-gmp=$compile_dir/gmp \
-                   --with-mpfr=$compile_dir/mpfr \
-                   --prefix=$compile_dir/mpc
+  config_string=
+  config_string+=" "--with-gmp=$compile_dir/gmp
+  config_string+=" "--with-mpfr=$compile_dir/mpfr
+  config_string+=" "--prefix=$compile_dir/mpc
+  ../src/configure $config_string
   make -j $jobs  # j=12: 0:02.81 wall time, 16340 kB mem
   make install
   export LD_LIBRARY_PATH=$compile_dir/mpc/lib:$LD_LIBRARY_PATH
@@ -84,11 +90,12 @@ function build_gcc() {
   tar -xzvf $gcc_tar
   ln -s gcc-$gcc_version src
   cd bld
-  ../src/configure --disable-multilib \
-                   --with-gmp=$compile_dir/gmp \
-                   --with-mpfr=$compile_dir/mpfr \
-                   --with-mpc=$compile_dir/mpc \
-                   --prefix=$compile_dir/gcc
+  config_string=
+  config_string+=" "--with-gmp=$compile_dir/gmp
+  config_string+=" "--with-mpfr=$compile_dir/mpfr
+  config_string+=" "--with-mpc=$compile_dir/mpc
+  config_string+=" "--prefix=$compile_dir/gcc
+  ../src/configure $config_string
   make -j $jobs  # j=12: 18:35.61 wall time, 766024 kB mem
   make install
   export LD_LIBRARY_PATH=$compile_dir/gcc/lib:$LD_LIBRARY_PATH
@@ -111,7 +118,9 @@ function build_openmpi() {
   tar -xzvf $openmpi_tar
   ln -s openmpi-$openmpi_version src
   cd bld
-  ../src/configure --prefix=$compile_dir/openmpi
+  config_string=
+  config_string+=" "--prefix=$compile_dir/openmpi
+  ../src/configure $config_string
   make -j $jobs  # j=12: 3:26.41 wall time, 311132 kB mem
   make install
   export PATH=$compile_dir/openmpi/bin:$PATH
@@ -145,9 +154,9 @@ export openmpi_version=1.10.1
 export jobs=12
 
 # Username where tarballs are found (/squid/$username)
-export username=ljjacobson
+export username=$1
 
-# Compiler tarball
+# Output compiler tarball
 export compile_tar=compile.tar.gz
 
 # Directory names
@@ -164,7 +173,7 @@ build_mpfr
 build_mpc
 build_gcc
 
-# Pack compiler tarball
+# Pack output compiler tarball
 pack_compile
 
 # Delete unneeded stuff
