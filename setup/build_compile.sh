@@ -143,6 +143,10 @@ function cleanup() {
   ls | grep -v $compile_tar | xargs rm -rf
 }
 
+set -e
+export args="$@"
+export args=" "$args" "
+
 # Compiler versions
 export gmp_version=6.1.0
 export mpfr_version=3.1.3
@@ -172,6 +176,9 @@ build_gmp
 build_mpfr
 build_mpc
 build_gcc
+if [[ "$args" == *" mpi "* ]]; then
+  build_openmpi
+fi
 
 # Pack output compiler tarball
 pack_compile

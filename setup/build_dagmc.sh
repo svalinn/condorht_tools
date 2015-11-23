@@ -107,7 +107,7 @@ function build_moab() {
   config_string+=" "--enable-shared
   config_string+=" "--disable-debug
   config_string+=" "--with-hdf5=$dagmc_dir/hdf5
-  if [[ "$@" == "with_cubit" ]]; then
+  if [[ "$1" == "with_cubit" ]]; then
     config_string+=" "--with-cgm=$dagmc_dir/cgm
   fi
   config_string+=" "--prefix=$dagmc_dir/moab
@@ -176,7 +176,7 @@ function build_dagmc() {
   git clone https://github.com/svalinn/DAGMC -b develop
   ln -s DAGMC src
   cmake_string=
-  if [[ "$@" == "mcnp5" ]]; then
+  if [[ "$args" == *" mcnp5 "* ]]; then
     cd DAGMC/mcnp5
     mcnp5_tar=mcnp5_dist.tgz
     wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$mcnp5_tar
@@ -191,15 +191,17 @@ function build_dagmc() {
     patch -p2 < ../patch/dagmc.patch.5.1.60
     cd ../../../bld
     cmake_string+=" "-DBUILD_MCNP5=ON
-    cmake_string+=" "-DMPI_BUILD=ON
     cmake_string+=" "-DMCNP5_DATAPATH=$build_dir/mcnp_data
+    if [[ "$args" == *" mpi "* ]]; then
+      cmake_string+=" "-DMPI_BUILD=ON
+    fi
   fi
-  if [[ "$@" == "geant4" ]]; then  # not working
+  if [[ "$args" == *" geant4 "* ]]; then  # not working
     cd bld
     cmake_string+=" "-DBUILD_GEANT4=ON
     cmake_string+=" "-DGEANT4_DIR=$dagmc_dir/geant4
   fi
-  if [[ "$@" == "fluka" ]]; then  # not working
+  if [[ "$args" == *" fluka "* ]]; then  # not working
     patch $dagmc_dir/fluka/flutil/rfluka DAGMC/fluka/rfluka.patch
     cd bld
     cmake_string+=" "-DBUILD_FLUKA=ON
@@ -234,32 +236,36 @@ function cleanup() {
   ls | grep -v $dagmc_tar | xargs rm -rf
 }
 
+set -e
+export args="$@"
+export args=" "$args" "
+
 # Software versions
-hdf5_version=1.8.16
-cubit_version=12.2
-cgm_version=12.2
-moab_version=4.9.0
-fluka_version=2011.2c
-geant4_version=10.00.p02
+export hdf5_version=1.8.16
+export cubit_version=12.2
+export cgm_version=12.2
+export moab_version=4.9.0
+export fluka_version=2011.2c
+export geant4_version=10.00.p02
 
 # Parallel jobs
-jobs=12
+export jobs=12
 
 # Compiler tarball
-compile_tar=compile.tar.gz
+export compile_tar=compile.tar.gz
 
 # Output DAGMC tarball
-dagmc_tar=dagmc.tar.gz
+export dagmc_tar=dagmc.tar.gz
 
 # Username where tarballs are found (/squid/$username)
-username=$1
+export username=$1
 
 # Directory names
-copy_dir=$PWD
-base_dir=$HOME
-compile_dir=$base_dir/compile
-build_dir=$base_dir/build
-dagmc_dir=$base_dir/dagmc
+export copy_dir=$PWD
+export base_dir=$HOME
+export compile_dir=$base_dir/compile
+export build_dir=$base_dir/build
+export dagmc_dir=$base_dir/dagmc
 mkdir -p $build_dir
 mkdir -p $dagmc_dir
 
@@ -268,27 +274,25 @@ get_compile
 
 # Build DAGMC dependencies
 build_hdf5
-if [[ "$@" == "cubit" ]]; then
+if [[ "$args" == *" cubit "* ]]; then
   build_cubit
   build_cgm
-  build_moab with_cubit
-else
-  build_moab without_cubit
 fi
+build_moab
 
 # Build physics packages
-if [[ "$@" == "fluka" ]]; then
+if [[ "$args" == *" fluka "* ]]; then
   build_fluka
 fi
-if [[ "$@" == "geant4" ]]; then
+if [[ "$args" == *" geant4 "* ]]; then
   build_geant4
 fi
 
 # Build DAGMC
-build_dagmc $@
+build_dagmc
 
 # Pack output DAGMC tarball
-pack_dagmc $@
+pack_dagmc
 
 # Delete unneeded stuff
 cleanup

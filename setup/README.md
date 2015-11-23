@@ -16,13 +16,13 @@ The submit file `build_compile.sub` launches a job which copies the build script
 2. MPFR
 3. MPC
 4. GCC
-5. OpenMPI
+5. OpenMPI (optional)
 
-You may want to modify the line starting with `arguments =` in `build_compile.sub` if you have pre-downloaded the tarballs for any of the five compiler packages. For example, if your tarballs are located in `/squid/ljjacobson`, you should modify the line to be
+You may want to modify the line starting with `arguments =` in `build_compile.sub` if you want to build Open MPI or if you have pre-downloaded the tarballs for any of the five compiler packages. For example, if you want to build OpenMPI and your tarballs are located in `/squid/my_username`, you should modify the line to be
 
-`arguments = ljjacobson`.
+`arguments = my_username mpi`.
 
-This is not required, however. If the tarballs are not found, they will simply be downloded off the internet.
+This is not required, however. If the tarballs are not found, they will simply be downloded off the internet. If `mpi` is not specified, then OpenMPI will not be built.
 
 The submit file should be submitted with the `-i` flag to declare it as an interactive job:
 
@@ -52,15 +52,13 @@ The submit file `build_dagmc.sub` launches a job which copies the build script `
 6. Geant4 (optional)
 7. DAGMC with FLUKA/Geant4/MCNP5
 
-You will need to modify the line starting with `arguments =` in `build_dagmc.sub` to get the compiler tarball from the right location and to build DAGMC with the correct physics packages. For example, if your tarballs are located in `/squid/ljjacobson` and you wish to install DAG-Geant4 and DAG-MCNP5 with CUBIT/CGM support, you should modify the line to be
+You will need to modify the line starting with `arguments =` in `build_dagmc.sub`. The first argument should be the username where the tarballs are found on SQUID. If you wish to build MOAB with CUBIT/CGM support, add the `cubit` argument. If you wish to install DAG-MCNP5 in MPI mode, add the `mpi` argument. Finally, add any of `mcnp5`, `geant4`, or `fluka` to specify which physics packages you want to build. The username must be specified first, but the rest of the arguments may be specified in any order.
 
-`arguments = ljjacobson cubit geant4 mcnp5`.
+For example, if the tarballs are located in `/squid/my_username`, you want CUBIT/CGM support, and you want DAG-MCNP5 (MPI), DAG-Geant4, and DAG-FLUKA, the line should be
 
-If you wish to install only DAG-FLUKA without CUBIT/CGM support, you should use
+`arguments = my_username cubit mpi mcnp5 geant4 fluka`.
 
-`arguments = ljjacobson fluka`.
-
-Note that if you are installing CUBIT, FLUKA, or MCNP5, you are required to provide your own tarballs as they are not freely available on the internet.
+Note that if you are installing CUBIT, MCNP5, or FLUKA, you are required to provide your own tarballs as they are not freely available on the internet.
 
 As before, run
 
