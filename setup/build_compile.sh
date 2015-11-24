@@ -38,7 +38,6 @@ function build_package() {
   tar -x"$tar_type"vf $tarball
   ln -s $folder src
   cd bld
-  config_str+=" "--prefix=$compile_dir/$name
   ../src/configure $config_str
   make -j $jobs
   make install
@@ -62,6 +61,7 @@ function build_gmp() {
   folder=$name-$version
 
   config_str=
+  config_str+=" "--prefix=$compile_dir/$name
 
   path_dirs=
   ldlpath_dirs="lib"
@@ -81,6 +81,7 @@ function build_mpfr() {
 
   config_str=
   config_str+=" "--with-gmp=$compile_dir/gmp
+  config_str+=" "--prefix=$compile_dir/$name
 
   path_dirs=
   ldlpath_dirs="lib"
@@ -101,6 +102,7 @@ function build_mpc() {
   config_str=
   config_str+=" "--with-gmp=$compile_dir/gmp
   config_str+=" "--with-mpfr=$compile_dir/mpfr
+  config_str+=" "--prefix=$compile_dir/$name
 
   path_dirs=
   ldlpath_dirs="lib"
@@ -122,7 +124,7 @@ function build_gcc() {
   config_str+=" "--with-gmp=$compile_dir/gmp
   config_str+=" "--with-mpfr=$compile_dir/mpfr
   config_str+=" "--with-mpc=$compile_dir/mpc
-  config_str+=" "--prefix=$compile_dir/gcc
+  config_str+=" "--prefix=$compile_dir/$name
 
   path_dirs="bin"
   ldlpath_dirs="lib lib64"
@@ -141,7 +143,7 @@ function build_openmpi() {
   folder=$name-$version
 
   config_str=
-  config_str+=" "--prefix=$compile_dir/openmpi
+  config_str+=" "--prefix=$compile_dir/$name
 
   path_dirs="bin"
   ldlpath_dirs="lib"
