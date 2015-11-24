@@ -14,7 +14,7 @@ log = process.log
 # are pointed to our build machines
 +IsBuildJob = true
 requirements = (OpSysAndVer =?= "SL6") && ( IsBuildSlot == true )
-arguments = ljjacobson mpi
+arguments = my_username mpi
 
 # Indicate if/when files should be transfered
 should_transfer_files = YES
