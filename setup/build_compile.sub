@@ -25,7 +25,7 @@ when_to_transfer_output = ON_EXIT
 # Make sure to create a different tarball of the files you want
 # transfered back to the submit node when you're done compiling.
 executable = build_compile.sh
-transfer_input_files = build_compile.sh
+transfer_input_files = common.sh, build_compile.sh
 
 # We don't want email about our jobs. (If you do, let us know,
 # there may be some additional configuration necessary.)
