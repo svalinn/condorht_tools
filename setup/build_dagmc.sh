@@ -1,15 +1,31 @@
 #!/bin/bash
 
+# Get tarball from SQUID or the internet
+function get_tar() {
+  tarball=$1
+  shift
+
+  while test ${#} -gt 0; do
+    url=$1
+    if [ "$url" == "squid" ]; then
+      url=http://proxy.chtc.wisc.edu/SQUID/$username
+    fi
+    wget --spider $url/$tarball
+    if [ $? == 0 ]; then
+      wget $url/$tarball
+      return
+    fi
+    shift
+  done
+
+  echo $tarball not found
+  exit
+}
+
 # Get compilers and set up paths
 function get_compile() {
   cd $base_dir
-  wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$compile_tar
-  if [ $? == 0 ]; then
-    wget http://proxy.chtc.wisc.edu/SQUID/$username/$compile_tar
-  else
-    echo $compile_tar not found
-    exit
-  fi
+  get_tar $compile_tar squid
   tar -xzvf $compile_tar
   export PATH=$compile_dir/gcc/bin:$PATH
   export PATH=$compile_dir/openmpi/bin:$PATH
@@ -27,12 +43,7 @@ function build_hdf5() {
   mkdir -p hdf5/bld
   cd hdf5
   hdf5_tar=hdf5-$hdf5_version.tar.gz
-  wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$hdf5_tar
-  if [ $? == 0 ]; then
-    wget http://proxy.chtc.wisc.edu/SQUID/$username/$hdf5_tar
-  else
-    wget https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-$hdf5_version/src/$hdf5_tar
-  fi
+  get_tar $hdf5_tar squid https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-$hdf5_version/src
   tar -xzvf $hdf5_tar
   ln -s hdf5-$hdf5_version src
   cd bld
@@ -54,13 +65,7 @@ function build_cubit() {
   mkdir cubit
   cd cubit
   cubit_tar=Cubit_LINUX64.$cubit_version.tar.gz
-  wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$cubit_tar
-  if [ $? == 0 ]; then
-    wget http://proxy.chtc.wisc.edu/SQUID/$username/$cubit_tar
-  else
-    echo $cubit_tar not found
-    exit
-  fi
+  get_tar $cubit_tar squid
   tar -xzvf $cubit_tar
   rm -f $cubit_tar
   export PATH=$dagmc_dir/cubit/bin:$PATH
@@ -125,13 +130,7 @@ function build_fluka() {
   mkdir -p fluka/bld
   cd fluka
   fluka_tar=fluka$fluka_version-linux-gfor64bitAA.tar.gz
-  wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$fluka_tar
-  if [ $? == 0 ]; then
-    wget http://proxy.chtc.wisc.edu/SQUID/$username/$fluka_tar
-  else
-    echo $fluka_tar not found
-    exit
-  fi
+  get_tar $fluka_tar squid
   mkdir fluka
   ln -s fluka src
   tar -xzvf $fluka_tar -C src
@@ -148,12 +147,7 @@ function build_geant4() {
   mkdir -p geant4/bld
   cd geant4
   geant4_tar=geant4.$geant4_version.tar.gz
-  wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$geant4_tar
-  if [ $? == 0 ]; then
-    wget http://proxy.chtc.wisc.edu/SQUID/$username/$geant4_tar
-  else
-    wget http://geant4.cern.ch/support/source/$geant4_tar
-  fi
+  get_tar $geant4_tar squid http://geant4.cern.ch/support/source
   tar -xzvf $geant4_tar
   ln -s geant4.$geant4_version src
   cd bld
@@ -179,13 +173,7 @@ function build_dagmc() {
   if [[ "$args" == *" mcnp5 "* ]]; then
     cd DAGMC/mcnp5
     mcnp5_tar=mcnp5_dist.tgz
-    wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$mcnp5_tar
-    if [ $? == 0 ]; then
-      wget http://proxy.chtc.wisc.edu/SQUID/$username/$mcnp5_tar
-    else
-      echo $mcnp5_tar not found
-      exit
-    fi
+    get_tar $mcnp5_tar squid
     tar -xzvf $mcnp5_tar Source
     cd Source
     patch -p2 < ../patch/dagmc.patch.5.1.60

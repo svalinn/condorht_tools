@@ -1,17 +1,34 @@
 #!/bin/bash
 
+# Get tarball from SQUID or the internet
+function get_tar() {
+  tarball=$1
+  shift
+
+  while test ${#} -gt 0; do
+    url=$1
+    if [ "$url" == "squid" ]; then
+      url=http://proxy.chtc.wisc.edu/SQUID/$username
+    fi
+    wget --spider $url/$tarball
+    if [ $? == 0 ]; then
+      wget $url/$tarball
+      return
+    fi
+    shift
+  done
+
+  echo $tarball not found
+  exit
+}
+
 # Build GMP
 function build_gmp() {
   cd $build_dir
   mkdir -p gmp/bld
   cd gmp
   gmp_tar=gmp-$gmp_version.tar.bz2
-  wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$gmp_tar
-  if [ $? == 0 ]; then
-    wget http://proxy.chtc.wisc.edu/SQUID/$username/$gmp_tar
-  else
-    wget https://gmplib.org/download/gmp/$gmp_tar
-  fi
+  get_tar $gmp_tar squid https://gmplib.org/download/gmp
   tar -xjvf $gmp_tar
   ln -s gmp-$gmp_version src
   cd bld
@@ -30,12 +47,7 @@ function build_mpfr() {
   mkdir -p mpfr/bld
   cd mpfr
   mpfr_tar=mpfr-$mpfr_version.tar.gz
-  wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$mpfr_tar
-  if [ $? == 0 ]; then
-    wget http://proxy.chtc.wisc.edu/SQUID/$username/$mpfr_tar
-  else
-    wget http://www.mpfr.org/mpfr-current/$mpfr_tar
-  fi
+  get_tar $mpfr_tar squid http://www.mpfr.org/mpfr-current
   tar -xzvf $mpfr_tar
   ln -s mpfr-$mpfr_version src
   cd bld
@@ -55,12 +67,7 @@ function build_mpc() {
   mkdir -p mpc/bld
   cd mpc
   mpc_tar=mpc-$mpc_version.tar.gz
-  wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$mpc_tar
-  if [ $? == 0 ]; then
-    wget http://proxy.chtc.wisc.edu/SQUID/$username/$mpc_tar
-  else
-    wget ftp://ftp.gnu.org/gnu/mpc/$mpc_tar
-  fi
+  get_tar $mpc_tar squid ftp://ftp.gnu.org/gnu/mpc
   tar -xzvf $mpc_tar
   ln -s mpc-$mpc_version src
   cd bld
@@ -81,12 +88,7 @@ function build_gcc() {
   mkdir -p gcc/bld
   cd gcc
   gcc_tar=gcc-$gcc_version.tar.gz
-  wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$gcc_tar
-  if [ $? == 0 ]; then
-    wget http://proxy.chtc.wisc.edu/SQUID/$username/$gcc_tar
-  else
-    wget http://www.netgull.com/gcc/releases/gcc-$gcc_version/$gcc_tar
-  fi
+  get_tar $gcc_tar squid http://www.netgull.com/gcc/releases/gcc-$gcc_version
   tar -xzvf $gcc_tar
   ln -s gcc-$gcc_version src
   cd bld
@@ -109,12 +111,7 @@ function build_openmpi() {
   mkdir -p openmpi/bld
   cd openmpi
   openmpi_tar=openmpi-$openmpi_version.tar.gz
-  wget --spider http://proxy.chtc.wisc.edu/SQUID/$username/$openmpi_tar
-  if [ $? == 0 ]; then
-    wget http://proxy.chtc.wisc.edu/SQUID/$username/$openmpi_tar
-  else
-    wget http://www.open-mpi.org/software/ompi/v1.10/downloads/$openmpi_tar
-  fi
+  get_tar $openmpi_tar squid http://www.open-mpi.org/software/ompi/v1.10/downloads
   tar -xzvf $openmpi_tar
   ln -s openmpi-$openmpi_version src
   cd bld
