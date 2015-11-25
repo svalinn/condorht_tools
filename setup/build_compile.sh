@@ -5,6 +5,7 @@ function build_gmp() {
   cd $build_dir
   mkdir -p gmp/bld
   cd gmp
+  gmp_version=6.1.0
   gmp_tar=gmp-$gmp_version.tar.bz2
   get_tar $gmp_tar squid https://gmplib.org/download/gmp
   tar -xjvf $gmp_tar
@@ -24,6 +25,7 @@ function build_mpfr() {
   cd $build_dir
   mkdir -p mpfr/bld
   cd mpfr
+  mpfr_version=3.1.3
   mpfr_tar=mpfr-$mpfr_version.tar.gz
   get_tar $mpfr_tar squid http://www.mpfr.org/mpfr-current
   tar -xzvf $mpfr_tar
@@ -44,6 +46,7 @@ function build_mpc() {
   cd $build_dir
   mkdir -p mpc/bld
   cd mpc
+  mpc_version=1.0.3
   mpc_tar=mpc-$mpc_version.tar.gz
   get_tar $mpc_tar squid ftp://ftp.gnu.org/gnu/mpc
   tar -xzvf $mpc_tar
@@ -65,6 +68,7 @@ function build_gcc() {
   cd $build_dir
   mkdir -p gcc/bld
   cd gcc
+  gcc_version=4.9.3
   gcc_tar=gcc-$gcc_version.tar.gz
   get_tar $gcc_tar squid http://www.netgull.com/gcc/releases/gcc-$gcc_version
   tar -xzvf $gcc_tar
@@ -88,6 +92,7 @@ function build_openmpi() {
   cd $build_dir
   mkdir -p openmpi/bld
   cd openmpi
+  openmpi_version=1.10.1
   openmpi_tar=openmpi-$openmpi_version.tar.gz
   get_tar $openmpi_tar squid http://www.open-mpi.org/software/ompi/v1.10/downloads
   tar -xzvf $openmpi_tar
@@ -124,13 +129,6 @@ export args=" "$args" "
 
 # Common functions
 source ./common.sh
-
-# Compiler versions
-export gmp_version=6.1.0
-export mpfr_version=3.1.3
-export mpc_version=1.0.3
-export gcc_version=4.9.3
-export openmpi_version=1.10.1
 
 # Parallel jobs
 export jobs=12

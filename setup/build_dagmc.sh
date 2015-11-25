@@ -1,25 +1,11 @@
 #!/bin/bash
 
-# Get compilers and set up paths
-function get_compile() {
-  cd $base_dir
-  get_tar $compile_tar squid
-  tar -xzvf $compile_tar
-  export PATH=$compile_dir/gcc/bin:$PATH
-  export PATH=$compile_dir/openmpi/bin:$PATH
-  export LD_LIBRARY_PATH=$compile_dir/gmp/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$compile_dir/mpfr/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$compile_dir/mpc/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$compile_dir/gcc/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$compile_dir/gcc/lib64:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$compile_dir/openmpi/lib:$LD_LIBRARY_PATH
-}
-
 # Build HDF5
 function build_hdf5() {
   cd $build_dir
   mkdir -p hdf5/bld
   cd hdf5
+  hdf5_version=1.8.16
   hdf5_tar=hdf5-$hdf5_version.tar.gz
   get_tar $hdf5_tar squid https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-$hdf5_version/src
   tar -xzvf $hdf5_tar
@@ -42,6 +28,7 @@ function build_cubit() {
   cd $dagmc_dir
   mkdir cubit
   cd cubit
+  cubit_version=12.2
   cubit_tar=Cubit_LINUX64.$cubit_version.tar.gz
   get_tar $cubit_tar squid
   tar -xzvf $cubit_tar
@@ -56,6 +43,7 @@ function build_cgm() {
   cd $build_dir
   mkdir -p cgm/bld
   cd cgm
+  cgm_version=12.2
   git clone https://bitbucket.org/fathomteam/cgm -b cgm$cgm_version
   ln -s cgm src
   cd cgm
@@ -79,6 +67,7 @@ function build_moab() {
   cd $build_dir
   mkdir -p moab/bld
   cd moab
+  moab_version=4.9.0
   git clone https://bitbucket.org/fathomteam/moab -b Version$moab_version
   ln -s moab src
   cd moab
@@ -107,6 +96,7 @@ function build_fluka() {
   cd $build_dir
   mkdir -p fluka/bld
   cd fluka
+  fluka_version=2011.2c
   fluka_tar=fluka$fluka_version-linux-gfor64bitAA.tar.gz
   get_tar $fluka_tar squid
   mkdir fluka
@@ -124,6 +114,7 @@ function build_geant4() {
   cd $build_dir
   mkdir -p geant4/bld
   cd geant4
+  geant4_version=10.00.p02
   geant4_tar=geant4.$geant4_version.tar.gz
   get_tar $geant4_tar squid http://geant4.cern.ch/support/source
   tar -xzvf $geant4_tar
@@ -208,14 +199,6 @@ export args=" "$args" "
 
 # Common functions
 source ./common.sh
-
-# Software versions
-export hdf5_version=1.8.16
-export cubit_version=12.2
-export cgm_version=12.2
-export moab_version=4.9.0
-export fluka_version=2011.2c
-export geant4_version=10.00.p02
 
 # Parallel jobs
 export jobs=12
