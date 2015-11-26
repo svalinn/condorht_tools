@@ -1,15 +1,5 @@
 #!/bin/bash
 
-function get_git_lfs() {
-  cd $base_dir
-  git_lfs_version=1.1.0
-  git_lfs_tar=git-lfs-linux-amd64-$git_lfs_version.tar.gz
-  get_tar $git_lfs_tar squid https://github.com/github/git-lfs/releases/download/v$git_lfs_version
-  tar -xzvf $git_lfs_tar
-  mv git-lfs-$git_lfs_version git-lfs
-  export PATH=$base_dir/git-lfs:$PATH
-}
-
 function dag_mcnp_tests() {
   cd $copy_dir
   git clone https://github.com/ljacobson64/DAGMC-tests
@@ -61,7 +51,6 @@ export base_dir=$HOME
 export compile_dir=$base_dir/compile
 export dagmc_dir=$base_dir/dagmc
 
-# Get git-lfs, compilers, and DAGMC
-get_git_lfs
+# Get compilers, and DAGMC
 get_compile
 get_dagmc
