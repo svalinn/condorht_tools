@@ -4,12 +4,12 @@ function dag_mcnp_tests() {
   cd $copy_dir
   git clone https://github.com/ljacobson64/DAGMC-tests
   cd DAGMC-tests
+  bash get_files.bash
   declare -a suites=(DAGMC Meshtally Regression VALIDATION_CRITICALITY \
                      VALIDATION_SHIELDING VERIFICATION_KEFF)
   for suite in "${suites[@]}"; do
     cd $suite
     python run_tests.py -s -j $jobs
-    python run_tests.py -d -j $jobs
     python run_tests.py -r -j $jobs
     cd ..
   done
