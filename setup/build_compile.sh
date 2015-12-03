@@ -82,6 +82,7 @@ function build_gcc() {
   ../src/configure $config_string
   make -j $jobs  # j=12: 18:35.61 wall time, 766024 kB mem
   make install
+  export PATH=$compile_dir/gcc/bin:$PATH
   export LD_LIBRARY_PATH=$compile_dir/gcc/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$compile_dir/gcc/lib64:$LD_LIBRARY_PATH
   cd $base_dir
