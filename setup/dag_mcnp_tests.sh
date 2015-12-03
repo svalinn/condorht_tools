@@ -71,3 +71,9 @@ get_xs_data
 
 # Run the DAG-MCNP5 tests
 dag_mcnp_tests
+
+# Pack results
+pack_results
+
+# Delete unneeded stuff
+cleanup
