@@ -27,6 +27,7 @@ function get_compile() {
   cd $base_dir
   get_tar $compile_tar squid
   tar -xzvf $compile_tar
+  rm -f $compile_tar
   export PATH=$compile_dir/gcc/bin:$PATH
   export PATH=$compile_dir/openmpi/bin:$PATH
   export LD_LIBRARY_PATH=$compile_dir/gmp/lib:$LD_LIBRARY_PATH
@@ -42,6 +43,7 @@ function get_dagmc() {
   cd $base_dir
   get_tar $dagmc_tar squid
   tar -xzvf $dagmc_tar
+  rm -f $dagmc_tar
   export PATH=$dagmc_dir/hdf5/bin:$PATH
   export PATH=$dagmc_dir/cubit/bin:$PATH
   export PATH=$dagmc_dir/moab/bin:$PATH

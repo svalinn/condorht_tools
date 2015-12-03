@@ -9,6 +9,7 @@ function build_hdf5() {
   hdf5_tar=hdf5-$hdf5_version.tar.gz
   get_tar $hdf5_tar squid https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-$hdf5_version/src
   tar -xzvf $hdf5_tar
+  rm -f $hdf5_tar
   ln -s hdf5-$hdf5_version src
   cd bld
   config_string=
@@ -44,9 +45,9 @@ function build_cgm() {
   mkdir -p cgm/bld
   cd cgm
   cgm_version=12.2
-  git clone https://bitbucket.org/fathomteam/cgm -b cgm$cgm_version
-  ln -s cgm src
-  cd cgm
+  git clone https://bitbucket.org/fathomteam/CGM -b cgm$cgm_version
+  ln -s CGM src
+  cd CGM
   autoreconf -fi
   cd ../bld
   config_string=
@@ -68,9 +69,9 @@ function build_moab() {
   mkdir -p moab/bld
   cd moab
   moab_version=4.9.0
-  git clone https://bitbucket.org/fathomteam/moab -b Version$moab_version
-  ln -s moab src
-  cd moab
+  git clone https://bitbucket.org/fathomteam/MOAB -b Version$moab_version
+  ln -s MOAB src
+  cd MOAB
   autoreconf -fi
   cd ../bld
   config_string=
@@ -79,7 +80,7 @@ function build_moab() {
   config_string+=" "--enable-shared
   config_string+=" "--disable-debug
   config_string+=" "--with-hdf5=$dagmc_dir/hdf5
-  if [[ "$1" == "with_cubit" ]]; then
+  if [[ "$args" == *" cubit "* ]]; then
     config_string+=" "--with-cgm=$dagmc_dir/cgm
   fi
   config_string+=" "--prefix=$dagmc_dir/moab
@@ -102,6 +103,7 @@ function build_fluka() {
   mkdir fluka
   ln -s fluka src
   tar -xzvf $fluka_tar -C src
+  rm -f $fluka_tar
   cd src
   export FLUFOR=gfortran
   export FLUPRO=$PWD
@@ -118,6 +120,7 @@ function build_geant4() {
   geant4_tar=geant4.$geant4_version.tar.gz
   get_tar $geant4_tar squid http://geant4.cern.ch/support/source
   tar -xzvf $geant4_tar
+  rm -f $geant4_tar
   ln -s geant4.$geant4_version src
   cd bld
   cmake ../src -DGEANT4_USE_SYSTEM_EXPAT=OFF \
@@ -144,11 +147,12 @@ function build_dagmc() {
     mcnp5_tar=mcnp5_dist.tgz
     get_tar $mcnp5_tar squid
     tar -xzvf $mcnp5_tar Source
+    rm -f $mcnp5_tar
     cd Source
     patch -p2 < ../patch/dagmc.patch.5.1.60
     cd ../../../bld
     cmake_string+=" "-DBUILD_MCNP5=ON
-    cmake_string+=" "-DMCNP5_DATAPATH=$build_dir/mcnp_data
+    cmake_string+=" "-DMCNP5_DATAPATH=$DATAPATH
     if [[ "$args" == *" mpi "* ]]; then
       cmake_string+=" "-DMPI_BUILD=ON
     fi
@@ -166,7 +170,7 @@ function build_dagmc() {
   fi
   cmake_string+=" "-DCMAKE_C_COMPILER=$compile_dir/gcc/bin/gcc
   cmake_string+=" "-DCMAKE_CXX_COMPILER=$compile_dir/gcc/bin/g++
-  cmake_string+=" "-DCMAKE_FORTRAN_COMPILER=$compile_dir/gcc/bin/gfortran
+  cmake_string+=" "-DCMAKE_Fortran_COMPILER=$compile_dir/gcc/bin/gfortran
   cmake_string+=" "-DCMAKE_INSTALL_PREFIX=$dagmc_dir/dagmc
   cmake_string+=" "$build_dir/dagmc/src
   cmake ../. $cmake_string
@@ -185,10 +189,7 @@ function pack_dagmc() {
 
 # Delete unneeded stuff
 function cleanup() {
-  rm -rf $compile_dir
-  rm -rf $build_dir
-  rm -rf $dagmc_dir
-  rm -rf $base_dir/$compile_tar
+  rm -rf $base_dir/*
   cd $copy_dir
   ls | grep -v $dagmc_tar | xargs rm -rf
 }
@@ -218,6 +219,7 @@ export base_dir=$HOME
 export compile_dir=$base_dir/compile
 export build_dir=$base_dir/build
 export dagmc_dir=$base_dir/dagmc
+export DATAPATH=$base_dir/mcnp_data
 mkdir -p $build_dir
 mkdir -p $dagmc_dir
 
