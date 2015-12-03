@@ -17,7 +17,7 @@ function dag_mcnp_tests() {
                      VALIDATION_SHIELDING VERIFICATION_KEFF)
   for suite in "${suites[@]}"; do
     cd $suite
-    #python run_tests.py -s -j $jobs
+    python run_tests.py -s -j $jobs
     python run_tests.py -r -j $jobs
     cd ..
   done
