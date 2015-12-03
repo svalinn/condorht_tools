@@ -10,7 +10,7 @@ HTCondor uses the SQUID web proxy to handle the transfer of large files to the e
 
 Build the compilers
 ----------------------------------------
-The submit file `build_compile.sub` launches a job which copies the build script `build_compile.sh` to an execute node. The build script contains instructions for compiling the following packages:
+The submit file `build_compile.sub` launches a job which copies the build script `build_compile.bash` to an execute node. The build script contains instructions for compiling the following packages:
 
 1. GMP
 2. MPFR
@@ -30,7 +30,7 @@ The submit file should be submitted with the `-i` flag to declare it as an inter
 
 After waiting a short while (generally a few minutes), you will be given a terminal on the execute node. Then run
 
-`$ bash build_compile.sh`
+`$ bash build_compile.bash`
 
 to run the script which compiles the compilers and makes the compile tarball. This should take about 20-25 minutes. When it finishes, type
 
@@ -42,7 +42,7 @@ to return to the submit node, where the newly-created tarball `compile.tar.gz` w
 
 Build DAGMC
 ----------------------------------------
-The submit file `build_dagmc.sub` launches a job which copies the build script `build_dagmc.sh` to an execute node. The build script contains instructions for compiling the following packages:
+The submit file `build_dagmc.sub` launches a job which copies the build script `build_dagmc.bash` to an execute node. The build script contains instructions for compiling the following packages:
 
 1. HDF5
 2. CUBIT (optional)
@@ -64,7 +64,7 @@ As before, run
 
 ```
 $ condor_submit -i build_dagmc.sub
-$ bash build_compile.sh
+$ bash build_compile.bash
 $ exit
 $ cp dagmc.tar.gz /squid/$USER
 ```

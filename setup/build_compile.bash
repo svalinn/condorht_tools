@@ -128,7 +128,7 @@ export args="$@"
 export args=" "$args" "
 
 # Common functions
-source ./common.sh
+source ./common.bash
 
 # Parallel jobs
 export jobs=12

@@ -24,8 +24,8 @@ when_to_transfer_output = ON_EXIT
 # to the build machine when your interactive session starts.
 # Make sure to create a different tarball of the files you want
 # transfered back to the submit node when you're done compiling.
-executable = build_compile.sh
-transfer_input_files = common.sh, build_compile.sh
+executable = build_compile.bash
+transfer_input_files = common.bash, build_compile.bash
 
 # We don't want email about our jobs. (If you do, let us know,
 # there may be some additional configuration necessary.)
