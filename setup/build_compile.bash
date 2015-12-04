@@ -141,7 +141,7 @@ export compile_tar=compile.tar.gz
 
 # Directory names
 export copy_dir=$PWD
-export base_dir=$HOME
+export base_dir=/tmp/$USER
 export compile_dir=$base_dir/compile
 export build_dir=$base_dir/build
 mkdir -p $compile_dir

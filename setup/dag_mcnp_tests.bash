@@ -12,7 +12,7 @@ function get_xs_data() {
 # Run the DAG-MCNP tests
 function dag_mcnp_tests() {
   cd $copy_dir
-  git clone https://github.com/ljacobson64/DAGMC-tests
+  git clone https://github.com/ljacobson64/DAGMC-tests -b refactir
   cd DAGMC-tests
   bash get_files.bash
 
@@ -90,7 +90,7 @@ export results_tar=results.tar.gz
 
 # Directory names
 export copy_dir=$PWD
-export base_dir=$HOME
+export base_dir=/tmp/$USER
 export compile_dir=$base_dir/compile
 export dagmc_dir=$base_dir/dagmc
 export DATAPATH=$base_dir/mcnp_data
