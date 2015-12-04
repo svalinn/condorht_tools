@@ -17,14 +17,14 @@ function dag_mcnp_tests() {
   bash get_files.bash
 
   # - Run longer tests in MPI mode
-  # - Order for serial runs is from longest to shortest
+  # - Order for runs is from longest to shortest
   # - Runs with PTRAC must be run in serial
   # - Runs with dependencies on other runs must come after those runs
 
   cd DAGMC
-  mpi_runs="13 9 15 14"
+  mpi_runs="13 09 15 14"
   python run_tests.py $mpi_runs -s -r -j $jobs --mpi
-  ser_runs="5 6 1 8 7 11 10 2 3 4 12"
+  ser_runs="05 06 01 08 07 11 10 02 03 04 12"
   python run_tests.py $ser_runs -s -r -j $jobs
 
   cd ../Meshtally
@@ -33,9 +33,9 @@ function dag_mcnp_tests() {
   cd ../Regression
   mpi_runs="35 37"
   python run_tests.py $mpi_runs -s -r -j $jobs --mpi
-  ser_runs="36 2 41 31 42 4 39 98 99 6 90 93 33 95 30 1 7 64 12 3 68 20 32 21 23 10 28 19 9 94 47 61 63 65 66 67 86 62"
+  ser_runs="36 02 41 31 42 04 39 98 99 06 90 93 33 95 30 01 07 64 12 03 68 20 32 21 23 10 28 19 9 94 47 61 63 65 66 67 86 62"
   python run_tests.py $ser_runs -s -r -j $jobs
-  ser_runs="22 8 29 34 26 27"  # dependencies
+  ser_runs="22 08 29 34 26 27"  # dependencies
   python run_tests.py $ser_runs -s -r -j $jobs
 
   cd ../VALIDATION_CRITICALITY
@@ -45,9 +45,9 @@ function dag_mcnp_tests() {
   python run_tests.py -s -r -j $jobs --mpi
 
   cd ../VERIFICATION_KEFF
-  ser_runs="10 23 9"  # ptrac
+  ser_runs="10 23 09"  # ptrac
   python run_tests.py $mpi_runs -s -r -j $jobs --mpi
-  mpi_runs=`seq 75`
+  mpi_runs="01 02 03 04 05 06 07 08 09 "$(seq 10 75)
   for s_run in $ser_runs; do mpi_runs=${mpi_runs/$s_run}; done
   python run_tests.py $ser_runs -s -r -j $jobs
 
