@@ -12,7 +12,7 @@ function get_xs_data() {
 # Run the DAG-MCNP tests
 function dag_mcnp_tests() {
   cd $copy_dir
-  git clone https://github.com/ljacobson64/DAGMC-tests -b refactir
+  git clone https://github.com/ljacobson64/DAGMC-tests
   cd DAGMC-tests
   bash get_files.bash
 
