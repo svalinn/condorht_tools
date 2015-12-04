@@ -292,7 +292,7 @@ class Mctal(object):
             file.write('%2s %8s\n'%(self.e[i],self.enum[i]))
             if len(self.elist[i]) > 0:
                 for vndx in range(int(math.ceil(len(self.elist[i])/8.0))):
-                    file.write('  %15s\n'%(' '.join(str('%.5es'%(v)) for v in self.elist[i][8*vndx:8*(vndx+1)])))    
+                    file.write('  %15s\n'%(' '.join(str('%.5e'%(v)) for v in self.elist[i][8*vndx:8*(vndx+1)])))    
 
             file.write('%2s %8s\n'%(self.t[i],self.tnum[i]))
             if len(self.tlist[i]) > 0:
