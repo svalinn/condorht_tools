@@ -27,7 +27,7 @@ function dag_mcnp_tests() {
   ser_runs="5 6 1 8 7 11 10 2 3 4 12"
   python run_tests.py $ser_runs -s -r -j $jobs
 
-  cd ../Meshally
+  cd ../Meshtally
   python run_tests.py -s -r -j $jobs --mpi
 
   cd ../Regression
