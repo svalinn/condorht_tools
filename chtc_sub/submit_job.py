@@ -245,7 +245,10 @@ def build_job_cmd_file(inputfile,job_index):
       file.write("error = job"+str(job_index)+".err\n")
       file.write("transfer_input_files = job"+str(job_index)+".sh\n")
       file.write("+AccountingGroup = EngrPhysics_Wilson \n")
-      
+      file.write(" request_cpus = 1\n")
+      file.write("request_memory = 2GB\n")
+      file.write("request_disk = 1GB\n")
+
       file.write("Queue \n")
       file.close()
 
