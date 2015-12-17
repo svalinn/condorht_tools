@@ -24,7 +24,7 @@ executable = build_dagmc.bash
 transfer_input_files = common.bash, build_dagmc.bash
 
 # Command line arguments for the executable
-arguments = my_username cubit mpi mcnp5
+arguments = cubit mpi mcnp5
 
 # Don't send emails
 notification = never
