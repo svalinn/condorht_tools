@@ -2,11 +2,13 @@
 
 # Get cross section data
 function get_xs_data() {
+  xs_data_tar=mcnp_data.tar.gz
+
   mkdir -p $DATAPATH
   cd $DATAPATH
-  get_tar $xs_data_tar squid
-  tar -xzvf $xs_data_tar --strip-components=1
-  rm -f $xs_data_tar
+  if [ ! -a xsdir ]; then
+    tar -xzvf $tar_dir/$xs_data_tar --strip-components=1
+  fi
 }
 
 # Run the DAG-MCNP tests
@@ -46,9 +48,9 @@ function dag_mcnp_tests() {
 
   cd ../VERIFICATION_KEFF
   ser_runs="10 23 09"  # ptrac
-  python run_tests.py $mpi_runs -s -r -j $jobs --mpi
   mpi_runs="01 02 03 04 05 06 07 08 09 "$(seq 10 75)
   for s_run in $ser_runs; do mpi_runs=${mpi_runs/$s_run}; done
+  python run_tests.py $mpi_runs -s -r -j $jobs --mpi
   python run_tests.py $ser_runs -s -r -j $jobs
 
   cd $copy_dir
@@ -56,15 +58,17 @@ function dag_mcnp_tests() {
 
 # Pack results tarball
 function pack_results() {
+  results_tar=results.tar.gz
+
   cd $copy_dir/DAGMC-tests
   tar -czvf $results_tar */Results
+  cp $results_tar /mnt/gluster/$USER
   mv $results_tar $copy_dir
   cd $copy_dir
 }
 
 # Delete unneeded stuff
 function cleanup() {
-  rm -rf $base_dir/*
   cd $copy_dir
   ls | grep -v $results_tar | xargs rm -rf
 }
@@ -79,31 +83,23 @@ source ./common.bash
 # Parallel jobs
 export jobs=12
 
-# Username where tarballs are found (/squid/$username)
-export username=$1
-
-# Tarball names
-export compile_tar=compile.tar.gz
-export dagmc_tar=dagmc.tar.gz
-export xs_data_tar=mcnp_data.tar.gz
-export results_tar=results.tar.gz
-
 # Directory names
 export copy_dir=$PWD
-export base_dir=/tmp/$USER
+export base_dir=/mnt/gluster/$USER
+export tar_dir=$base_dir
 export compile_dir=$base_dir/compile
 export dagmc_dir=$base_dir/dagmc
 export DATAPATH=$base_dir/mcnp_data
 
-# Get compilers, DAGMC, and xs_data
-get_compile
-get_dagmc
+# Setup environment variables and get xs_data
+setup_compile_env
+setup_dagmc_env
 get_xs_data
 
 # Run the DAG-MCNP5 tests
 dag_mcnp_tests
 
-# Pack results
+# Create a results tarball
 pack_results
 
 # Delete unneeded stuff

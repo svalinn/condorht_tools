@@ -24,7 +24,7 @@ executable = dag_mcnp_tests.bash
 transfer_input_files = common.bash, dag_mcnp_tests.bash
 
 # Command line arguments for the executable
-arguments = my_username
+arguments =
 
 # Don't send emails
 notification = never
