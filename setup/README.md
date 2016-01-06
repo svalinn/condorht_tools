@@ -38,6 +38,4 @@ The submit file `build_dagmc.sub` launches a job which copies the build script `
 
 You may want to modify the line starting with `arguments =` in `build_dagmc.sub`. If you wish to build MOAB with CUBIT/CGM support, add the `cubit` argument. If you wish to install DAG-MCNP5 in MPI mode, add the `mpi` argument. Finally, add any of `mcnp5`, `geant4`, or `fluka` to specify which physics packages you want to build. The arguments may be specified in any order. The unedited submit file will result in building CUBIT and DAG-MCNP5 with MPI.
 
-As before, run
-
 Submit the submit file with `$ condor_submit build_dagmc.sub`. This will build DAGMC and its dependencies and place the output binaries, libraries, headers, and other files in `/mnt/gluster/$USER/dagmc`.
