@@ -42,7 +42,7 @@ function dag_mcnp_tests() {
     cd Regression
     mpi_runs="35 37"
     python run_tests.py $mpi_runs -s -r -j $jobs --mpi
-    ser_runs="36 02 41 31 42 04 39 98 99 06 90 93 33 95 30 01 07 64 12 03 68 20 32 21 23 10 28 19 9 94 47 61 63 65 66 67 86 62"
+    ser_runs="36 02 41 31 42 04 39 98 99 06 90 93 33 95 30 01 07 64 12 03 68 20 32 21 23 10 28 19 09 94 47 61 63 65 66 67 86 62"
     python run_tests.py $ser_runs -s -r -j $jobs
     ser_runs="22 08 29 34 26 27"  # dependencies
     python run_tests.py $ser_runs -s -r -j $jobs
