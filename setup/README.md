@@ -1,5 +1,6 @@
 Setup Instructions
 ========================================
+
 Introduction
 ----------------------------------------
 The Center for High Throughput Computing (CHTC) offers an on-demand compute service called HTCondor. When you submit a job to the Condor job queue on the submit mode, your job will be queued as resources become available. When the job is launched, you in essence are given a full linux terminal with bare-bones tools on an execute node. When your job is done, whatever files are remaining on the execute node are copied back to the submit node.
@@ -10,7 +11,7 @@ HTCondor has three options for transferring files to and from the submit nodes: 
 
 If you are installing CUBIT, FLUKA, or MCNP5, you are required to place their tarballs in your Gluster space (`/mnt/gluster/$USER`) before running these scripts. The scripts will also look for the tarballs for the other software in your Gluster space, but if they can't be found, the scripts will download them and place them in your Gluster space.
 
-Build the compilers
+1. Build the compilers
 ----------------------------------------
 The submit file `build_compile.sub` launches a job which copies the build script `build_compile.bash` to an execute node. The build script contains instructions for compiling the following packages:
 
@@ -24,7 +25,7 @@ If you do not want to build OpenMPI, then you will need to modify the line `argu
 
 Submit the submit file with `$ condor_submit build_compile.sub`. This will build the compilers and place the output binaries, libraries, headers, and other files in `/mnt/gluster/$USER/compile`.
 
-Build DAGMC
+2. Build DAGMC
 ----------------------------------------
 The submit file `build_dagmc.sub` launches a job which copies the build script `build_dagmc.bash` to an execute node. The build script contains instructions for compiling the following packages:
 
@@ -39,3 +40,7 @@ The submit file `build_dagmc.sub` launches a job which copies the build script `
 You may want to modify the line starting with `arguments =` in `build_dagmc.sub`. If you wish to build MOAB with CUBIT/CGM support, add the `cubit` argument. If you wish to install DAG-MCNP5 in MPI mode, add the `mpi` argument. Finally, add any of `mcnp5`, `geant4`, or `fluka` to specify which physics packages you want to build. The arguments may be specified in any order. The unedited submit file will result in building CUBIT and DAG-MCNP5 with MPI.
 
 Submit the submit file with `$ condor_submit build_dagmc.sub`. This will build DAGMC and its dependencies and place the output binaries, libraries, headers, and other files in `/mnt/gluster/$USER/dagmc`.
+
+3. Run the DAG-MCNP tests
+----------------------------------------
+The submit file `dag_mcnp_tests.sub` launches a job which copies the script `dag_mcnp_tests.bash` to an execute node. The script runs all of the tests in the [DAGMC test suite](https://github.com/ljacobson64/DAGMC-tests). A tarball called `results.tar.gz` containing the test results will be created and placed in your Gluster space. The tarball will also be copied to your home directory on the submit node.
