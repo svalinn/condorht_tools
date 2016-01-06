@@ -23,35 +23,53 @@ function dag_mcnp_tests() {
   # - Runs with PTRAC must be run in serial
   # - Runs with dependencies on other runs must come after those runs
 
-  cd DAGMC
-  mpi_runs="13 09 15 14"
-  python run_tests.py $mpi_runs -s -r -j $jobs --mpi
-  ser_runs="05 06 01 08 07 11 10 02 03 04 12"
-  python run_tests.py $ser_runs -s -r -j $jobs
+  if [[ "$args" == *" DAGMC "* ]]; then
+    cd DAGMC
+    mpi_runs="13 09 15 14"
+    python run_tests.py $mpi_runs -s -r -j $jobs --mpi
+    ser_runs="05 06 01 08 07 11 10 02 03 04 12"
+    python run_tests.py $ser_runs -s -r -j $jobs
+    cd ..
+  fi
 
-  cd ../Meshtally
-  python run_tests.py -s -r -j $jobs --mpi
+  if [[ "$args" == *" Meshtally "* ]]; then
+    cd Meshtally
+    python run_tests.py -s -r -j $jobs --mpi
+    cd ..
+  fi
 
-  cd ../Regression
-  mpi_runs="35 37"
-  python run_tests.py $mpi_runs -s -r -j $jobs --mpi
-  ser_runs="36 02 41 31 42 04 39 98 99 06 90 93 33 95 30 01 07 64 12 03 68 20 32 21 23 10 28 19 9 94 47 61 63 65 66 67 86 62"
-  python run_tests.py $ser_runs -s -r -j $jobs
-  ser_runs="22 08 29 34 26 27"  # dependencies
-  python run_tests.py $ser_runs -s -r -j $jobs
+  if [[ "$args" == *" Regression "* ]]; then
+    cd Regression
+    mpi_runs="35 37"
+    python run_tests.py $mpi_runs -s -r -j $jobs --mpi
+    ser_runs="36 02 41 31 42 04 39 98 99 06 90 93 33 95 30 01 07 64 12 03 68 20 32 21 23 10 28 19 9 94 47 61 63 65 66 67 86 62"
+    python run_tests.py $ser_runs -s -r -j $jobs
+    ser_runs="22 08 29 34 26 27"  # dependencies
+    python run_tests.py $ser_runs -s -r -j $jobs
+    cd ..
+  fi
 
-  cd ../VALIDATION_CRITICALITY
-  python run_tests.py -s -r -j $jobs --mpi
+  if [[ "$args" == *" VALIDATION_CRITICALITY "* ]]; then
+    cd VALIDATION_CRITICALITY
+    python run_tests.py -s -r -j $jobs --mpi
+    cd ..
+  fi
 
-  cd ../VALIDATION_SHIELDING
-  python run_tests.py -s -r -j $jobs --mpi
+  if [[ "$args" == *" VALIDATION_SHIELDING "* ]]; then
+    cd VALIDATION_SHIELDING
+    python run_tests.py -s -r -j $jobs --mpi
+    cd ..
+  fi
 
-  cd ../VERIFICATION_KEFF
-  ser_runs="10 23 09"  # ptrac
-  mpi_runs="01 02 03 04 05 06 07 08 09 "$(seq 10 75)
-  for s_run in $ser_runs; do mpi_runs=${mpi_runs/$s_run}; done
-  python run_tests.py $mpi_runs -s -r -j $jobs --mpi
-  python run_tests.py $ser_runs -s -r -j $jobs
+  if [[ "$args" == *" VERIFICATION_KEFF "* ]]; then
+    cd VERIFICATION_KEFF
+    ser_runs="10 23 09"  # ptrac
+    mpi_runs="01 02 03 04 05 06 07 08 09 "$(seq 10 75)
+    for s_run in $ser_runs; do mpi_runs=${mpi_runs/$s_run}; done
+    python run_tests.py $mpi_runs -s -r -j $jobs --mpi
+    python run_tests.py $ser_runs -s -r -j $jobs
+    cd ..
+  fi
 
   cd $copy_dir
 }

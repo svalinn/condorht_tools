@@ -9,7 +9,9 @@ You must take care to build your own tools as the bare-bones tools are generally
 
 HTCondor has three options for transferring files to and from the submit nodes: standard HTCondor file transfer, SQUID web proxy, and Gluster file share. The standard file transfer is not appropriate for these build jobs because the file sizes are too large. SQUID is also not appropriate because the files transferred through it are world-readable and MCNP is export controlled. Thus, Gluster file share is used. You must have access to the Gluster filespace to use these scripts; see <a href="http://chtc.cs.wisc.edu/file-avail-gluster.shtml" target="_blank">here</a> for instructions on how to request access.
 
-If you are installing CUBIT, FLUKA, or MCNP5, you are required to place their tarballs in your Gluster space (`/mnt/gluster/$USER`) before running these scripts. The scripts will also look for the tarballs for the other software in your Gluster space, but if they can't be found, the scripts will download them and place them in your Gluster space.
+If you are installing CUBIT, FLUKA, or MCNP5, you are required to place their tarballs in your Gluster space (`/mnt/gluster/$USER`) before installation. The scripts will also look for the tarballs for the other software in your Gluster space, but if they can't be found, the scripts will download them and place them in your Gluster space.
+
+Each submit file has some optional arguments which you can change by modifying the line beginning with `arguments =`. The order of the arguments does not matter.
 
 1. Build the compilers
 ----------------------------------------
@@ -21,7 +23,9 @@ The submit file `build_compile.sub` launches a job which copies the build script
 4. GCC
 5. OpenMPI (optional)
 
-If you do not want to build OpenMPI, then you will need to modify the line `arguments = mpi` in `build_compile.sub` to be `arguments =`.
+Optional arguments:
+
+* `mpi`: build OpenMPI
 
 Submit the submit file with `$ condor_submit build_compile.sub`. This will build the compilers and place the output binaries, libraries, headers, and other files in `/mnt/gluster/$USER/compile`.
 
@@ -37,10 +41,31 @@ The submit file `build_dagmc.sub` launches a job which copies the build script `
 6. Geant4 (optional)
 7. DAGMC with FLUKA/Geant4/MCNP5
 
-You may want to modify the line starting with `arguments =` in `build_dagmc.sub`. If you wish to build MOAB with CUBIT/CGM support, add the `cubit` argument. If you wish to install DAG-MCNP5 in MPI mode, add the `mpi` argument. Finally, add any of `mcnp5`, `geant4`, or `fluka` to specify which physics packages you want to build. The arguments may be specified in any order. The unedited submit file will result in building CUBIT and DAG-MCNP5 with MPI.
+Optional arguments:
+
+* `cubit`: build MOAB with CUBIT/CGM support
+  * must have `Cubit_LINUX64.12.2.tar.gz` or variant in Gluster
+* `mpi`: build DAG-MCNP5 with MPI
+  * must have built OpenMPI when building the compilers
+* `mcnp5`: build DAG-MCNP5
+  * must have `mcnp5_dist.tgz` in Gluster
+* `geant4`: build DAG-Geant4
+* `fluka`: build DAG-FLUKA
+  * must have `fluka2011.2c-linux-gfor64bitAA.tar.gz` or variant in Gluster
 
 Submit the submit file with `$ condor_submit build_dagmc.sub`. This will build DAGMC and its dependencies and place the output binaries, libraries, headers, and other files in `/mnt/gluster/$USER/dagmc`.
 
 3. Run the DAG-MCNP tests
 ----------------------------------------
-The submit file `dag_mcnp_tests.sub` launches a job which copies the script `dag_mcnp_tests.bash` to an execute node. The script runs all of the tests in the <a href="https://github.com/ljacobson64/DAGMC-tests" target="_blank">DAGMC test suite</a>. A tarball called `results.tar.gz` containing the test results will be created and placed in your Gluster space. The tarball will also be copied to your home directory on the submit node.
+The submit file `dag_mcnp_tests.sub` launches a job which copies the script `dag_mcnp_tests.bash` to an execute node. The script runs the tests in the <a href="https://github.com/ljacobson64/DAGMC-tests" target="_blank">DAGMC test suite</a>. Specify which tests you want to run using the optional arguments. A tarball called `results.tar.gz` containing the test results will be created and placed in your Gluster space. The tarball will also be copied to your home directory on the submit node.
+
+You must have the MCNP data tarball `mcnp_data.tar.gz` in your Gluster space to be able to run the tests.
+
+Optional arguments:
+
+* `DAGMC`
+* `Meshtally`
+* `Regression`
+* `VALIDATION_CRITICALITY`
+* `VALIDATION_SHIELDING`
+* `VERIFICATION_KEFF`
