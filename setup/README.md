@@ -7,7 +7,7 @@ The Center for High Throughput Computing (CHTC) offers an on-demand compute serv
 
 You must take care to build your own tools as the bare-bones tools are generally not sufficient. In our case, we need to build our own GCC toolchain as well as DAGMC and its dependencies. The scripts in this folder accomplish these tasks by compiling the requisite packages and returning them as a tarball.
 
-HTCondor has three options for transferring files to and from the submit nodes: standard HTCondor file transfer, SQUID web proxy, and Gluster file share. The standard file transfer is not appropriate for these build jobs because the file sizes are too large. SQUID is also not appropriate because the files transferred through it are world-readable and MCNP is export controlled. Thus, Gluster file share is used. You must have access to the Gluster filespace to use these scripts; see [here](http://chtc.cs.wisc.edu/file-avail-gluster.shtml) for instructions on how to request access.
+HTCondor has three options for transferring files to and from the submit nodes: standard HTCondor file transfer, SQUID web proxy, and Gluster file share. The standard file transfer is not appropriate for these build jobs because the file sizes are too large. SQUID is also not appropriate because the files transferred through it are world-readable and MCNP is export controlled. Thus, Gluster file share is used. You must have access to the Gluster filespace to use these scripts; see <a href="http://chtc.cs.wisc.edu/file-avail-gluster.shtml" target="_blank">here</a> for instructions on how to request access.
 
 If you are installing CUBIT, FLUKA, or MCNP5, you are required to place their tarballs in your Gluster space (`/mnt/gluster/$USER`) before running these scripts. The scripts will also look for the tarballs for the other software in your Gluster space, but if they can't be found, the scripts will download them and place them in your Gluster space.
 
@@ -43,4 +43,4 @@ Submit the submit file with `$ condor_submit build_dagmc.sub`. This will build D
 
 3. Run the DAG-MCNP tests
 ----------------------------------------
-The submit file `dag_mcnp_tests.sub` launches a job which copies the script `dag_mcnp_tests.bash` to an execute node. The script runs all of the tests in the [DAGMC test suite](https://github.com/ljacobson64/DAGMC-tests). A tarball called `results.tar.gz` containing the test results will be created and placed in your Gluster space. The tarball will also be copied to your home directory on the submit node.
+The submit file `dag_mcnp_tests.sub` launches a job which copies the script `dag_mcnp_tests.bash` to an execute node. The script runs all of the tests in the <a href="https://github.com/ljacobson64/DAGMC-tests" target="_blank">DAGMC test suite</a>. A tarball called `results.tar.gz` containing the test results will be created and placed in your Gluster space. The tarball will also be copied to your home directory on the submit node.
