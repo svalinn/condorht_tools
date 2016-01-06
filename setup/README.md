@@ -6,7 +6,9 @@ The Center for High Throughput Computing (CHTC) offers an on-demand compute serv
 
 You must take care to build your own tools as the bare-bones tools are generally not sufficient. In our case, we need to build our own GCC toolchain as well as DAGMC and its dependencies. The scripts in this folder accomplish these tasks by compiling the requisite packages and returning them as a tarball.
 
-HTCondor uses the SQUID web proxy to handle the transfer of large files to the execute nodes. If you need to copy large files such as tarballs to the execute node, you should first copy them to your squid directory (`/squid/$USER` on the submit node).
+HTCondor has three options for transferring files to and from the submit nodes: standard HTCondor file transfer, SQUID web proxy, and Gluster file share. The standard file transfer is not appropriate for these build jobs because the file sizes are too large. SQUID is also not appropriate because the files transferred through it are world-readable and MCNP is export controlled. Thus, Gluster file share is used. You must have access to the Gluster filespace to use these scripts; see [here](http://chtc.cs.wisc.edu/file-avail-gluster.shtml) for instructions on how to request access.
+
+If you are installing CUBIT, FLUKA, or MCNP5, you are required to place their tarballs in your Gluster space (`/mnt/gluster/$USER`) before running these scripts. The scripts will also look for the tarballs for the other software in your Gluster space, but if they can't be found, the scripts will download them and place them in your Gluster space.
 
 Build the compilers
 ----------------------------------------
@@ -18,27 +20,9 @@ The submit file `build_compile.sub` launches a job which copies the build script
 4. GCC
 5. OpenMPI (optional)
 
-You may want to modify the line starting with `arguments =` in `build_compile.sub` if you want to build Open MPI or if you have pre-downloaded the tarballs for any of the five compiler packages. For example, if you want to build OpenMPI and your tarballs are located in `/squid/my_username`, you should modify the line to be
+If you do not want to build OpenMPI, then you will need to modify the line `arguments = mpi` in `build_compile.sub` to be `arguments =`.
 
-`arguments = my_username mpi`.
-
-This is not required, however. If the tarballs are not found, they will simply be downloded off the internet. If `mpi` is not specified, then OpenMPI will not be built.
-
-The submit file should be submitted with the `-i` flag to declare it as an interactive job:
-
-`$ condor_submit -i build_compile.sub`
-
-After waiting a short while (generally a few minutes), you will be given a terminal on the execute node. Then run
-
-`$ bash build_compile.bash`
-
-to run the script which compiles the compilers and makes the compile tarball. This should take about 20-25 minutes. When it finishes, type
-
-`$ exit`
-
-to return to the submit node, where the newly-created tarball `compile.tar.gz` will be waiting. The last step is to copy the tarball to your SQUID directory by running
-
-`$ cp compile.tar.gz /squid/$USER`.
+Submit the submit file with `$ condor_submit build_compile.sub`. This will build the compilers and place the output binaries, libraries, headers, and other files in `/mnt/gluster/$USER/compile`.
 
 Build DAGMC
 ----------------------------------------
@@ -52,19 +36,8 @@ The submit file `build_dagmc.sub` launches a job which copies the build script `
 6. Geant4 (optional)
 7. DAGMC with FLUKA/Geant4/MCNP5
 
-You will need to modify the line starting with `arguments =` in `build_dagmc.sub`. The first argument should be the username where the tarballs are found on SQUID. If you wish to build MOAB with CUBIT/CGM support, add the `cubit` argument. If you wish to install DAG-MCNP5 in MPI mode, add the `mpi` argument. Finally, add any of `mcnp5`, `geant4`, or `fluka` to specify which physics packages you want to build. The username must be specified first, but the rest of the arguments may be specified in any order.
-
-For example, if the tarballs are located in `/squid/my_username`, you want CUBIT/CGM support, and you want DAG-MCNP5 (MPI), DAG-Geant4, and DAG-FLUKA, the line should be
-
-`arguments = my_username cubit mpi mcnp5 geant4 fluka`.
-
-Note that if you are installing CUBIT, MCNP5, or FLUKA, you are required to provide your own tarballs as they are not freely available on the internet.
+You may want to modify the line starting with `arguments =` in `build_dagmc.sub`. If you wish to build MOAB with CUBIT/CGM support, add the `cubit` argument. If you wish to install DAG-MCNP5 in MPI mode, add the `mpi` argument. Finally, add any of `mcnp5`, `geant4`, or `fluka` to specify which physics packages you want to build. The arguments may be specified in any order. The unedited submit file will result in building CUBIT and DAG-MCNP5 with MPI.
 
 As before, run
 
-```
-$ condor_submit -i build_dagmc.sub
-$ bash build_compile.bash
-$ exit
-$ cp dagmc.tar.gz /squid/$USER
-```
+Submit the submit file with `$ condor_submit build_dagmc.sub`. This will build DAGMC and its dependencies and place the output binaries, libraries, headers, and other files in `/mnt/gluster/$USER/dagmc`.
