@@ -78,7 +78,8 @@ function dag_mcnp_tests() {
 function pack_results() {
   cd $copy_dir/DAGMC-tests
   tar -czvf $results_tar */Results
-  cp $results_tar /mnt/gluster/$USER
+  mkdir -p $results_dir
+  cp $results_tar $results_dir
   mv $results_tar $copy_dir
   cd $copy_dir
 }
@@ -102,6 +103,7 @@ export jobs=12
 # Directory names
 export copy_dir=$PWD
 export base_dir=/mnt/gluster/$USER
+export results_dir=/mnt/gluster/$USER/results
 export tar_dir=$base_dir
 export compile_dir=$base_dir/compile
 export dagmc_dir=$base_dir/dagmc
