@@ -29,14 +29,12 @@ function dag_mcnp_tests() {
     python run_tests.py $mpi_runs -s -r -j $jobs --mpi
     ser_runs="05 06 01 08 07 11 10 02 03 04 12"
     python run_tests.py $ser_runs -s -r -j $jobs
-    python run_tests.py --summary
     cd ..
   fi
 
   if [[ "$args" == *" Meshtally "* ]]; then
     cd Meshtally
     python run_tests.py -s -r -j $jobs --mpi
-    python run_tests.py --summary
     cd ..
   fi
 
@@ -48,21 +46,18 @@ function dag_mcnp_tests() {
     python run_tests.py $ser_runs -s -r -j $jobs
     ser_runs="22 08 29 34 26 27"  # dependencies
     python run_tests.py $ser_runs -s -r -j $jobs
-    python run_tests.py --summary
     cd ..
   fi
 
   if [[ "$args" == *" VALIDATION_CRITICALITY "* ]]; then
     cd VALIDATION_CRITICALITY
     python run_tests.py -s -r -j $jobs --mpi
-    python run_tests.py --summary
     cd ..
   fi
 
   if [[ "$args" == *" VALIDATION_SHIELDING "* ]]; then
     cd VALIDATION_SHIELDING
     python run_tests.py -s -r -j $jobs --mpi
-    python run_tests.py --summary
     cd ..
   fi
 
@@ -73,7 +68,6 @@ function dag_mcnp_tests() {
     for s_run in $ser_runs; do mpi_runs=${mpi_runs/$s_run}; done
     python run_tests.py $mpi_runs -s -r -j $jobs --mpi
     python run_tests.py $ser_runs -s -r -j $jobs
-    python run_tests.py --summary
     cd ..
   fi
 
@@ -83,7 +77,7 @@ function dag_mcnp_tests() {
 # Pack results tarball
 function pack_results() {
   cd $copy_dir/DAGMC-tests
-  tar -czvf $results_tar */Results */diff_summary
+  tar -czvf $results_tar */Results
   cp $results_tar /mnt/gluster/$USER
   mv $results_tar $copy_dir
   cd $copy_dir
