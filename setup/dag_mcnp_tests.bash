@@ -71,7 +71,7 @@ function dag_mcnp_tests() {
     cd ..
   fi
 
-  bash write_summaries.py
+  python write_summaries.py
   export datetime=`ls -t summaries/*.txt | head -1`
   export datetime=${datetime#$"summaries/summary_"}
   export datetime=${datetime%$".txt"}
