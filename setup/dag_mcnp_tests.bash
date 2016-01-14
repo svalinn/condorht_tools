@@ -83,7 +83,7 @@ function dag_mcnp_tests() {
 function pack_results() {
   export results_tar=results_$datetime.tar.gz
   cd $copy_dir/DAGMC-tests
-  tar -czvf $results_tar */Results
+  tar -czvf $results_tar */Results summaries
   mkdir -p $results_dir
   cp $results_tar $results_dir
   mv $results_tar $copy_dir
