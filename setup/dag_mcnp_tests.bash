@@ -71,11 +71,17 @@ function dag_mcnp_tests() {
     cd ..
   fi
 
+  bash write_summaries.py
+  export datetime=`ls -t summaries/*.txt | head -1`
+  export datetime=${datetime#$"summaries/summary_"}
+  export datetime=${datetime%$".txt"}
+
   cd $copy_dir
 }
 
 # Pack results tarball
 function pack_results() {
+  export results_tar=results_$datetime.tar.gz
   cd $copy_dir/DAGMC-tests
   tar -czvf $results_tar */Results
   mkdir -p $results_dir
@@ -108,10 +114,6 @@ export tar_dir=$base_dir
 export compile_dir=$base_dir/compile
 export dagmc_dir=$base_dir/dagmc
 export DATAPATH=$base_dir/mcnp_data
-
-# Output tarball
-export datetime=`date +"%Y-%m-%d_%H-%M-%S"`
-export results_tar=results_$datetime.tar.gz
 
 # Setup environment variables and get xs_data
 setup_compile_env
