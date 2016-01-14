@@ -1,19 +1,22 @@
 #!/bin/bash
 
-check_inc=1   # Minutes to wait between checks to see if the tests havs finished
+check_inc=2   # Minutes to wait between checks to see if the tests have finished
 tests_inc=60  # Minutes to wait between re-running the tests
 
 check_inc=$(( $check_inc * 60 ))
 tests_inc=$(( $tests_inc * 60 ))
 
 CONDOR=ljjacobson@submit-3.chtc.wisc.edu
+TUX=lucasj@best-tux.cae.wisc.edu
 results_dir=/groupspace/cnerg/users/jacobson/DAGMC_condor_results
+web_dir=/home/vhosts/cnergdata.engr.wisc.edu/html/DAGMC-tests/summaries
 temp_dir=$results_dir/temp
 
 mkdir -p $results_dir
 mkdir -p $temp_dir
 
 test_id=0
+start_epoch=$(date +%s)
 while true; do
   test_id=$(( $test_id + 1 ))
 
@@ -30,36 +33,30 @@ while true; do
   # Bring back the results tarball
   cd $temp_dir
   scp $CONDOR:condorht_tools/setup/results_*.tar.gz .
-  ssh $CONDOR 'mv condorht_tools/setup/*.tar.gz results'
+  ssh $CONDOR 'mv condorht_tools/setup/*.tar.gz condorht_tools/setup/process_* results'
   tarball=`echo results_*.tar.gz`
-  datetime=${tarball:8:${#tarball}-15}
-  output=diff_$datetime
-  tests=`tar --wildcards -tf $tarball */diff_summary | sed 's/\/.*//'`
+  datetime=${tarball#$"results_"}
+  datetime=${datetime%$".tar.gz"}
   mv $tarball $results_dir
 
   # Extract the diff information
+  summary_text=summary_$datetime.txt
+  summary_html=summary_$datetime.html
+  summary_html_current=summary__current.html
   cd $results_dir
-  rm -f $output
-  echo DAG-MCNP test suite diffs > $output
-  echo Test ID: $test_id >> $output
-  echo $datetime >> $output
-  for test in $tests; do
-    tar -xzvf $tarball $test/diff_summary
-    echo >> $output
-    echo $test >> $output
-    cat $test/diff_summary >> $output
-    rm -rf $test
-  done
-  cp -f $output diff_most_recent
+  tar -xzvf $tarball summaries/$summary_text summaries/$summary_html --strip-components=1
 
   # Copy the diff information to the CNERG web server
-  web_dir=/home/vhosts/cnergdata.engr.wisc.edu/html/DAGMC-tests/diff_summaries
   if [[ $(hostname -f) == tux-*.cae.wisc.edu ]]; then
-    cp -f $output diff_most_recent $web_dir
-    chmod 640 $web_dir/$output $web_dir/diff_most_recent
+    cp -f $summary_html $web_dir
+    chmod 640 $web_dir/$summary_html
+    cp -f $web_dir/$summary_html $web_dir/$summary_html_current
+    (cd $web_dir/..; python write_index.py)
   else
-    scp $output diff_most_recent lucasj@best-tux.cae.wisc.edu:$web_dir
-    ssh lucasj@best-tux.cae.wisc.edu 'chmod 640 $web_dir/$output $web_dir/diff_most_recent'
+    scp $summary_html $TUX:$web_dir
+    ssh $TUX 'chmod 640 $web_dir/$summary_html;
+              cp -f $web_dir/$summary_html $web_dir/$summary_html_current;
+              (cd $web_dir/..; python write_index.py)'
   fi
 
   # Wait until it's time to run the tests again
