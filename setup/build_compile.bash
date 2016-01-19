@@ -146,6 +146,34 @@ function build_openmpi() {
   cd $build_dir
 }
 
+# Build CMake
+function build_cmake() {
+  name=cmake
+  version=3.4.0
+  folder=$name-$version
+  tarball=$name-$version.tar.gz
+  tar_f=$name-$version
+  url=http://www.cmake.org/files/v3.4/$tarball
+
+  cd $build_dir
+  mkdir -p $folder/bld
+  cd $folder
+  if [ ! -f $dist_dir/$tarball ]; then
+    wget $url -P $dist_dir
+  fi
+  tar -xzvf $dist_dir/$tarball
+  ln -s $tar_f src
+  cd bld
+  config_string=
+  config_string+=" "--prefix=$install_dir/$folder
+  ../src/configure $config_string
+  make -j $jobs
+  make install
+  cd $install_dir
+  ln -s $folder $name
+  cd $build_dir
+}
+
 # Delete unneeded stuff
 function cleanup() {
   rm -rf $build_dir
@@ -181,6 +209,7 @@ build_gcc
 if [[ "$args" == *" mpi "* ]]; then
   build_openmpi
 fi
+build_cmake
 
 # Delete unneeded stuff
 cleanup

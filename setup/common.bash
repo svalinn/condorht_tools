@@ -4,6 +4,7 @@
 function setup_env() {
   export PATH=$install_dir/gcc/bin:$PATH
   export PATH=$install_dir/openmpi/bin:$PATH
+  export PATH=$install_dir/cmake/bin:$PATH
   export PATH=$install_dir/hdf5/bin:$PATH
   export PATH=$install_dir/cubit/bin:$PATH
   export PATH=$install_dir/moab/bin:$PATH
@@ -15,6 +16,7 @@ function setup_env() {
   export LD_LIBRARY_PATH=$install_dir/gcc/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$install_dir/gcc/lib64:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$install_dir/openmpi/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$install_dir/cmake/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$install_dir/hdf5/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$install_dir/cubit/bin:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$install_dir/cgm/lib:$LD_LIBRARY_PATH
