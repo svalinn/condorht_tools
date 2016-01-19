@@ -133,14 +133,17 @@ function build_geant4() {
   tar -xzvf $tar_dir/$geant4_tar
   ln -s geant4.$geant4_version src
   cd bld
-  cmake ../src -DGEANT4_USE_SYSTEM_EXPAT=OFF \
-               -DCMAKE_INSTALL_PREFIX=$dagmc_dir/geant4
+  cmake_string=
+  cmake_string+=" "-DGEANT4_USE_SYSTEM_EXPAT=OFF
+  cmake_string+=" "-DCMAKE_C_COMPILER=$compile_dir/gcc/bin/gcc
+  cmake_string+=" "-DCMAKE_CXX_COMPILER=$compile_dir/gcc/bin/g++
+  cmake_string+=" "-DCMAKE_INSTALL_PREFIX=$dagmc_dir/geant4
+  cmake ../src $cmake_string
   make -j $jobs
   make install
   export PATH=$dagmc_dir/geant4/bin:$PATH
+  export LD_LIBRARY_PATH=$dagmc_dir/geant4/lib/:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$dagmc_dir/geant4/lib64/:$LD_LIBRARY_PATH
-  #export GEANT4DIR=$cwd/geant4
-  #source $cwd/geant4/bld/geant4make.sh
   cd $base_dir
 }
 
@@ -214,6 +217,7 @@ export compile_dir=$base_dir/compile
 export dagmc_dir=$base_dir/dagmc
 export build_dir=$copy_dir/build
 export DATAPATH=$base_dir/mcnp_data
+
 mkdir -p $tar_dir $dagmc_dir $build_dir
 
 # Setup compiler environment variables
