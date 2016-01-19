@@ -7,7 +7,7 @@ function get_xs_data() {
   mkdir -p $DATAPATH
   cd $DATAPATH
   if [ ! -e xsdir ]; then
-    tar -xzvf $tar_dir/$xs_data_tar --strip-components=1
+    tar -xzvf $dist_dir/$xs_data_tar --strip-components=1
   fi
 }
 
@@ -83,7 +83,7 @@ function dag_mcnp_tests() {
 function pack_results() {
   export results_tar=results_$datetime.tar.gz
   cd $copy_dir/DAGMC-tests
-  tar -czvf $results_tar */Results summaries
+  tar -czvf $results_tar summaries */Results
   mkdir -p $results_dir
   cp $results_tar $results_dir
   mv $results_tar $copy_dir
@@ -109,15 +109,13 @@ export jobs=12
 # Directory names
 export copy_dir=$PWD
 export base_dir=/mnt/gluster/$USER
-export results_dir=/mnt/gluster/$USER/results
-export tar_dir=$base_dir
-export compile_dir=$base_dir/compile
-export dagmc_dir=$base_dir/dagmc
+export dist_dir=$base_dir/dist
+export install_dir=$base_dir/opt
 export DATAPATH=$base_dir/mcnp_data
+export results_dir=$base_dir/results
 
-# Setup environment variables and get xs_data
-setup_compile_env
-setup_dagmc_env
+# Setup environment variables and get cross section data
+setup_env
 get_xs_data
 
 # Run the DAG-MCNP5 tests

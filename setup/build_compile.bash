@@ -2,131 +2,148 @@
 
 # Build GMP
 function build_gmp() {
-  gmp_version=6.1.0
-  gmp_tar=gmp-$gmp_version.tar.bz2
-  gmp_url=https://gmplib.org/download/gmp/$gmp_tar
+  name=gmp
+  version=6.1.0
+  folder=$name-$version
+  tarball=$name-$version.tar.bz2
+  tar_f=$name-$version
+  url=https://gmplib.org/download/gmp/$tarball
 
   cd $build_dir
-  mkdir -p gmp/bld
-  cd gmp
-  if [ ! -f $tar_dir/$gmp_tar ]; then
-    wget $gmp_url -P $tar_dir
+  mkdir -p $folder/bld
+  cd $folder
+  if [ ! -f $dist_dir/$tarball ]; then
+    wget $url -P $dist_dir
   fi
-  tar -xjvf $tar_dir/$gmp_tar
-  ln -s gmp-$gmp_version src
+  tar -xjvf $dist_dir/$tarball
+  ln -s $tar_f src
   cd bld
   config_string=
-  config_string+=" "--prefix=$compile_dir/gmp
+  config_string+=" "--prefix=$install_dir/$folder
   ../src/configure $config_string
   make -j $jobs
   make install
-  export LD_LIBRARY_PATH=$compile_dir/gmp/lib:$LD_LIBRARY_PATH
-  cd $base_dir
+  cd $install_dir
+  ln -s $folder $name
+  cd $build_dir
 }
 
 # Build MPFR
 function build_mpfr() {
-  mpfr_version=3.1.3
-  mpfr_tar=mpfr-$mpfr_version.tar.gz
-  mpfr_url=http://www.mpfr.org/mpfr-current/$mpfr_tar
+  name=mpfr
+  version=3.1.3
+  folder=$name-$version
+  tarball=$name-$version.tar.gz
+  tar_f=$name-$version
+  url=http://www.mpfr.org/mpfr-current/$tarball
 
   cd $build_dir
-  mkdir -p mpfr/bld
-  cd mpfr
-  if [ ! -f $tar_dir/$mpfr_tar ]; then
-    wget $mpfr_url -P $tar_dir
+  mkdir -p $folder/bld
+  cd $folder
+  if [ ! -f $dist_dir/$tarball ]; then
+    wget $url -P $dist_dir
   fi
-  tar -xzvf $tar_dir/$mpfr_tar
-  ln -s mpfr-$mpfr_version src
+  tar -xzvf $dist_dir/$tarball
+  ln -s $tar_f src
   cd bld
   config_string=
-  config_string+=" "--with-gmp=$compile_dir/gmp
-  config_string+=" "--prefix=$compile_dir/mpfr
+  config_string+=" "--with-gmp=$install_dir/gmp
+  config_string+=" "--prefix=$install_dir/$folder
   ../src/configure $config_string
   make -j $jobs
   make install
-  export LD_LIBRARY_PATH=$compile_dir/mpfr/lib:$LD_LIBRARY_PATH
-  cd $base_dir
+  cd $install_dir
+  ln -s $folder $name
+  cd $build_dir
 }
 
 # Build MPC
 function build_mpc() {
-  mpc_version=1.0.3
-  mpc_tar=mpc-$mpc_version.tar.gz
-  mpc_url=ftp://ftp.gnu.org/gnu/mpc/$mpc_tar
+  name=mpc
+  version=1.0.3
+  folder=$name-$version
+  tarball=$name-$version.tar.gz
+  tar_f=$name-$version
+  url=ftp://ftp.gnu.org/gnu/mpc/$tarball
 
   cd $build_dir
-  mkdir -p mpc/bld
-  cd mpc
-  if [ ! -f $tar_dir/$mpc_tar ]; then
-    wget $mpc_url -P $tar_dir
+  mkdir -p $folder/bld
+  cd $folder
+  if [ ! -f $dist_dir/$tarball ]; then
+    wget $url -P $dist_dir
   fi
-  tar -xzvf $tar_dir/$mpc_tar
-  ln -s mpc-$mpc_version src
+  tar -xzvf $dist_dir/$tarball
+  ln -s $tar_f src
   cd bld
   config_string=
-  config_string+=" "--with-gmp=$compile_dir/gmp
-  config_string+=" "--with-mpfr=$compile_dir/mpfr
-  config_string+=" "--prefix=$compile_dir/mpc
+  config_string+=" "--with-gmp=$install_dir/gmp
+  config_string+=" "--with-mpfr=$install_dir/mpfr
+  config_string+=" "--prefix=$install_dir/$folder
   ../src/configure $config_string
   make -j $jobs
   make install
-  export LD_LIBRARY_PATH=$compile_dir/mpc/lib:$LD_LIBRARY_PATH
-  cd $base_dir
+  cd $install_dir
+  ln -s $folder $name
+  cd $build_dir
 }
 
 # Build GCC
 function build_gcc() {
-  gcc_version=4.9.3
-  gcc_tar=gcc-$gcc_version.tar.gz
-  gcc_url=http://www.netgull.com/gcc/releases/gcc-$gcc_version/$gcc_tar
+  name=gcc
+  version=5.3.0
+  folder=$name-$version
+  tarball=$name-$version.tar.gz
+  tar_f=$name-$version
+  url=http://www.netgull.com/gcc/releases/gcc-$version/$tarball
 
   cd $build_dir
-  mkdir -p gcc/bld
-  cd gcc
-  if [ ! -f $tar_dir/$gcc_tar ]; then
-    wget $gcc_url -P $tar_dir
+  mkdir -p $folder/bld
+  cd $folder
+  if [ ! -f $dist_dir/$tarball ]; then
+    wget $url -P $dist_dir
   fi
-  tar -xzvf $tar_dir/$gcc_tar
-  ln -s gcc-$gcc_version src
+  tar -xzvf $dist_dir/$tarball
+  ln -s $tar_f src
   cd bld
   config_string=
-  config_string+=" "--with-gmp=$compile_dir/gmp
-  config_string+=" "--with-mpfr=$compile_dir/mpfr
-  config_string+=" "--with-mpc=$compile_dir/mpc
-  config_string+=" "--prefix=$compile_dir/gcc
+  config_string+=" "--with-gmp=$install_dir/gmp
+  config_string+=" "--with-mpfr=$install_dir/mpfr
+  config_string+=" "--with-mpc=$install_dir/mpc
+  config_string+=" "--prefix=$install_dir/$folder
   ../src/configure $config_string
   make -j $jobs
   make install
-  export PATH=$compile_dir/gcc/bin:$PATH
-  export LD_LIBRARY_PATH=$compile_dir/gcc/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$compile_dir/gcc/lib64:$LD_LIBRARY_PATH
-  cd $base_dir
+  cd $install_dir
+  ln -s $folder $name
+  cd $build_dir
 }
 
 # Build OpenMPI
 function build_openmpi() {
-  openmpi_version=1.10.1
-  openmpi_tar=openmpi-$openmpi_version.tar.gz
-  openmpi_url=http://www.open-mpi.org/software/ompi/v1.10/downloads/$openmpi_tar
+  name=openmpi
+  version=1.10.1
+  folder=$name-$version
+  tarball=$name-$version.tar.gz
+  tar_f=$name-$version
+  url=http://www.open-mpi.org/software/ompi/v1.10/downloads/$tarball
 
   cd $build_dir
-  mkdir -p openmpi/bld
-  cd openmpi
-  if [ ! -f $tar_dir/$openmpi_tar ]; then
-    wget $openmpi_url -P $tar_dir
+  mkdir -p $folder/bld
+  cd $folder
+  if [ ! -f $dist_dir/$tarball ]; then
+    wget $url -P $dist_dir
   fi
-  tar -xzvf $tar_dir/$openmpi_tar
-  ln -s openmpi-$openmpi_version src
+  tar -xzvf $dist_dir/$tarball
+  ln -s $tar_f src
   cd bld
   config_string=
-  config_string+=" "--prefix=$compile_dir/openmpi
+  config_string+=" "--prefix=$install_dir/$folder
   ../src/configure $config_string
   make -j $jobs
   make install
-  export PATH=$compile_dir/openmpi/bin:$PATH
-  export LD_LIBRARY_PATH=$compile_dir/openmpi/lib:$LD_LIBRARY_PATH
-  cd $base_dir
+  cd $install_dir
+  ln -s $folder $name
+  cd $build_dir
 }
 
 # Delete unneeded stuff
@@ -147,10 +164,14 @@ export jobs=12
 # Directory names
 export copy_dir=$PWD
 export base_dir=/mnt/gluster/$USER
-export tar_dir=$base_dir
-export compile_dir=$base_dir/compile
+export dist_dir=$base_dir/dist
+export install_dir=$base_dir/opt
 export build_dir=$copy_dir/build
-mkdir -p $tar_dir $compile_dir $build_dir
+
+mkdir -p $base_dir $dist_dir $install_dir $build_dir
+
+# Setup environment variables
+setup_env
 
 # Build compilers
 build_gmp
