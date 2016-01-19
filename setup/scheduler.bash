@@ -1,7 +1,7 @@
 #!/bin/bash
 
-check_inc=2   # Minutes to wait between checks to see if the tests have finished
-tests_inc=60  # Minutes to wait between re-running the tests
+check_inc=1   # Minutes to wait between checks to see if the tests have finished
+tests_inc=15  # Minutes to wait between re-running the tests
 
 check_inc=$(( $check_inc * 60 ))
 tests_inc=$(( $tests_inc * 60 ))
@@ -24,16 +24,19 @@ while true; do
   ssh $CONDOR 'cd condorht_tools/setup && condor_submit dag_mcnp_tests.sub'
 
   # Check periodically to see if the tests have finished
-  num_running=1
-  while [[ $num_running > 0 ]]; do
+  tarball_exists=0
+  while [[ $tarball_exists == 0 ]]; do
     sleep $check_inc
-    num_running=$(ssh $CONDOR 'condor_q $USER | grep $USER | grep dag_mcnp_tests.bas | wc -l')
+    tarball_exists=$(ssh $CONDOR 'ls condorht_tools/setup/results_*.tar.gz | wc -l')
   done
+
+  # Make sure Condor has finished copying the entire tarball back to the submit node
+  sleep 60
 
   # Bring back the results tarball
   cd $temp_dir
   scp $CONDOR:condorht_tools/setup/results_*.tar.gz .
-  ssh $CONDOR 'mv condorht_tools/setup/*.tar.gz condorht_tools/setup/process_* results'
+  ssh $CONDOR 'mv condorht_tools/setup/results_*.tar.gz condorht_tools/setup/process_* results'
   tarball=`echo results_*.tar.gz`
   datetime=${tarball#$"results_"}
   datetime=${datetime%$".tar.gz"}
@@ -51,12 +54,15 @@ while true; do
     cp -f $summary_html $web_dir
     chmod 640 $web_dir/$summary_html
     cp -f $web_dir/$summary_html $web_dir/$summary_html_current
-    (cd $web_dir/..; python write_index.py)
+    cd $web_dir/..
+    python write_index.py
+    cd $results_dir
   else
     scp $summary_html $TUX:$web_dir
     ssh $TUX 'chmod 640 $web_dir/$summary_html;
               cp -f $web_dir/$summary_html $web_dir/$summary_html_current;
-              (cd $web_dir/..; python write_index.py)'
+              cd $web_dir/..;
+              python write_index.py'
   fi
 
   # Wait until it's time to run the tests again
