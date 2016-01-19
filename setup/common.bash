@@ -9,6 +9,7 @@ function setup_env() {
   export PATH=$install_dir/cubit/bin:$PATH
   export PATH=$install_dir/moab/bin:$PATH
   export PATH=$install_dir/geant4/bin:$PATH
+  export PATH=$install_dir/fluka/bin:$PATH
   export PATH=$install_dir/dagmc/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/gmp/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$install_dir/mpfr/lib:$LD_LIBRARY_PATH

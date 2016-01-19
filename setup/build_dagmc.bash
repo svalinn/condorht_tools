@@ -27,7 +27,7 @@ function build_hdf5() {
   make install
   cd $install_dir
   ln -s $folder $name
-  cd $base_dir
+  cd $build_dir
 }
 
 # Build CUBIT
@@ -43,7 +43,7 @@ function build_cubit() {
   tar -xzvf $dist_dir/$tarball
   cd $install_dir
   ln -s $folder $name
-  cd $base_dir
+  cd $build_dir
 }
 
 # Build CGM
@@ -73,7 +73,7 @@ function build_cgm() {
   make install
   cd $install_dir
   ln -s $name-$version $name
-  cd $base_dir
+  cd $build_dir
 }
 
 # Build MOAB
@@ -107,7 +107,7 @@ function build_moab() {
   make install
   cd $install_dir
   ln -s $folder $name
-  cd $base_dir
+  cd $build_dir
 }
 
 # Build Geant4
@@ -138,26 +138,27 @@ function build_geant4() {
   make install
   cd $install_dir
   ln -s $folder $name
-  cd $base_dir
+  cd $build_dir
 }
 
-# Build FLUKA (not working)
+# Build FLUKA
 function build_fluka() {
   name=fluka
   version=2011.2c
+  folder=$name-$version
   tarball=fluka$version-linux-gfor64bitAA.tar.gz
 
-  cd $build_dir
-  mkdir -p fluka/bld
-  cd fluka
-  mkdir fluka
-  ln -s fluka src
-  tar -xzvf $dist_dir/$tarball -C src
-  cd src
-  export FLUFOR=gfortran
+  cd $install_dir
+  mkdir -p $folder/bin
+  cd $folder/bin
+  tar -xzvf $dist_dir/$tarball
   export FLUPRO=$PWD
+  export FLUFOR=gfortran
   make
-  cd $base_dir
+  bash flutil/ldpmqmd
+  cd $install_dir
+  ln -s $folder $name
+  cd $build_dir
 }
 
 # Build DAGMC
@@ -191,8 +192,8 @@ function build_dagmc() {
     cmake_string+=" "-DBUILD_GEANT4=ON
     cmake_string+=" "-DGEANT4_DIR=$install_dir/geant4
   fi
-  if [[ "$args" == *" fluka "* ]]; then  # not working
-    patch $install_dir/fluka/flutil/rfluka DAGMC/fluka/rfluka.patch
+  if [[ "$args" == *" fluka "* ]]; then
+    patch -N $install_dir/fluka/bin/flutil/rfluka $name/fluka/rfluka.patch
     cmake_string+=" "-DBUILD_FLUKA=ON
     cmake_string+=" "-DFLUKA_DIR=$FLUPRO
   fi
@@ -207,7 +208,7 @@ function build_dagmc() {
   make install
   cd $install_dir
   ln -s $folder $name
-  cd $base_dir
+  cd $build_dir
 }
 
 # Delete unneeded stuff
@@ -226,9 +227,7 @@ export moab_version=4.9.0
 source ./common.bash
 
 # Parallel jobs
-#export jobs=12
-
-export jobs=24
+export jobs=12
 
 # Directory names
 export copy_dir=$PWD
