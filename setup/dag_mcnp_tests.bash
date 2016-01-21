@@ -107,7 +107,8 @@ function main() {
 
   source ./versions.bash                # Get software versions
   source ./common.bash                  # Common functions
-  setup_env                             # Setup environment variables
+  set_compile_env                       # Set compiler environment variables
+  set_dagmc_env                         # Set DAGMC environment variables
   export jobs=12                        # Parallel jobs
 
   get_xs_data                           # Get cross section data

@@ -23,6 +23,7 @@ function build_gmp() {
   ../src/configure $config_string
   make -j $jobs
   make install
+  export LD_LIBRARY_PATH=$install_dir/gmp/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -52,6 +53,7 @@ function build_mpfr() {
   ../src/configure $config_string
   make -j $jobs
   make install
+  export LD_LIBRARY_PATH=$install_dir/mpfr/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -82,6 +84,7 @@ function build_mpc() {
   ../src/configure $config_string
   make -j $jobs
   make install
+  export LD_LIBRARY_PATH=$install_dir/mpc/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -113,6 +116,9 @@ function build_gcc() {
   ../src/configure $config_string
   make -j $jobs
   make install
+  export PATH=$install_dir/gcc/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/gcc/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$install_dir/gcc/lib64:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -141,6 +147,8 @@ function build_openmpi() {
   ../src/configure $config_string
   make -j $jobs
   make install
+  export PATH=$install_dir/openmpi/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/openmpi/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -169,6 +177,8 @@ function build_cmake() {
   ../src/configure $config_string
   make -j $jobs
   make install
+  export PATH=$install_dir/cmake/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/cmake/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -190,7 +200,6 @@ function main() {
 
   source ./versions.bash                # Get software versions
   source ./common.bash                  # Common functions
-  setup_env                             # Setup environment variables
   export jobs=12                        # Parallel jobs
 
   build_gmp

@@ -25,6 +25,8 @@ function build_hdf5() {
   ../src/configure $config_string
   make -j $jobs
   make install
+  export PATH=$install_dir/hdf5/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/hdf5/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -41,6 +43,8 @@ function build_cubit() {
   mkdir $folder
   cd $folder
   tar -xzvf $dist_dir/$tarball
+  export PATH=$install_dir/cubit/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/cubit/bin:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -71,6 +75,7 @@ function build_cgm() {
   ../src/configure $config_string
   make -j $jobs
   make install
+  export LD_LIBRARY_PATH=$install_dir/cgm/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -105,6 +110,8 @@ function build_moab() {
   ../src/configure $config_string
   make -j $jobs
   make install
+  export PATH=$install_dir/moab/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/moab/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -136,6 +143,9 @@ function build_geant4() {
   cmake ../src $cmake_string
   make -j $jobs
   make install
+  export PATH=$install_dir/geant4/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/geant4/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$install_dir/geant4/lib64:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -156,6 +166,7 @@ function build_fluka() {
   export FLUFOR=gfortran
   make
   bash flutil/ldpmqmd
+  export PATH=$install_dir/fluka/bin:$PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -208,6 +219,8 @@ function build_dagmc() {
   cmake ../. $cmake_string
   make -j $jobs
   make install
+  export PATH=$install_dir/dagmc/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/dagmc/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -229,7 +242,7 @@ function main() {
 
   source ./versions.bash                # Get software versions
   source ./common.bash                  # Common functions
-  setup_env                             # Setup environment variables
+  set_compile_env                       # Set compiler environment variables
   export jobs=12                        # Parallel jobs
 
   build_hdf5
