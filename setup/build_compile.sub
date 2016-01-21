@@ -13,7 +13,7 @@ log = process_$(Cluster)_$(Process).log
 requirements = (OpSysAndVer =?= "SL6") && ( IsBuildSlot == true )
 
 # Copy environment variables from the submit node
-environment = "USER=ljjacobson"
+environment = "USER=ljjacobson PATH=/bin:/usr/bin:/usr/local/bin"
 
 # Indicate if/when files should be transfered
 should_transfer_files = YES
