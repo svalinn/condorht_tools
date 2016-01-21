@@ -3,7 +3,6 @@
 # Get cross section data
 function get_xs_data() {
   xs_data_tar=mcnp_data.tar.gz
-
   mkdir -p $DATAPATH
   cd $DATAPATH
   if [ ! -e xsdir ]; then
@@ -96,33 +95,29 @@ function cleanup() {
   ls | grep -v $results_tar | xargs rm -rf
 }
 
+function main() {
+  export copy_dir=$PWD                  # Location of tarball to be copied back to submit node
+  export base_dir=/mnt/gluster/$USER
+  export dist_dir=$base_dir/dist        # Location where software tarballs are found
+  export install_dir=$base_dir/opt      # Location to place binaries, libraries, etc.
+  export build_dir=$copy_dir/build      # Location to perform builds
+  export DATAPATH=$base_dir/mcnp_data   # Location of MCNP data
+  export results_dir=$base_dir/results  # Location where results tarball will be placed
+  mkdir -p $dist_dir $install_dir $build_dir $results_dir
+
+  source ./versions.bash                # Get software versions
+  source ./common.bash                  # Common functions
+  setup_env                             # Setup environment variables
+  export jobs=12                        # Parallel jobs
+
+  get_xs_data                           # Get cross section data
+  dag_mcnp_tests                        # Run the DAG-MCNP tests
+  pack_results                          # Pack results tarball
+  cleanup                               # Delete unneeded stuff
+}
+
 set -e
 export args="$@"
 export args=" "$args" "
 
-# Common functions
-source ./common.bash
-
-# Parallel jobs
-export jobs=12
-
-# Directory names
-export copy_dir=$PWD
-export base_dir=/mnt/gluster/$USER
-export dist_dir=$base_dir/dist
-export install_dir=$base_dir/opt
-export DATAPATH=$base_dir/mcnp_data
-export results_dir=$base_dir/results
-
-# Setup environment variables and get cross section data
-setup_env
-get_xs_data
-
-# Run the DAG-MCNP5 tests
-dag_mcnp_tests
-
-# Create a results tarball
-pack_results
-
-# Delete unneeded stuff
-cleanup
+main #1> $copy_dir/_condor_stdout 2> $copy_dir/_condor_stderr

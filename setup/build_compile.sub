@@ -13,7 +13,7 @@ log = process_$(Cluster)_$(Process).log
 requirements = (OpSysAndVer =?= "SL6") && ( IsBuildSlot == true )
 
 # Copy environment variables from the submit node
-getenv = True
+environment = "USER=ljjacobson"
 
 # Indicate if/when files should be transfered
 should_transfer_files = YES
@@ -21,7 +21,7 @@ when_to_transfer_output = ON_EXIT
 
 # Indicate the executable to be run and any other input files needed
 executable = build_compile.bash
-transfer_input_files = common.bash, build_compile.bash
+transfer_input_files = build_compile.bash, common.bash, versions.bash
 
 # Command line arguments for the executable
 arguments = mpi

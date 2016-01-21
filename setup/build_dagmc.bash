@@ -3,7 +3,7 @@
 # Build HDF5
 function build_hdf5() {
   name=hdf5
-  version=1.8.16
+  version=$hdf5_version
   folder=$name-$version
   tarball=$name-$version.tar.gz
   tar_f=$name-$version.tar.gz
@@ -26,7 +26,7 @@ function build_hdf5() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
@@ -42,17 +42,17 @@ function build_cubit() {
   cd $folder
   tar -xzvf $dist_dir/$tarball
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
 # Build CGM
 function build_cgm() {
   name=cgm
-  version=$cubit_version
-  folder=$name-$version
+  version=$cgm_version
+  folder=$name-$version-cub-$cubit_version
   repo=https://bitbucket.org/fathomteam/$name
-  branch=$name$version
+  branch=cgm$version
 
   cd $build_dir
   mkdir -p $folder/bld
@@ -72,7 +72,7 @@ function build_cgm() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $name-$version $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
@@ -106,14 +106,14 @@ function build_moab() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
 # Build Geant4
 function build_geant4() {
   name=geant4
-  version=10.00.p02
+  version=$geant4_version
   folder=$name-$version
   tarball=$name.$version.tar.gz
   tar_f=$name.$version
@@ -137,14 +137,14 @@ function build_geant4() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
 # Build FLUKA
 function build_fluka() {
   name=fluka
-  version=2011.2c
+  version=$fluka_version
   folder=$name-$version
   tarball=fluka$version-linux-gfor64bitAA.tar.gz
 
@@ -157,14 +157,14 @@ function build_fluka() {
   make
   bash flutil/ldpmqmd
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
 # Build DAGMC
 function build_dagmc() {
   name=dagmc
-  version=dev
+  version=$dagmc_version
   folder=$name-$version-cub-$cubit_version-moab-$moab_version
   repo=https://github.com/svalinn/$name
   branch=develop
@@ -193,9 +193,11 @@ function build_dagmc() {
     cmake_string+=" "-DGEANT4_DIR=$install_dir/geant4
   fi
   if [[ "$args" == *" fluka "* ]]; then
-    patch -N $install_dir/fluka/bin/flutil/rfluka $name/fluka/rfluka.patch
+    if [ ! -x $install_dir/fluka/bin/flutil/rfluka.orig ]; then
+      patch -N $install_dir/fluka/bin/flutil/rfluka $name/fluka/rfluka.patch
+    fi
     cmake_string+=" "-DBUILD_FLUKA=ON
-    cmake_string+=" "-DFLUKA_DIR=$FLUPRO
+    cmake_string+=" "-DFLUKA_DIR=$install_dir/fluka/bin
   fi
   cmake_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
   cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
@@ -207,7 +209,7 @@ function build_dagmc() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
@@ -216,50 +218,39 @@ function cleanup() {
   rm -rf $build_dir
 }
 
+function main() {
+  export copy_dir=$PWD                  # Location of tarball to be copied back to submit node
+  export base_dir=/mnt/gluster/$USER
+  export dist_dir=$base_dir/dist        # Location where software tarballs are found
+  export install_dir=$base_dir/opt      # Location to place binaries, libraries, etc.
+  export build_dir=$copy_dir/build      # Location to perform builds
+  export DATAPATH=$base_dir/mcnp_data   # Location of MCNP data
+  mkdir -p $dist_dir $install_dir $build_dir
+
+  source ./versions.bash                # Get software versions
+  source ./common.bash                  # Common functions
+  setup_env                             # Setup environment variables
+  export jobs=12                        # Parallel jobs
+
+  build_hdf5
+  if [[ "$args" == *" cubit "* ]]; then
+    build_cubit
+    build_cgm
+  fi
+  build_moab
+  if [[ "$args" == *" geant4 "* ]]; then
+    build_geant4
+  fi
+  if [[ "$args" == *" fluka "* ]]; then
+    build_fluka
+  fi
+  build_dagmc
+
+  cleanup                               # Delete unneeded stuff
+}
+
 set -e
 export args="$@"
 export args=" "$args" "
 
-export cubit_version=12.2
-export moab_version=4.9.0
-
-# Common functions
-source ./common.bash
-
-# Parallel jobs
-export jobs=12
-
-# Directory names
-export copy_dir=$PWD
-export base_dir=/mnt/gluster/$USER
-export dist_dir=$base_dir/dist
-export install_dir=$base_dir/opt
-export build_dir=$copy_dir/build
-export DATAPATH=$base_dir/mcnp_data
-
-mkdir -p $base_dir $dist_dir $install_dir $build_dir
-
-# Setup environment variables
-setup_env
-
-# Build DAGMC dependencies
-build_hdf5
-if [[ "$args" == *" cubit "* ]]; then
-  build_cubit
-  build_cgm
-fi
-build_moab
-
-# Build physics packages
-if [[ "$args" == *" geant4 "* ]]; then
-  build_geant4
-fi
-if [[ "$args" == *" fluka "* ]]; then
-  build_fluka
-fi
-
-# Build DAGMC
-build_dagmc
-
-# Delete unneeded stuff
-cleanup
+main #1> $copy_dir/_condor_stdout 2> $copy_dir/_condor_stderr

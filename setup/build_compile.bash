@@ -3,7 +3,7 @@
 # Build GMP
 function build_gmp() {
   name=gmp
-  version=6.1.0
+  version=$gmp_version
   folder=$name-$version
   tarball=$name-$version.tar.bz2
   tar_f=$name-$version
@@ -24,14 +24,14 @@ function build_gmp() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
 # Build MPFR
 function build_mpfr() {
   name=mpfr
-  version=3.1.3
+  version=$mpfr_version
   folder=$name-$version
   tarball=$name-$version.tar.gz
   tar_f=$name-$version
@@ -53,14 +53,14 @@ function build_mpfr() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
 # Build MPC
 function build_mpc() {
   name=mpc
-  version=1.0.3
+  version=$mpc_version
   folder=$name-$version
   tarball=$name-$version.tar.gz
   tar_f=$name-$version
@@ -83,14 +83,14 @@ function build_mpc() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
 # Build GCC
 function build_gcc() {
   name=gcc
-  version=5.3.0
+  version=$gcc_version
   folder=$name-$version
   tarball=$name-$version.tar.gz
   tar_f=$name-$version
@@ -114,14 +114,14 @@ function build_gcc() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
 # Build OpenMPI
 function build_openmpi() {
   name=openmpi
-  version=1.10.1
+  version=$openmpi_version
   folder=$name-$version
   tarball=$name-$version.tar.gz
   tar_f=$name-$version
@@ -142,14 +142,14 @@ function build_openmpi() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
 # Build CMake
 function build_cmake() {
   name=cmake
-  version=3.4.0
+  version=$cmake_version
   folder=$name-$version
   tarball=$name-$version.tar.gz
   tar_f=$name-$version
@@ -170,7 +170,7 @@ function build_cmake() {
   make -j $jobs
   make install
   cd $install_dir
-  ln -s $folder $name
+  ln -snf $folder $name
   cd $build_dir
 }
 
@@ -179,37 +179,34 @@ function cleanup() {
   rm -rf $build_dir
 }
 
+function main() {
+  # Directory names
+  export copy_dir=$PWD                  # Location of tarball to be copied back to submit node
+  export base_dir=/mnt/gluster/$USER
+  export dist_dir=$base_dir/dist        # Location where software tarballs are found
+  export install_dir=$base_dir/opt      # Location to place binaries, libraries, etc.
+  export build_dir=$copy_dir/build      # Location to perform builds
+  mkdir -p $dist_dir $install_dir $build_dir
+
+  source ./versions.bash                # Get software versions
+  source ./common.bash                  # Common functions
+  setup_env                             # Setup environment variables
+  export jobs=12                        # Parallel jobs
+
+  build_gmp
+  build_mpfr
+  build_mpc
+  build_gcc
+  if [[ "$args" == *" mpi "* ]]; then
+    build_openmpi
+  fi
+  build_cmake
+
+  cleanup                               # Delete unneeded stuff
+}
+
 set -e
 export args="$@"
 export args=" "$args" "
 
-# Common functions
-source ./common.bash
-
-# Parallel jobs
-export jobs=12
-
-# Directory names
-export copy_dir=$PWD
-export base_dir=/mnt/gluster/$USER
-export dist_dir=$base_dir/dist
-export install_dir=$base_dir/opt
-export build_dir=$copy_dir/build
-
-mkdir -p $base_dir $dist_dir $install_dir $build_dir
-
-# Setup environment variables
-setup_env
-
-# Build compilers
-build_gmp
-build_mpfr
-build_mpc
-build_gcc
-if [[ "$args" == *" mpi "* ]]; then
-  build_openmpi
-fi
-build_cmake
-
-# Delete unneeded stuff
-cleanup
+main #1> $copy_dir/_condor_stdout 2> $copy_dir/_condor_stderr
