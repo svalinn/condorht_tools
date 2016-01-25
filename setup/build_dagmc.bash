@@ -237,28 +237,27 @@ function main() {
   export dist_dir=$base_dir/dist        # Location where software tarballs are found
   export install_dir=$base_dir/opt      # Location to place binaries, libraries, etc.
   export build_dir=$copy_dir/build      # Location to perform builds
-  export log_dir=$base_dir/log          # Location to place build logs
   export DATAPATH=$base_dir/mcnp_data   # Location of MCNP data
-  mkdir -p $dist_dir $install_dir $build_dir $log_dir
+  mkdir -p $dist_dir $install_dir $build_dir
 
   source ./versions.bash                # Get software versions
   source ./common.bash                  # Common functions
   set_compile_env                       # Set compiler environment variables
   export jobs=12                        # Parallel jobs
 
-  build_hdf5 1>| $log_dir/hdf5.out 2>| $log_dir/hdf5.err
+  build_hdf5
   if [[ "$args" == *" cubit "* ]]; then
-    build_cubit 1>| $log_dir/cubit.out 2>| $log_dir/cubit.err
-    build_cgm 1>| $log_dir/cgm.out 2>| $log_dir/cgm.err
+    build_cubit
+    build_cgm
   fi
-  build_moab 1>| $log_dir/moab.out 2>| $log_dir/moab.err
+  build_moab
   if [[ "$args" == *" geant4 "* ]]; then
-    build_geant4 1>| $log_dir/geant4.out 2>| $log_dir/geant4.err
+    build_geant4
   fi
   if [[ "$args" == *" fluka "* ]]; then
-    build_fluka 1>| $log_dir/fluka.out 2>| $log_dir/fluka.err
+    build_fluka
   fi
-  build_dagmc 1>| $log_dir/dagmc.out 2>| $log_dir/dagmc.err
+  build_dagmc
 
   cleanup                               # Delete unneeded stuff
 }
@@ -267,4 +266,4 @@ set -e
 export args="$@"
 export args=" "$args" "
 
-main #1> $copy_dir/_condor_stdout 2> $copy_dir/_condor_stderr
+main

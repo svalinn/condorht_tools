@@ -121,4 +121,4 @@ set -e
 export args="$@"
 export args=" "$args" "
 
-main #1> $copy_dir/_condor_stdout 2> $copy_dir/_condor_stderr
+main

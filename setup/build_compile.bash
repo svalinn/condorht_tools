@@ -196,21 +196,20 @@ function main() {
   export dist_dir=$base_dir/dist        # Location where software tarballs are found
   export install_dir=$base_dir/opt      # Location to place binaries, libraries, etc.
   export build_dir=$copy_dir/build      # Location to perform builds
-  export log_dir=$base_dir/log          # Location to place build logs
-  mkdir -p $dist_dir $install_dir $build_dir $log_dir
+  mkdir -p $dist_dir $install_dir $build_dir
 
   source ./versions.bash                # Get software versions
   source ./common.bash                  # Common functions
   export jobs=12                        # Parallel jobs
 
-  build_gmp 1>| $log_dir/gmp.out 2>| $log_dir/gmp.err
-  build_mpfr 1>| $log_dir/mpfr.out 2>| $log_dir/mpfr.err
-  build_mpc 1>| $log_dir/mpc.out 2>| $log_dir/mpc.err
-  build_gcc 1>| $log_dir/gcc.out 2>| $log_dir/gcc.err
+  build_gmp
+  build_mpfr
+  build_mpc
+  build_gcc
   if [[ "$args" == *" mpi "* ]]; then
-    build_openmpi 1>| $log_dir/openmpi.out 2>| $log_dir/openmpi.err
+    build_openmpi
   fi
-  build_cmake 1>| $log_dir/cmake.out 2>| $log_dir/cmake.err
+  build_cmake
 
   cleanup                               # Delete unneeded stuff
 }
@@ -219,4 +218,4 @@ set -e
 export args="$@"
 export args=" "$args" "
 
-main #1> $copy_dir/_condor_stdout 2> $copy_dir/_condor_stderr
+main
