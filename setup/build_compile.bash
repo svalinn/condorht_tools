@@ -205,7 +205,9 @@ function main() {
   build_mpfr
   build_mpc
   build_gcc
-  build_openmpi
+  if [[ "$args" == *" mpi "* ]]; then
+    build_openmpi
+  fi
   build_cmake
 
   pack_results
