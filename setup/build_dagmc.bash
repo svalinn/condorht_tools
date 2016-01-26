@@ -235,6 +235,7 @@ function main() {
   export install_dir=/home/$USER/opt            # Location to place binaries, libraries, etc.
   export copy_dir=/mnt/gluster/$USER            # Location to place output tarball
   export DATAPATH=/mnt/gluster/$USER/mcnp_data  # Location of MCNP data
+  rm -rf $build_dir $install_dir
   mkdir -p $dist_dir $build_dir $install_dir $copy_dir $DATAPATH
 
   source ./versions.bash

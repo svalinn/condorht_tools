@@ -194,6 +194,7 @@ function main() {
   export build_dir=/home/$USER/build       # Location to perform the build
   export install_dir=/home/$USER/opt       # Location to place binaries, libraries, etc.
   export copy_dir=/mnt/gluster/$USER       # Location to place output tarball
+  rm -rf $build_dir $install_dir
   mkdir -p $dist_dir $build_dir $install_dir $copy_dir
 
   source ./versions.bash
