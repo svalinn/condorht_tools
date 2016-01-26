@@ -24,7 +24,7 @@ executable = build_dagmc.bash
 transfer_input_files = build_dagmc.bash, common.bash, versions.bash
 
 # Command line arguments for the executable
-arguments = cubit mpi mcnp5
+arguments = cubit mpi mcnp5 geant4 fluka
 
 # Don't send emails
 notification = never
