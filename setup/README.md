@@ -59,6 +59,6 @@ Submit the submit file with `$ condor_submit build_dagmc.sub`. This will build D
 
 3. Run the DAG-MCNP tests
 ----------------------------------------
-The submit file `dag_mcnp_tests.sub` launches a job which copies the script `dag_mcnp_tests.bash` to an execute node. The script runs the tests in the <a href="https://github.com/ljacobson64/DAGMC-tests" target="_blank">DAGMC test suite</a>. A tarball containing the test results will be created and placed in your Gluster space. The tarball will also be copied to your home directory on the submit node.
+The submit file `dag_mcnp_tests.sub` launches a job which copies the script `dag_mcnp_tests.bash` to an execute node. The script runs the tests in the <a href="https://github.com/ljacobson64/DAGMC-tests" target="_blank">DAGMC test suite</a>. A tarball containing the test results will be created and placed in your Gluster space.
 
 You must have the MCNP data tarball `mcnp_data.tar.gz` in your Gluster space to be able to run the tests.
