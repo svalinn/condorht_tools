@@ -6,7 +6,7 @@ function build_hdf5() {
   version=$hdf5_version
   folder=$name-$version
   tarball=$name-$version.tar.gz
-  tar_f=$name-$version.tar.gz
+  tar_f=$name-$version
   url=https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-$version/src/$tarball
 
   cd $build_dir
@@ -25,8 +25,6 @@ function build_hdf5() {
   ../src/configure $config_string
   make -j $jobs
   make install
-  export PATH=$install_dir/hdf5/bin:$PATH
-  export LD_LIBRARY_PATH=$install_dir/hdf5/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -43,8 +41,6 @@ function build_cubit() {
   mkdir $folder
   cd $folder
   tar -xzvf $dist_dir/$tarball
-  export PATH=$install_dir/cubit/bin:$PATH
-  export LD_LIBRARY_PATH=$install_dir/cubit/bin:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -75,7 +71,6 @@ function build_cgm() {
   ../src/configure $config_string
   make -j $jobs
   make install
-  export LD_LIBRARY_PATH=$install_dir/cgm/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -110,8 +105,6 @@ function build_moab() {
   ../src/configure $config_string
   make -j $jobs
   make install
-  export PATH=$install_dir/moab/bin:$PATH
-  export LD_LIBRARY_PATH=$install_dir/moab/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -143,9 +136,6 @@ function build_geant4() {
   cmake ../src $cmake_string
   make -j $jobs
   make install
-  export PATH=$install_dir/geant4/bin:$PATH
-  export LD_LIBRARY_PATH=$install_dir/geant4/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$install_dir/geant4/lib64:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -166,7 +156,6 @@ function build_fluka() {
   export FLUFOR=gfortran
   make
   bash flutil/ldpmqmd
-  export PATH=$install_dir/fluka/bin:$PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -202,6 +191,7 @@ function build_dagmc() {
   if [[ "$args" == *" geant4 "* ]]; then
     cmake_string+=" "-DBUILD_GEANT4=ON
     cmake_string+=" "-DGEANT4_DIR=$install_dir/geant4
+    cmake_string+=" "-DGEANT4_CMAKE_CONFIG:PATH=$install_dir/geant4/lib64/Geant4-10.0.2
   fi
   if [[ "$args" == *" fluka "* ]]; then
     if [ ! -x $install_dir/fluka/bin/flutil/rfluka.orig ]; then
@@ -219,31 +209,40 @@ function build_dagmc() {
   cmake ../. $cmake_string
   make -j $jobs
   make install
-  export PATH=$install_dir/dagmc/bin:$PATH
-  export LD_LIBRARY_PATH=$install_dir/dagmc/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
 }
 
+# Pack the results tarball
+function pack_results() {
+  output_tarball=dagmc.tar.gz
+
+  cd $install_dir
+  tar -czvf $output_tarball `ls --color=never | grep '^hdf5\|^cubit\|^cgm\|^moab\|^geant4\|^fluka\|^dagmc'`
+  mv $output_tarball $copy_dir
+}
+
 # Delete unneeded stuff
 function cleanup() {
-  rm -rf $build_dir
+  rm -rf $build_dir $install_dir
 }
 
 function main() {
-  export copy_dir=$PWD                  # Location of tarball to be copied back to submit node
-  export base_dir=/mnt/gluster/$USER
-  export dist_dir=$base_dir/dist        # Location where software tarballs are found
-  export install_dir=$base_dir/opt      # Location to place binaries, libraries, etc.
-  export build_dir=$copy_dir/build      # Location to perform builds
-  export DATAPATH=$base_dir/mcnp_data   # Location of MCNP data
-  mkdir -p $dist_dir $install_dir $build_dir
+  # Directory names
+  export dist_dir=/mnt/gluster/$USER/dist       # Location where tarballs can be found
+  export build_dir=/home/$USER/build            # Location to perform the build
+  export install_dir=/home/$USER/opt            # Location to place binaries, libraries, etc.
+  export copy_dir=/mnt/gluster/$USER            # Location to place output tarball
+  export DATAPATH=/mnt/gluster/$USER/mcnp_data  # Location of MCNP data
+  mkdir -p $dist_dir $build_dir $install_dir $copy_dir $DATAPATH
 
-  source ./versions.bash                # Get software versions
-  source ./common.bash                  # Common functions
-  set_compile_env                       # Set compiler environment variables
-  export jobs=12                        # Parallel jobs
+  source ./versions.bash
+  source ./common.bash
+  set_compile_env
+  set_dagmc_env
+  get_compile
+  export jobs=12
 
   build_hdf5
   if [[ "$args" == *" cubit "* ]]; then
@@ -259,7 +258,8 @@ function main() {
   fi
   build_dagmc
 
-  cleanup                               # Delete unneeded stuff
+  pack_results
+  cleanup
 }
 
 set -e

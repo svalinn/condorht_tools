@@ -23,7 +23,6 @@ function build_gmp() {
   ../src/configure $config_string
   make -j $jobs
   make install
-  export LD_LIBRARY_PATH=$install_dir/gmp/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -53,7 +52,6 @@ function build_mpfr() {
   ../src/configure $config_string
   make -j $jobs
   make install
-  export LD_LIBRARY_PATH=$install_dir/mpfr/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -84,7 +82,6 @@ function build_mpc() {
   ../src/configure $config_string
   make -j $jobs
   make install
-  export LD_LIBRARY_PATH=$install_dir/mpc/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -116,9 +113,6 @@ function build_gcc() {
   ../src/configure $config_string
   make -j $jobs
   make install
-  export PATH=$install_dir/gcc/bin:$PATH
-  export LD_LIBRARY_PATH=$install_dir/gcc/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$install_dir/gcc/lib64:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -147,8 +141,6 @@ function build_openmpi() {
   ../src/configure $config_string
   make -j $jobs
   make install
-  export PATH=$install_dir/openmpi/bin:$PATH
-  export LD_LIBRARY_PATH=$install_dir/openmpi/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
@@ -177,41 +169,47 @@ function build_cmake() {
   ../src/configure $config_string
   make -j $jobs
   make install
-  export PATH=$install_dir/cmake/bin:$PATH
-  export LD_LIBRARY_PATH=$install_dir/cmake/lib:$LD_LIBRARY_PATH
   cd $install_dir
   ln -snf $folder $name
   cd $build_dir
 }
 
+# Pack the results tarball
+function pack_results() {
+  output_tarball=compile.tar.gz
+
+  cd $install_dir
+  tar -czvf $output_tarball `ls --color=never | grep '^gmp\|^mpfr\|^mpc\|^gcc\|^openmpi\|^cmake'`
+  mv $output_tarball $copy_dir
+}
+
 # Delete unneeded stuff
 function cleanup() {
-  rm -rf $build_dir
+  rm -rf $build_dir $install_dir
 }
 
 function main() {
   # Directory names
-  export copy_dir=$PWD                  # Location of tarball to be copied back to submit node
-  export base_dir=/mnt/gluster/$USER
-  export dist_dir=$base_dir/dist        # Location where software tarballs are found
-  export install_dir=$base_dir/opt      # Location to place binaries, libraries, etc.
-  export build_dir=$copy_dir/build      # Location to perform builds
-  mkdir -p $dist_dir $install_dir $build_dir
+  export dist_dir=/mnt/gluster/$USER/dist  # Location where tarballs can be found
+  export build_dir=/home/$USER/build       # Location to perform the build
+  export install_dir=/home/$USER/opt       # Location to place binaries, libraries, etc.
+  export copy_dir=/mnt/gluster/$USER       # Location to place output tarball
+  mkdir -p $dist_dir $build_dir $install_dir $copy_dir
 
-  source ./versions.bash                # Get software versions
-  source ./common.bash                  # Common functions
-  export jobs=12                        # Parallel jobs
+  source ./versions.bash
+  source ./common.bash
+  set_compile_env
+  export jobs=12
 
   build_gmp
   build_mpfr
   build_mpc
   build_gcc
-  if [[ "$args" == *" mpi "* ]]; then
-    build_openmpi
-  fi
+  build_openmpi
   build_cmake
 
-  cleanup                               # Delete unneeded stuff
+  pack_results
+  cleanup
 }
 
 set -e

@@ -30,3 +30,13 @@ function set_dagmc_env() {
   export PATH=$install_dir/dagmc/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/dagmc/lib:$LD_LIBRARY_PATH
 }
+
+# Unpack the compiler tarball
+function get_compile() {
+  tar -xzvf $copy_dir/compile.tar.gz -C $install_dir
+}
+
+# Unpack the DAGMC tarball
+function get_dagmc() {
+  tar -xzvf $copy_dir/dagmc.tar.gz -C $install_dir
+}
