@@ -33,7 +33,7 @@ function pack_results() {
 
 # Delete unneeded stuff
 function cleanup() {
-  rm -rf $test_dir $install_dir
+  rm -rf $test_dir/DAGMC-tests $install_dir
 }
 
 function main() {
