@@ -28,7 +28,8 @@ function pack_results() {
 
   cd $test_dir/DAGMC-tests
   tar -czvf $results_tarball summaries */Results
-  mv $results_tarball $results_dir
+  cp $results_tarball $results_dir
+  mv $results_tarball $orig_dir
 }
 
 # Delete unneeded stuff
@@ -38,6 +39,7 @@ function cleanup() {
 
 function main() {
   # Directory names
+  export orig_dir=$PWD
   export test_dir=/home/$USER                    # Location to perform the DAG-MCNP tests
   export install_dir=/home/$USER/opt             # Location to place binaries, libraries, etc.
   export copy_dir=/mnt/gluster/$USER             # Location where compiled software tarballs are found
