@@ -347,7 +347,7 @@ def generate_mcnp_inputs(rundir,mcnpfname,cpu_id,n_cpu,nps,seed):
     if ( cpu_id < n_cpu):
         file.write("nps "+str(num2run)+"\n")
     else:
-        num2run =( nps - (int(nps)/int(n_cpu)*n_cpu) + (int(nps)/int(n_cpu)))
+        num2run = (int(nps) - (int(nps)/int(n_cpu)*int(n_cpu)) + (int(nps)/int(n_cpu)))
         file.write("nps "+str(num2run)+"\n")
 
     # turn on mctal dumping
@@ -360,11 +360,15 @@ def generate_mcnp_inputs(rundir,mcnpfname,cpu_id,n_cpu,nps,seed):
 # creates directory to store copy of input file
 # and copies file to it
 def copy_and_create(input_dir,new_dir,file_copy):
+    print "Copying file ", file_copy
+    print "From ", input_dir
+    print "To ", new_dir
+    
     try:
         os.mkdir(input_dir+'/'+new_dir)
     except:
         pass
-
+    
     shutil.copy(input_dir+'/'+file_copy,input_dir+'/'+new_dir+'/'+file_copy)
 
 # opens the mcnp input deck and scans for 
@@ -416,9 +420,9 @@ def check_and_setup(mcnp_cmd,input_dir):
     wwinp = False
     if "wwinp=" in mcnp_cmd or "w=" in mcnp_cmd:
         wwinp = True
-        # step through bits looking for g=
+        # step through bits looking for wwinp
         for token in mcnp_cmd.split():
-            if "wwinp=" in token:
+            if "wwinp=" in token or "w=" in token:
                 pos_in = token.find('=')
                 wwinp_file = token[pos_in+1:len(token)]
                 inputs.add(wwinp_file)
@@ -427,8 +431,8 @@ def check_and_setup(mcnp_cmd,input_dir):
         if not os.path.isfile(input_dir+'/'+wwinp_file):
             print "The wwinp file specified, ",input_dir+'/'+wwinp_file," does not exist"
             sys.exit()
-            # create wwinp dir
-            copy_and_create(input_dir,"wwinp",wwinp_file)
+        # create wwinp dir
+        copy_and_create(input_dir,"wwinp",wwinp_file)
 
 
     if "i=" in mcnp_cmd:
@@ -513,7 +517,7 @@ if nps == 0:
 
 # input dir is always the cwd
 input_dir = os.getcwd()
-
+print "input_dir = ",input_dir
 # get the mcnp command
 instructions=""
 if "mcnp" in mcnp_cmd:
@@ -538,7 +542,6 @@ else:
 
 # generate runtpe files
 rundir=input_dir+"/runtpes"
-print "woo ",mcnp_cmd," ",rundir
 mcnp_input=''
 generate_runtapes(num_cpu,input_dir,mcnp_input,rundir,seed,mcnp_cmd,instructions,nps)
 
