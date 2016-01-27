@@ -27,7 +27,7 @@ while true; do
   tarball_exists=0
   while [[ $tarball_exists == 0 ]]; do
     sleep $check_inc
-    tarball_exists=$(ssh $CONDOR 'ls condorht_tools/setup/results_*.tar.gz | wc -l')
+    tarball_exists=$(ssh $CONDOR 'ls --color=never condorht_tools/setup | grep ^results_ | grep .tar.gz | wc -l')
   done
 
   # Make sure Condor has finished copying the entire tarball back to the submit node
@@ -68,7 +68,7 @@ while true; do
   # Wait until it's time to run the tests again
   end_epoch=$(date +%s)
   sleep_seconds=$(( $test_id * $tests_inc + $start_epoch - $end_epoch ))
-  if [[ $sleep_seconds < 0 ]]; then
+  if [ $sleep_seconds -lt 0 ]; then
     sleep_seconds=0
   fi
   sleep $sleep_seconds

@@ -16,7 +16,6 @@ function dag_mcnp_tests() {
   cd DAGMC-tests
   bash get_files.bash
   bash run_all_smart.bash
-  python write_summaries.py
   export datetime=`ls -t summaries/*.txt | head -1`
   export datetime=${datetime#$"summaries/summary_"}
   export datetime=${datetime%$".txt"}
