@@ -397,6 +397,8 @@ def check_and_setup(mcnp_cmd,input_dir):
     # all input_files
     inputs = set()
 
+    dag_run = False
+    
     # check for various command features
     if "g=" in mcnp_cmd:
         dag_run = True
@@ -409,13 +411,12 @@ def check_and_setup(mcnp_cmd,input_dir):
                 inputs.add(dag_file)
                 print dag_file
                 
-    # check to see if the file exists
-    if not os.path.isfile(input_dir+'/'+dag_file):
-        print "The dag file specified, ",dag_file," does not exist"
-        sys.exit()
-        # create 
+        # check to see if the file exists
+        if not os.path.isfile(input_dir+'/'+dag_file):
+            print "The dag file specified, ",dag_file," does not exist"
+            sys.exit()
 
-    copy_and_create(input_dir,"geometry",dag_file)
+        copy_and_create(input_dir,"geometry",dag_file)
 
     wwinp = False
     if "wwinp=" in mcnp_cmd or "w=" in mcnp_cmd:

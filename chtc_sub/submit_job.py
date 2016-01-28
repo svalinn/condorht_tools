@@ -24,7 +24,9 @@ def print_help():
     print "--path <path_to_data>"
     print "--job <type of job> "
     print "--batch < number of jobs to run>"
-    print "--combine if you would or would not like the results combined"  
+    print "--combine if you would or would not like the results combined"
+    print "--filesystem if you want to select gluster or SQUID"
+    print "--user specify the username for Condor"
     print " "
     print "Directory structure expected"
     print " "
@@ -32,6 +34,7 @@ def print_help():
     print "    | "
     print "    +------> input where we keep the code input files" 
     print "    +------> geometry where we keep the dag geometry if any"
+    print "    +------> wwinp where we keep the weight windows if there are any"
     print "    +------> meshes where we keep meshes if any"
     exit()
 
@@ -259,7 +262,7 @@ def build_job_cmd_file(inputfile,job_index):
 
       return
 
-def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batches):
+def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username,filesystem,run_batches):
       """ builds the script the the command file actually submits to condor
 
       Parameters
@@ -275,14 +278,7 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
       ----------
       nothing: writes out script file
       """  
-
-      # get the user name since this is where we must put file for squid wget
-      username = os.getlogin()
-
-      # the script may need to copy the zip files of the codes
-      
-      # the script file must copy the input data from 
-
+      # set the filename
       file_name = "job"+str(job_index)+".sh"
       try:
           file = open(file_name,'w')
@@ -293,51 +289,62 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
           pass
 
       file.write("#!/bin/bash"+"\n")
-
       file.write("# get_until_got function - keeps trying to get file with wget \n")
       file.write("# until its successful \n")
       file.write("get_until_got(){ \n")
       file.write("wget -c -t 5 --waitretry=20 --read-timeout=10 $1\n")
-#      file.write("while [[ $? != 0 ]]\n")
-#      file.write("do\n")
-#      file.write("wget $1\n")
-#      file.write("done\n")
       file.write("}\n")
-               
+
       file.write("cwd=$PWD\n")
-      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files_for_run+"  \n")
+      if filesystem == "squid":
+        file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files_for_run+"  \n")
+        file.write("# get and set the gcc compiler suite and set ld and paths \n")
+        file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/compile.tar.gz \n")
+        file.write("tar -zxf compile.tar.gz \n")
+        file.write("# set the compiler paths\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/gcc/lib\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/gcc/lib64\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/gmp/lib\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/mpc/lib\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/mpfr/lib\n") #sets the compiler paths
+        # bring moab with us
+        file.write("# get and set the moab and hdf5 libs \n")
+        file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/runtime.tar.gz \n")
+        file.write("tar -zxf dagmc.tar.gz \n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/hdf5/lib\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/moab/lib\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/dagmc/lib\n")
 
-      # copy the required files to run the code
-      file.write("# get and set the gcc compiler suite and set ld and paths \n")
-      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/compile.tar.gz \n")
-      #file.write("wget http://proxy.chtc.wisc.edu/SQUID/"+username+"/compiler_tools.tar.gz\n")
-      file.write("tar -zxf compile.tar.gz \n")
-      file.write("export LD_LIBRARY_PATH=$cwd/compile/gcc/lib:$cwd/compile/gcc/lib64:$cwd/compile/gmp/lib:$cwd/compile/mpc/lib:$cwd/compile/mpfr/lib  \n") #sets the compiler paths
-
-      # bring moab with us
-      file.write("# get and set the moab and hdf5 libs \n")
-      file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/runtime.tar.gz \n")
-      file.write("tar -zxf runtime.tar.gz \n")
-      file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/runtime/hdf5/lib\n")
-      file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/runtime/moab/lib\n")
-      file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cwd/runtime/DAGMC/lib\n")
-      
+      if filesystem == "gluster":
+        file.write("# copy the files for run\n")
+        file.write("cp /mnt/gluster/"+username+"/"+files_for_run+" . \n")
+        file.write("cp /mnt/gluster/"+username+"/dagmc.tar.gz . \n")
+        file.write("cp /mnt/gluster/"+username+"/compile.tar.gz . \n")
+        file.write("tar -zxf dagmc.tar.gz \n")
+        file.write("tar -zxf compile.tar.gz \n")
+        file.write("# set gcc paths\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/gcc/lib\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/gcc/lib64\n")
+        file.write("export PATH=$PATH:$PWD/gcc/bin\n")
+        file.write("# set moab paths\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/moab/lib\n")
+        file.write("export PATH=$PATH:$PWD/moab/bin\n")
+        file.write("# set hdf5 paths\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/hdf5/lib\n")
+        file.write("export PATH=$PATH:$PWD/hdf5/bin\n")
+        file.write("# set dagmc paths\n")
+        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/dagmc/lib\n")
+        file.write("export PATH=$PATH:$PWD/dagmc/bin\n")
+        
       if "FLUKA" in jobtype:
           file.write("# get and set the required fluka paths \n")
-          file.write("export FLUPRO=$PWD/runtime/fluka \n")
+          file.write("export FLUPRO=$PWD/fluka \n")
       if "FLUDAG" in jobtype:
           file.write("# get and set the required fluka paths \n")
-          file.write("export FLUPRO=$PWD/runtime/fluka \n")
-          file.write("export FLUDAGPATH=$PWD/runtime/DAGMC/bin/mainfludag \n")
-
-      if "MCNP" in jobtype:
-          file.write("# get and set the required fluka paths \n")
-          file.write("export PATH=$PWD/runtime/DAGMC/bin/:$PATH \n")
-      if "DAGMCNP" in jobtype:
-          file.write("# get and set the required fluka paths \n")
-          file.write("export PATH=$PWD/runtime/DAGMC/bin/:$PATH \n")
-            
-
+          file.write("export FLUPRO=$PWD/fluka \n")
+          file.write("export FLUDAGPATH=$PWD/dagmc/bin/mainfludag \n")
+      # MCNP & DAGMCNP paths already set
+      
       # untar the actual run data
       file.write("tar -zxvf "+files_for_run+"\n")
       file.write("mkdir job"+str(job_index)+"\n")
@@ -369,9 +376,7 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
           file.write("geom_file=`ls * | grep 'h5m' | head -n1`"+"\n")
           file.write("$FLUPRO/flutil/rfluka -e $FLUDAGPATH -d $geom_file -N0 -M"+str(num_batches)+" "+inputfile+"\n")
        
-
       # may need to remove all original input data
-      
       if "DAGMCNP" in jobtype:
           file.write("cd ..\n")
           file.write("tar -pczf job"+str(job_index)+"_results.tar.gz job"+str(job_index)+"\n") # add the dir to folder
@@ -391,6 +396,19 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,run_batc
 
       # clean up before we leave this computer, delete everything but results
       file.write( "ls | grep -v job"+str(job_index)+"_results.tar.gz | xargs rm -rf"+"\n")
+
+      # if we are a gluster job
+      if filesystem == "gluster":
+          # the unique dir is a place where will collect all the output files
+          # to do with the run
+          # only done for gluster runs
+          unique_dir = files_for_run[0:-7]
+          file.write("if [ -d /mnt/gluster/"+username+"/"+unique_dir+"] ;then \n")
+          file.write("    mkdir /mnt/gluster/"+username+"/"+unique_dir+"\n")
+          file.write("fi\n")
+          file.write("mv job"+str(job_index)+"_results.tar.gz /mnt/gluster/"+username+"/"+unique_dir+"/.\n")
+          
+      # close the file
       file.close()
 
       return
@@ -412,10 +430,14 @@ if len(sys.argv) <= 2:
 
 # check to see if help has been asked for first
 for arg in range(0,len(sys.argv)):
-    if '--help'  in sys.argv[arg]:
+    if '--help'  in sys.argv[arg] or '-h' in sys.argv[arg]:
         print_help()
 
 combine = False
+filesystem = "gluster"
+# default to the current username if unspecified
+username = os.getlogin()
+
 #loop over the args      			
 for arg in range(0,len(sys.argv)):
     if '--job' in sys.argv[arg]:
@@ -425,18 +447,23 @@ for arg in range(0,len(sys.argv)):
     # look for the path to data
        path_data = sys.argv[arg+1]						
     if '--batch' in sys.argv[arg]:
+    # set the number of batches
        int_t = convert_int(sys.argv[arg+1])
        num_batches = int_t
     if '--combine' in sys.argv[arg]:
+    # set wether we want to combine the output data
         combine = True
+    if '--filesystem' in sys.argv[arg]:
+    # set whether we want to use the gluster or squid filesystem
+        filesystem = sys.argv[arg+1]
+    if '--user' in sys.argv[arg]:
+    # set whether we want to use the current usnername, or a specified one
+        username = sys.argv[arg+1]
 
 # ensure all vars exist
 if not job_type:
     print "The job type has not been defined"
     sys.exit()
-#elif not path_data:
-#    print "Path to data has not been defined"
-#    sys.exit()
 elif num_batches < 1:
     print "there are no jobs to run, batches < 1"
     sys.exit()
@@ -466,7 +493,7 @@ for inputfile in input_files:
     counter+=1
     # creating the script files that are run by the cmd files
     build_job_cmd_file(inputfile,counter)
-    build_run_script(files_for_run,counter,inputfile,path_data,job_type,num_batches)
+    build_run_script(files_for_run,counter,inputfile,path_data,job_type,username,filesystem,num_batches)
 
 
 # 
