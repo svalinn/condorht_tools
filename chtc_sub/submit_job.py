@@ -403,7 +403,7 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
           # to do with the run
           # only done for gluster runs
           unique_dir = files_for_run[0:-7]
-          file.write("if [ -d /mnt/gluster/"+username+"/"+unique_dir+"] ;then \n")
+          file.write("if [ ! -d /mnt/gluster/"+username+"/"+unique_dir+" ] ;then \n")
           file.write("    mkdir /mnt/gluster/"+username+"/"+unique_dir+"\n")
           file.write("fi\n")
           file.write("mv job"+str(job_index)+"_results.tar.gz /mnt/gluster/"+username+"/"+unique_dir+"/.\n")
