@@ -195,7 +195,7 @@ function build_dagmc() {
   fi
   if [[ "$args" == *" fluka "* ]]; then
     if [ ! -x $install_dir/fluka/bin/flutil/rfluka.orig ]; then
-      patch -N $install_dir/fluka/bin/flutil/rfluka $name/fluka/rfluka.patch
+      patch -Nb $install_dir/fluka/bin/flutil/rfluka $name/fluka/rfluka.patch
     fi
     cmake_string+=" "-DBUILD_FLUKA=ON
     cmake_string+=" "-DFLUKA_DIR=$install_dir/fluka/bin
