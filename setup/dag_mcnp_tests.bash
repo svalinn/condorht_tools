@@ -13,7 +13,7 @@ function get_xs_data() {
 function dag_mcnp_tests() {
   cd $test_dir
   git clone https://github.com/ljacobson64/DAGMC-tests
-  cd DAGMC-tests
+  cd DAGMC-tests/MCNP5
   bash get_files.bash
   bash run_all_smart.bash
   export datetime=`ls -t summaries/*.txt | head -1`
@@ -25,7 +25,7 @@ function dag_mcnp_tests() {
 function pack_results() {
   export results_tarball=results_$datetime.tar.gz
 
-  cd $test_dir/DAGMC-tests
+  cd $test_dir/DAGMC-tests/MCNP5
   tar -czvf $results_tarball summaries */Results
   cp $results_tarball $results_dir
   mv $results_tarball $orig_dir
