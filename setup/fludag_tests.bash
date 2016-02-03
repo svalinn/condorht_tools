@@ -4,7 +4,7 @@
 function fludag_tests() {
   cd $test_dir
   git clone https://github.com/ljacobson64/DAGMC-tests
-  cd DAGMC-tests/FLUKA
+  cd DAGMC-tests/FluDAG
   bash get_files.bash
   bash run_all.bash
   export datetime=`ls -t summaries/*.txt | head -1`
@@ -16,7 +16,7 @@ function fludag_tests() {
 function pack_results() {
   export results_tarball=results_fludag_$datetime.tar.gz
 
-  cd $test_dir/DAGMC-tests/FLUKA
+  cd $test_dir/DAGMC-tests/FluDAG
   tar -czvf $results_tarball summaries */Results_native
   cp $results_tarball $results_dir
   mv $results_tarball $orig_dir
@@ -44,7 +44,7 @@ function main() {
   get_dagmc
   export jobs=12
 
-  dag_fluka_tests
+  fludag_tests
   pack_results
   cleanup
 }
