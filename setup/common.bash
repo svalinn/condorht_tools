@@ -29,6 +29,8 @@ function set_dagmc_env() {
   export PATH=$install_dir/fluka/bin:$PATH
   export PATH=$install_dir/dagmc/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/dagmc/lib:$LD_LIBRARY_PATH
+  export FLUPRO=$install_dir/fluka/bin
+  export FLUDAG=$install_dir/dagmc/bin
 }
 
 # Unpack the compiler tarball
