@@ -6,7 +6,7 @@ function fludag_tests() {
   git clone https://github.com/ljacobson64/DAGMC-tests
   cd DAGMC-tests/FluDAG
   bash get_files.bash
-  bash run_all.bash
+  bash run_all_smart.bash
   export datetime=`ls -t summaries/*.txt | head -1`
   export datetime=${datetime#$"summaries/summary_"}
   export datetime=${datetime%$".txt"}
