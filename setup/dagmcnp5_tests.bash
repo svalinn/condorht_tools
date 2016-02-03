@@ -16,8 +16,8 @@ function dagmcnp5_tests() {
   cd DAGMC-tests/DAG-MCNP5
   bash get_files.bash
   bash run_all_smart.bash
-  export datetime=`ls -t summaries/*.txt | head -1`
-  export datetime=${datetime#$"summaries/summary_"}
+  export datetime=`(cd ../summaries; ls summary_DAG-MCNP5_*.txt) | head -1`
+  export datetime=${datetime#$"summary_DAG-MCNP5_"}
   export datetime=${datetime%$".txt"}
 }
 
@@ -26,7 +26,7 @@ function pack_results() {
   export results_tarball=results_dagmcnp5_$datetime.tar.gz
 
   cd $test_dir/DAGMC-tests/DAG-MCNP5
-  tar -czvf $results_tarball summaries */Results
+  tar -czvf $results_tarball ../summaries */Results
   cp $results_tarball $results_dir
   mv $results_tarball $orig_dir
 }

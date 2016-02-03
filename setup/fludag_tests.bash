@@ -7,8 +7,8 @@ function fludag_tests() {
   cd DAGMC-tests/FluDAG
   bash get_files.bash
   bash run_all_smart.bash
-  export datetime=`ls -t summaries/*.txt | head -1`
-  export datetime=${datetime#$"summaries/summary_"}
+  export datetime=`(cd ../summaries; ls summary_FluDAG_*.txt) | head -1`
+  export datetime=${datetime#$"summary_FluDAG_"}
   export datetime=${datetime%$".txt"}
 }
 
@@ -17,7 +17,7 @@ function pack_results() {
   export results_tarball=results_fludag_$datetime.tar.gz
 
   cd $test_dir/DAGMC-tests/FluDAG
-  tar -czvf $results_tarball summaries */Results_native
+  tar -czvf $results_tarball ../summaries */Results
   cp $results_tarball $results_dir
   mv $results_tarball $orig_dir
 }
