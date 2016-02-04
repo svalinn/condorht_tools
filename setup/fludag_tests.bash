@@ -3,11 +3,13 @@
 # Run the FluDAG tests
 function fludag_tests() {
   cd $test_dir
-  git clone https://github.com/ljacobson64/DAGMC-tests
+  git clone https://github.com/ljacobson64/DAGMC-tests -b add_fludag
   cd DAGMC-tests/FluDAG
   bash get_files.bash
   bash run_all_smart.bash
-  export datetime=`(cd ../summaries; ls summary_FluDAG_*.txt) | head -1`
+  cd ..
+  python write_summaries.py
+  export datetime=`(cd summaries; ls summary_FluDAG_*.txt) | head -1`
   export datetime=${datetime#$"summary_FluDAG_"}
   export datetime=${datetime%$".txt"}
 }
@@ -16,14 +18,15 @@ function fludag_tests() {
 function pack_results() {
   export results_tarball=results_fludag_$datetime.tar.gz
 
-  cd $test_dir/DAGMC-tests/FluDAG
-  tar -czvf $results_tarball ../summaries */Results
+  cd $test_dir/DAGMC-tests
+  tar -czvf $results_tarball summaries */*/Results
   cp $results_tarball $results_dir
   mv $results_tarball $orig_dir
 }
 
 # Delete unneeded stuff
 function cleanup() {
+  cd $orig_dir
   rm -rf $test_dir/DAGMC-tests $install_dir
 }
 
