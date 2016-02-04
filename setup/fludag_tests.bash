@@ -37,6 +37,7 @@ function main() {
   export install_dir=/home/$USER/opt             # Location to place binaries, libraries, etc.
   export copy_dir=/mnt/gluster/$USER             # Location where compiled software tarballs are found
   export results_dir=/mnt/gluster/$USER/results  # Location to place result tarballs
+  rm -rf $test_dir/* $install_dir
   mkdir -p $test_dir $install_dir $copy_dir $results_dir
 
   source ./versions.bash

@@ -47,6 +47,7 @@ function main() {
   export copy_dir=/mnt/gluster/$USER             # Location where compiled software tarballs are found
   export results_dir=/mnt/gluster/$USER/results  # Location to place result tarballs
   export DATAPATH=/mnt/gluster/$USER/mcnp_data   # Location of MCNP data
+  rm -rf $test_dir/* $install_dir
   mkdir -p $test_dir $install_dir $copy_dir $results_dir $DATAPATH
 
   source ./versions.bash
