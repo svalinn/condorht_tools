@@ -217,7 +217,6 @@ function build_dagmc() {
 # Pack the results tarball
 function pack_results() {
   output_tarball=dagmc.tar.gz
-
   cd $install_dir
   tar -czvf $output_tarball `ls --color=never | grep '^hdf5\|^cubit\|^cgm\|^moab\|^geant4\|^fluka\|^dagmc'`
   mv $output_tarball $copy_dir
@@ -225,6 +224,7 @@ function pack_results() {
 
 # Delete unneeded stuff
 function cleanup() {
+  cd
   rm -rf $build_dir $install_dir
 }
 
@@ -232,7 +232,7 @@ function main() {
   # Directory names
   export dist_dir=/mnt/gluster/$USER/dist       # Location where tarballs can be found
   export build_dir=/home/$USER/build            # Location to perform the build
-  export install_dir=/home/$USER/opt            # Location to place binaries, libraries, etc.
+  export install_dir=/home/$USER/opt            # Location to install binaries, libraries, etc.
   export copy_dir=/mnt/gluster/$USER            # Location to place output tarball
   export DATAPATH=/mnt/gluster/$USER/mcnp_data  # Location of MCNP data
   rm -rf $build_dir $install_dir

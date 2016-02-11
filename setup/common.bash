@@ -33,6 +33,18 @@ function set_dagmc_env() {
   export FLUDAG=$install_dir/dagmc/bin
 }
 
+# Set PyNE environment variables
+function set_pyne_env() {
+  export PATH=$HOME/.local/bin:$PATH
+  export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
+  export PATH=$install_dir/python/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/python/lib:$LD_LIBRARY_PATH
+  export PATH=$install_dir/hdf5/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/hdf5/lib:$LD_LIBRARY_PATH
+  export PATH=$install_dir/moab/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/moab/lib:$LD_LIBRARY_PATH
+}
+
 # Unpack the compiler tarball
 function get_compile() {
   tar -xzvf $copy_dir/compile.tar.gz -C $install_dir
@@ -41,4 +53,10 @@ function get_compile() {
 # Unpack the DAGMC tarball
 function get_dagmc() {
   tar -xzvf $copy_dir/dagmc.tar.gz -C $install_dir
+}
+
+# Unpack the PyNE tarballs
+function get_pyne() {
+  tar -xzvf $copy_dir/pyne.tar.gz -C $install_dir
+  tar -xzvf $copy_dir/pyne_local.tar.gz -C $local_dir
 }
