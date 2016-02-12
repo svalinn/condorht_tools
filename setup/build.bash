@@ -135,17 +135,17 @@ function main() {
   get_package_names
 
   # Cleanup directories
-  #rm -rf $build_dir $install_dir
-  #mkdir -p $dist_dir $build_dir $install_dir $copy_dir $DATAPATH
+  rm -rf $build_dir $install_dir
+  mkdir -p $dist_dir $build_dir $install_dir $copy_dir $DATAPATH
 
   # Build the packages
   for name in "${packages[@]}"; do
     eval version=\$"$name"_version
     echo Building $name-$version ...
-    #build_$name
+    build_$name
   done
 
-  #cleanup
+  cleanup
 }
 
 set -e
