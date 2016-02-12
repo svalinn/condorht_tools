@@ -69,7 +69,7 @@ function set_env() {
   # Cython
   export PATH=$install_dir/cython/bin:$PATH
   export PYTHONPATH=$install_dir/cython/lib/python2.7/site-packages/:$PYTHONPATH
-local
+
   # NumPy
   export PATH=$install_dir/numpy/bin:$PATH
   export PYTHONPATH=$install_dir/numpy/lib/python2.7/site-packages/:$PYTHONPATH
