@@ -4,7 +4,7 @@
 function check_install() {
   if [ -f $copy_dir/install_$folder.tar.gz ]; then
     cd $install_dir
-    tar -xzvf install_$folder.tar.gz
+    tar -xzvf $copy_dir/install_$folder.tar.gz
     installed=true
   else
     installed=false
