@@ -419,7 +419,7 @@ function build_numpy() {
 
   # Strings
   setup_string=
-  setup_string+=" "--prefix $install_dir/$folder
+  setup_string+=" "--prefix=$install_dir/$folder
 
   # Build
   PYTHONPATH_orig=$PYTHONPATH
@@ -460,7 +460,7 @@ function build_scipy() {
 
   # Strings
   setup_string=
-  setup_string+=" "--prefix $install_dir/$folder
+  setup_string+=" "--prefix=$install_dir/$folder
 
   # Build
   PYTHONPATH_orig=$PYTHONPATH
