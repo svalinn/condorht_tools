@@ -342,6 +342,7 @@ function build_setuptools() {
   # Build
   PYTHONPATH_orig=$PYTHONPATH
   PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
+  mkdir -p $install_dir/$folder/lib/python2.7/site-packages
   python setup.py install $setup_string
   PYTHONPATH=$PYTHONPATH_orig
 
@@ -382,6 +383,7 @@ function build_cython() {
   # Build
   PYTHONPATH_orig=$PYTHONPATH
   PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
+  mkdir -p $install_dir/$folder/lib/python2.7/site-packages
   python setup.py install $setup_string
   PYTHONPATH=$PYTHONPATH_orig
 
@@ -422,6 +424,7 @@ function build_numpy() {
   # Build
   PYTHONPATH_orig=$PYTHONPATH
   PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
+  mkdir -p $install_dir/$folder/lib/python2.7/site-packages
   python setup.py build -j $jobs install $setup_string
   PYTHONPATH=$PYTHONPATH_orig
 
@@ -462,6 +465,7 @@ function build_scipy() {
   # Build
   PYTHONPATH_orig=$PYTHONPATH
   PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
+  mkdir -p $install_dir/$folder/lib/python2.7/site-packages
   python setup.py build -j $jobs install $setup_string
   PYTHONPATH=$PYTHONPATH_orig
 
