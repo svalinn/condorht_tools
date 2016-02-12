@@ -341,7 +341,7 @@ function build_setuptools() {
 
   # Build
   PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder:$PYTHONPATH
+  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py install $setup_string
   PYTHONPATH=$PYTHONPATH_orig
 
@@ -421,7 +421,7 @@ function build_numpy() {
 
   # Build
   PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder:$PYTHONPATH
+  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py build -j $jobs install $setup_string
   PYTHONPATH=$PYTHONPATH_orig
 
@@ -461,7 +461,7 @@ function build_scipy() {
 
   # Build
   PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder:$PYTHONPATH
+  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py build -j $jobs install $setup_string
   PYTHONPATH=$PYTHONPATH_orig
 
