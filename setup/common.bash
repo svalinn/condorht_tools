@@ -17,6 +17,7 @@ function set_versions() {
   export      scipy_version=0.16.1
   export     cython_version=0.23.4
   export   pytables_version=3.2.0
+  export       nose_version=1.3.7
 
   export      cubit_version=12.2
   export        cgm_version=$cubit_version
@@ -81,6 +82,10 @@ function set_env() {
   # PyTables
   export PATH=$install_dir/pytables/bin:$PATH
   export PYTHONPATH=$install_dir/pytables/lib/python2.7/site-packages/:$PYTHONPATH
+
+  # Nose
+  export PATH=$install_dir/nose/bin:$PATH
+  export PYTHONPATH=$install_dir/nose/lib/python2.7/site-packages/:$PYTHONPATH
 
   # CUBIT
   export PATH=$install_dir/cubit/bin:$PATH

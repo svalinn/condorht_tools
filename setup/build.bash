@@ -17,6 +17,7 @@ function get_package_names() {
     packages+=(numpy)
     packages+=(scipy)
     packages+=(pytables)
+    packages+=(nose)
     packages+=(moab)
     packages+=(pytaps)
   fi
@@ -51,6 +52,10 @@ function get_package_names() {
   fi
   if [[ " ${packages[@]} " =~ " cubit " ]]; then
     : # no dependencies
+  fi
+  if [[ " ${packages[@]} " =~ " nose " ]]; then
+    packages+=(gcc)
+    packages+=(python)
   fi
   if [[ " ${packages[@]} " =~ " pytables " ]]; then
     packages+=(gcc)
@@ -106,7 +111,7 @@ function get_package_names() {
 
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 
-                 setuptools numpy scipy cython pytables
+                 setuptools numpy scipy cython pytables nose
                  cubit cgm moab pytaps mcnp5 geant4 fluka dagmc pyne "
   packages_ordered=()
   for package in $all_packages; do

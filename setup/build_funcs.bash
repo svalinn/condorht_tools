@@ -304,8 +304,6 @@ function build_setuptools() {
     wget $url -P $dist_dir
   fi
   unzip $dist_dir/$tarball
-  ln -s $tar_f src
-  ln -s $tar_f bld
   cd $tar_f
 
   setup_string=
@@ -339,8 +337,6 @@ function build_cython() {
     wget $url -P $dist_dir
   fi
   tar -xzvf $dist_dir/$tarball
-  ln -s $tar_f src
-  ln -s $tar_f bld
   cd $tar_f
 
   setup_string=
@@ -374,8 +370,6 @@ function build_numpy() {
     wget $url -P $dist_dir
   fi
   tar -xzvf $dist_dir/$tarball
-  ln -s $tar_f src
-  ln -s $tar_f bld
   cd $tar_f
 
   setup_string=
@@ -409,8 +403,6 @@ function build_scipy() {
     wget $url -P $dist_dir
   fi
   tar -xzvf $dist_dir/$tarball
-  ln -s $tar_f src
-  ln -s $tar_f bld
   cd $tar_f
 
   setup_string=
@@ -444,8 +436,6 @@ function build_pytables() {
     wget $url -P $dist_dir
   fi
   tar -xzvf $dist_dir/$tarball
-  ln -s $tar_f src
-  ln -s $tar_f bld
   cd $tar_f
 
   setup_string=
@@ -461,7 +451,40 @@ function build_pytables() {
   finalize
 }
 
-# 14. Build CUBIT
+# 14. Build Nose
+function build_nose() {
+  name=nose
+  version=$nose_version
+  folder=$name-$version
+  tarball=$name-$version.tar.gz
+  tar_f=$name-$version
+  url=https://pypi.python.org/packages/source/n/nose/$tarball
+
+  check_install
+  if $installed; then return; fi
+
+  cd $build_dir
+  mkdir -p $folder
+  cd $folder
+  if [ ! -f $dist_dir/$tarball ]; then
+    wget $url -P $dist_dir
+  fi
+  tar -xzvf $dist_dir/$tarball
+  cd $tar_f
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  PYTHONPATH_orig=$PYTHONPATH
+  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
+  mkdir -p $install_dir/$folder/lib/python2.7/site-packages
+  python setup.py install $setup_string
+  PYTHONPATH=$PYTHONPATH_orig
+
+  finalize
+}
+
+# 15. Build CUBIT
 function build_cubit() {
   name=cubit
   version=$cubit_version
@@ -481,7 +504,7 @@ function build_cubit() {
   finalize
 }
 
-# 15. Build CGM
+# 16. Build CGM
 function build_cgm() {
   name=cgm
   version=$cgm_version
@@ -517,7 +540,7 @@ function build_cgm() {
   finalize
 }
 
-# 16. Build MOAB
+# 17. Build MOAB
 function build_moab() {
   name=moab
   version=$moab_version
@@ -555,7 +578,7 @@ function build_moab() {
   finalize
 }
 
-# 17. Build PyTAPS
+# 18. Build PyTAPS
 function build_pytaps() {
   name=pytaps
   version=$pytaps_version
@@ -570,8 +593,6 @@ function build_pytaps() {
   mkdir -p $folder
   cd $folder
   git clone $repo -b $branch
-  ln -s $name src
-  ln -s $name bld
   cd $name
 
   setup_string=
@@ -591,13 +612,13 @@ function build_pytaps() {
   finalize
 }
 
-# 18. Build MCNP5
+# 19. Build MCNP5
 function build_mcnp5() {
   # build MCNP5 when we build DAGMC
   :
 }
 
-# 19. Build Geant4
+# 20. Build Geant4
 function build_geant4() {
   name=geant4
   version=$geant4_version
@@ -632,7 +653,7 @@ function build_geant4() {
   finalize
 }
 
-# 20. Build FLUKA
+# 21. Build FLUKA
 function build_fluka() {
   name=fluka
   version=$fluka_version
@@ -655,7 +676,7 @@ function build_fluka() {
   finalize
 }
 
-# 21. Build DAGMC
+# 22. Build DAGMC
 function build_dagmc() {
   name=dagmc
   version=$dagmc_version
@@ -716,7 +737,7 @@ function build_dagmc() {
   finalize
 }
 
-# 22. Build PyNE
+# 23. Build PyNE
 function build_pyne() {
   name=pyne
   version=dev
@@ -731,8 +752,6 @@ function build_pyne() {
   mkdir -p $folder
   cd $folder
   git clone $repo -b $branch
-  ln -s $name src
-  ln -s $name bld
   cd $name
 
   setup_string=
