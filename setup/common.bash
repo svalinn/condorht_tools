@@ -13,9 +13,9 @@ function set_versions() {
   export       hdf5_version=1.8.13
 
   export setuptools_version=20.0
+  export     cython_version=0.23.4
   export      numpy_version=1.10.4
   export      scipy_version=0.16.1
-  export     cython_version=0.23.4
   export   pytables_version=3.2.0
   export       nose_version=1.3.7
 
