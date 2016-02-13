@@ -766,6 +766,7 @@ function build_pyne() {
   PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   mkdir -p $install_dir/$folder/lib/python2.7/site-packages
   python setup.py $setup_string install $setup_string_2 -j $jobs
+  nuc_data_make
   PYTHONPATH=$PYTHONPATH_orig
 
   finalize
