@@ -15,9 +15,9 @@ Each submit file has some optional arguments which you can change by modifying t
 
 1. Build script
 ----------------------------------------
-The submit file `build.sub` launches a job which copies the build script `build.bash` as well as `build_funcs.bash`, `common.bash`, and `dirs.bash` to an execute node. The script is smart in that knows which packages depend on which other packages, and it will account for the dependencies during the build.
+The submit file `build.sub` launches a job which copies the build script `build.bash` as well as `build_funcs.bash` and `common.bash` to an execute node. The script is smart in that knows which packages depend on which other packages, and it will account for the dependencies during the build.
 
-The script `common.bash` contains the version numbers for all the packages. The script `dirs.bash` contains the directory structure for the build. Both scripts may be edited if you so choose.
+The script `common.bash` contains the directory structure for the build as well as the the version numbers for all the packages.  These variables may be edited may be edited if you so choose.
 
 The build script contains instructions for compiling the following packages. The default versions are listed.
 

@@ -22,7 +22,7 @@ when_to_transfer_output = ON_EXIT
 
 # Indicate the executable to be run and any other input files needed
 executable = build.bash
-transfer_input_files = build.bash, build_funcs.bash, common.bash, dirs.bash
+transfer_input_files = build.bash, build_funcs.bash, common.bash
 
 # Command line arguments for the executable
 arguments = openmpi cubit cgm mcnp5 geant4 fluka dagmc pyne

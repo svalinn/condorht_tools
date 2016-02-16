@@ -9,12 +9,16 @@ function get_xs_data() {
   fi
 }
 
-# Run the DAG-MCNP tests
-function dagmcnp5_tests() {
+# Run the DAGMC tests
+function dagmc_tests() {
   cd $test_dir
   git clone https://github.com/ljacobson64/DAGMC-tests -b add_fludag
   cd DAGMC-tests/DAG-MCNP5
   bash get_files.bash
+  cd ../FluDAG
+  bash get_files.bash
+  bash run_all_smart.bash
+  cd ../DAG-MCNP5
   bash run_all_smart.bash
   cd ..
   python write_summaries.py
@@ -34,38 +38,40 @@ function pack_results() {
 }
 
 # Delete unneeded stuff
-function cleanup() {
+function cleanup_tests() {
   cd $orig_dir
   rm -rf $test_dir/DAGMC-tests $install_dir
-}
-
-function main() {
-  # Directory names
-  export orig_dir=$PWD
-  export test_dir=/home/$USER                    # Location to perform the DAG-MCNP tests
-  export install_dir=/home/$USER/opt             # Location to place binaries, libraries, etc.
-  export copy_dir=/mnt/gluster/$USER             # Location where compiled software tarballs are found
-  export results_dir=/mnt/gluster/$USER/results  # Location to place result tarballs
-  export DATAPATH=/mnt/gluster/$USER/mcnp_data   # Location of MCNP data
-  rm -rf $test_dir/* $install_dir
-  mkdir -p $test_dir $install_dir $copy_dir $results_dir $DATAPATH
-
-  source ./versions.bash
-  source ./common.bash
-  set_compile_env
-  set_dagmc_env
-  get_compile
-  get_dagmc
-  export jobs=12
-
-  get_xs_data
-  dagmcnp5_tests
-  pack_results
-  cleanup
 }
 
 set -e
 export args="$@"
 export args=" "$args" "
 
-main
+source ./common.bash
+source ./build_funcs.bash
+set_dirs
+set_versions
+set_env
+export make_install_tarballs=false
+export jobs=12
+
+# Make sure all the dependencies are built
+packages=(gmp mpfr mpc gcc openmpi cmake hdf5 fluka)
+for name in "${packages[@]}"; do
+  eval version=\$"$name"_version
+  echo Ensuring build of $name-$version ...
+  ensure_build $name
+done
+
+# Re-build DAGMC
+packages=(moab mcnp5 dagmc)
+for name in "${packages[@]}"; do
+  eval version=\$"$name"_version
+  echo Building $name-$version ...
+  build_$name
+done
+
+get_xs_data
+dagmc_tests
+pack_results
+cleanup_tests

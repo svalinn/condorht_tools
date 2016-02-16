@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Set directories
+function set_dirs() {
+  export    orig_dir=$PWD
+  export   build_dir=/tmp/$USER/build                # Location to perform the build
+  export install_dir=/tmp/$USER/opt                  # Location to install binaries, libraries, etc.
+  export    dist_dir=/mnt/gluster/$USER/dist         # Location where tarballs can be found
+  export    copy_dir=/mnt/gluster/$USER/tar_install  # Location to place output tarballs
+  export    DATAPATH=/mnt/gluster/$USER/mcnp_data    # Location of MCNP data
+  export results_dir=/mnt/gluster/$USER/results      # Location to place DAGMC test result tarballs
+}
+
 # Set package versions
 function set_versions() {
   export        gmp_version=6.1.0
@@ -33,90 +44,50 @@ function set_versions() {
 
 # Set environment variables
 function set_env() {
-  # GMP
-  export LD_LIBRARY_PATH=$install_dir/gmp/lib:$LD_LIBRARY_PATH
-
-  # MPFR
-  export LD_LIBRARY_PATH=$install_dir/mpfr/lib:$LD_LIBRARY_PATH
-
-  # MPC
-  export LD_LIBRARY_PATH=$install_dir/mpc/lib:$LD_LIBRARY_PATH
-
-  # GCC
   export PATH=$install_dir/gcc/bin:$PATH
+  export PATH=$install_dir/openmpi/bin:$PATH
+  export PATH=$install_dir/cmake/bin:$PATH
+  export PATH=$install_dir/python/bin:$PATH
+  export PATH=$install_dir/hdf5/bin:$PATH
+  export PATH=$install_dir/setuptools/bin:$PATH
+  export PATH=$install_dir/cython/bin:$PATH
+  export PATH=$install_dir/numpy/bin:$PATH
+  export PATH=$install_dir/scipy/bin:$PATH
+  export PATH=$install_dir/pytables/bin:$PATH
+  export PATH=$install_dir/nose/bin:$PATH
+  export PATH=$install_dir/cubit/bin:$PATH
+  export PATH=$install_dir/moab/bin:$PATH
+  export PATH=$install_dir/pytaps/bin:$PATH
+  export PATH=$install_dir/geant4/bin:$PATH
+  export PATH=$install_dir/fluka/bin:$PATH
+  export PATH=$install_dir/dagmc/bin:$PATH
+  export PATH=$install_dir/pyne/bin:$PATH
+
+  export LD_LIBRARY_PATH=$install_dir/gmp/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$install_dir/mpfr/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$install_dir/mpc/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$install_dir/gcc/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$install_dir/gcc/lib64:$LD_LIBRARY_PATH
-
-  # OpenMPI
-  export PATH=$install_dir/openmpi/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/openmpi/lib:$LD_LIBRARY_PATH
-
-  # CMake
-  export PATH=$install_dir/cmake/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/cmake/lib:$LD_LIBRARY_PATH
-
-  # Python
-  export PATH=$install_dir/python/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/python/lib:$LD_LIBRARY_PATH
-
-  # HDF5
-  export PATH=$install_dir/hdf5/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/hdf5/lib:$LD_LIBRARY_PATH
-
-  # Setuptools
-  export PATH=$install_dir/setuptools/bin:$PATH
-  export PYTHONPATH=$install_dir/setuptools/lib/python2.7/site-packages/:$PYTHONPATH
-
-  # Cython
-  export PATH=$install_dir/cython/bin:$PATH
-  export PYTHONPATH=$install_dir/cython/lib/python2.7/site-packages/:$PYTHONPATH
-
-  # NumPy
-  export PATH=$install_dir/numpy/bin:$PATH
-  export PYTHONPATH=$install_dir/numpy/lib/python2.7/site-packages/:$PYTHONPATH
-
-  # SciPy
-  export PATH=$install_dir/scipy/bin:$PATH
-  export PYTHONPATH=$install_dir/scipy/lib/python2.7/site-packages/:$PYTHONPATH
-
-  # PyTables
-  export PATH=$install_dir/pytables/bin:$PATH
-  export PYTHONPATH=$install_dir/pytables/lib/python2.7/site-packages/:$PYTHONPATH
-
-  # Nose
-  export PATH=$install_dir/nose/bin:$PATH
-  export PYTHONPATH=$install_dir/nose/lib/python2.7/site-packages/:$PYTHONPATH
-
-  # CUBIT
-  export PATH=$install_dir/cubit/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/cubit/bin:$LD_LIBRARY_PATH
-
-  # CGM
   export LD_LIBRARY_PATH=$install_dir/cgm/lib:$LD_LIBRARY_PATH
-
-  # MOAB
-  export PATH=$install_dir/moab/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/moab/lib:$LD_LIBRARY_PATH
-
-  # PyTables
-  export PATH=$install_dir/pytaps/bin:$PATH
-  export PYTHONPATH=$install_dir/pytaps/lib/python2.7/site-packages/:$PYTHONPATH
-
-  # Geant4
-  export PATH=$install_dir/geant4/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/geant4/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$install_dir/geant4/lib64:$LD_LIBRARY_PATH
-
-  # FLUKA
-  export FLUPRO=$install_dir/fluka/bin
-  export FLUDAG=$install_dir/dagmc/bin
-  export PATH=$install_dir/fluka/bin:$PATH
-
-  # DAGMC
-  export PATH=$install_dir/dagmc/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/dagmc/lib:$LD_LIBRARY_PATH
 
-  # PyNE
-  export PATH=$install_dir/pyne/bin:$PATH
-  export PYTHONPATH=$install_dir/pyne/lib/python2.7/site-packages/:$PYTHONPATH
+  export PYTHONPATH=$install_dir/setuptools/lib/python2.7/site-packages:$PYTHONPATH
+  export PYTHONPATH=$install_dir/cython/lib/python2.7/site-packages:$PYTHONPATH
+  export PYTHONPATH=$install_dir/numpy/lib/python2.7/site-packages:$PYTHONPATH
+  export PYTHONPATH=$install_dir/scipy/lib/python2.7/site-packages:$PYTHONPATH
+  export PYTHONPATH=$install_dir/pytables/lib/python2.7/site-packages:$PYTHONPATH
+  export PYTHONPATH=$install_dir/nose/lib/python2.7/site-packages:$PYTHONPATH
+  export PYTHONPATH=$install_dir/pytaps/lib/python2.7/site-packages:$PYTHONPATH
+  export PYTHONPATH=$install_dir/pyne/lib/python2.7/site-packages:$PYTHONPATH
+
+  export FLUPRO=$install_dir/fluka/bin
+  export FLUDAG=$install_dir/dagmc/bin
 }

@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Figure out what dependencies are needed
-function get_package_names() {
-  # Get the dependencies for each package
+function get_dependencies() {
   packages=()
   for arg in $args; do
     packages+=($arg)
@@ -123,38 +122,36 @@ function get_package_names() {
 }
 
 # Delete unneeded stuff
-function cleanup() {
+function cleanup_build() {
   cd $orig_dir
   rm -rf $orig_dir/* $build_dir $install_dir
-}
-
-function main() {
-  source ./dirs.bash
-  source ./common.bash
-  source ./build_funcs.bash
-  set_versions
-  set_env
-  export jobs=12
-
-  # Figure out which packages need to be built
-  get_package_names
-
-  # Cleanup directories
-  rm -rf $build_dir $install_dir
-  mkdir -p $dist_dir $build_dir $install_dir $copy_dir $DATAPATH
-
-  # Build the packages
-  for name in "${packages[@]}"; do
-    eval version=\$"$name"_version
-    echo Building $name-$version ...
-    build_$name
-  done
-
-  cleanup
 }
 
 set -e
 export args="$@"
 export args=" "$args" "
 
-main
+source ./common.bash
+source ./build_funcs.bash
+set_dirs
+set_versions
+set_env
+export make_install_tarballs=true
+export jobs=12
+
+# Figure out which packages need to be built
+get_dependencies
+
+# Cleanup directories
+rm -rf $build_dir $install_dir
+mkdir -p $dist_dir $build_dir $install_dir $copy_dir $DATAPATH
+
+# Build the packages
+for name in "${packages[@]}"; do
+  eval version=\$"$name"_version
+  echo Ensuring build of $name-$version ...
+  ensure_build $name $version
+done
+
+# Cleanup the build
+cleanup_build
