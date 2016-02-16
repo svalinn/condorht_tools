@@ -12,9 +12,9 @@ function get_xs_data() {
 # Run the DAGMC tests
 function dagmc_tests() {
   cd $test_dir
-  git clone https://github.com/ljacobson64/DAGMC-tests -b add_fludag
+  git clone https://github.com/ljacobson64/DAGMC-tests
   cd DAGMC-tests/DAG-MCNP5
-  bash get_files.bash
+  bash get_files.bash no_sat
   cd ../FluDAG
   bash get_files.bash
   bash run_all_smart.bash
@@ -29,18 +29,17 @@ function dagmc_tests() {
 
 # Pack results tarball
 function pack_results() {
-  export results_tarball=results_dagmcnp5_$datetime.tar.gz
+  export results_tarball=results_$datetime.tar.gz
 
   cd $test_dir/DAGMC-tests
   tar -czvf $results_tarball summaries */*/Results
-  cp $results_tarball $results_dir
-  mv $results_tarball $orig_dir
+  mv $results_tarball $results_dir
 }
 
 # Delete unneeded stuff
 function cleanup_tests() {
   cd $orig_dir
-  rm -rf $test_dir/DAGMC-tests $install_dir
+  rm -rf $orig_dir/* $test_dir/DAGMC-tests $build_dir $install_dir
 }
 
 set -e
@@ -55,16 +54,20 @@ set_env
 export make_install_tarballs=false
 export jobs=12
 
+# Cleanup directories
+rm -rf $build_dir $install_dir
+mkdir -p $dist_dir $build_dir $install_dir $copy_dir $DATAPATH
+
 # Make sure all the dependencies are built
 packages=(gmp mpfr mpc gcc openmpi cmake hdf5 fluka)
 for name in "${packages[@]}"; do
   eval version=\$"$name"_version
   echo Ensuring build of $name-$version ...
-  ensure_build $name
+  ensure_build $name $version
 done
 
 # Re-build DAGMC
-packages=(moab mcnp5 dagmc)
+packages=(moab mcnp5 fluka dagmc)
 for name in "${packages[@]}"; do
   eval version=\$"$name"_version
   echo Building $name-$version ...

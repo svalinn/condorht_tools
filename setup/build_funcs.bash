@@ -527,6 +527,8 @@ function build_fluka() {
   mkdir -p $folder/bin
   cd $folder/bin
   tar -xzvf $dist_dir/$tarball
+  export FLUFOR=gfortran
+  export FLUPRO=$PWD
 
   make
   bash flutil/ldpmqmd

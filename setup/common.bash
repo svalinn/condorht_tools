@@ -3,6 +3,7 @@
 # Set directories
 function set_dirs() {
   export    orig_dir=$PWD
+  export    test_dir=$orig_dir                       # Location to perform DAGMC tests
   export   build_dir=/tmp/$USER/build                # Location to perform the build
   export install_dir=/tmp/$USER/opt                  # Location to install binaries, libraries, etc.
   export    dist_dir=/mnt/gluster/$USER/dist         # Location where tarballs can be found
@@ -88,6 +89,7 @@ function set_env() {
   export PYTHONPATH=$install_dir/pytaps/lib/python2.7/site-packages:$PYTHONPATH
   export PYTHONPATH=$install_dir/pyne/lib/python2.7/site-packages:$PYTHONPATH
 
+  export FLUFOR=gfortran
   export FLUPRO=$install_dir/fluka/bin
   export FLUDAG=$install_dir/dagmc/bin
 }
