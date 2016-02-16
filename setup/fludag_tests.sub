@@ -22,7 +22,7 @@ when_to_transfer_output = ON_EXIT
 
 # Indicate the executable to be run and any other input files needed
 executable = fludag_tests.bash
-transfer_input_files = fludag_tests.bash, common.bash, versions.bash
+transfer_input_files = fludag_tests.bash, common.bash, dirs.bash
 
 # Don't send emails
 notification = never
