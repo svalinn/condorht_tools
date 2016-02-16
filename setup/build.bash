@@ -110,7 +110,7 @@ function get_dependencies() {
 
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 
-                 setuptools numpy scipy cython pytables nose
+                 setuptools cython numpy scipy pytables nose
                  cubit cgm moab pytaps mcnp5 geant4 fluka dagmc pyne "
   packages_ordered=()
   for package in $all_packages; do
