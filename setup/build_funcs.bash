@@ -7,7 +7,6 @@ function ensure_build() {
   name=$1
   version=$2
   folder=$name-$version
-  fi
   if [ -f $copy_dir/install_$folder.tar.gz ]; then
     cd $install_dir
     tar -xzvf $copy_dir/install_$folder.tar.gz
@@ -26,23 +25,23 @@ function setup_build() {
     if [ ! -f $dist_dir/$tarball ]; then
       wget $url -P $dist_dir
     fi
-    if [ "${tarball: -6}" == ".tar.gz" ]; then
+    if [ "${tarball: -7}" == ".tar.gz" ]; then
       tar_string="tar -xzvf"
-    elif [ "${tarball: -7}" == ".tar.bz2" ]; then
+    elif [ "${tarball: -8}" == ".tar.bz2" ]; then
       tar_string="tar -xjvf"
     elif [ "${tarball: -4}" == ".zip" ]; then
       tar_string="unzip"
     fi
     $tar_string $dist_dir/$tarball
     ln -s $tar_f src
-  elif [ "$1" == "repo" ]
+  elif [ "$1" == "repo" ]; then
     git clone $repo -b $branch
     ln -s $name src
   fi
   if [ "$2" == "auto" ]; then
     if [ "$1" == "tar" ]; then
       cd $tar_f
-    elif [ "$1" == "repo" ]
+    elif [ "$1" == "repo" ]; then
       cd $name
     fi
     autoreconf -fi
