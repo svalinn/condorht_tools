@@ -9,15 +9,17 @@ You must take care to build your own tools as the bare-bones tools are generally
 
 HTCondor has three options for transferring files to and from the submit nodes: standard HTCondor file transfer, SQUID web proxy, and Gluster file share. The standard file transfer is not appropriate for these build jobs because the file sizes are too large. SQUID is also not appropriate because the files transferred through it are world-readable and MCNP is export controlled. Thus, Gluster file share is used. You must have access to the Gluster filespace to use these scripts; see <a href="http://chtc.cs.wisc.edu/file-avail-gluster.shtml" target="_blank">here</a> for instructions on how to request access.
 
-If you are installing CUBIT, FLUKA, or MCNP5, you are required to place their tarballs in your Gluster space (`/mnt/gluster/$USER/dist`) before installation. The scripts will also look for the tarballs for the other software in your Gluster space, but if they can't be found, the scripts will download them and place them in your Gluster space.
-
-Each submit file has some optional arguments which you can change by modifying the line beginning with `arguments =`. The order of the arguments does not matter.
-
 1. Build script
 ----------------------------------------
 The submit file `build.sub` launches a job which copies the build script `build.bash` as well as `build_funcs.bash` and `common.bash` to an execute node. The script is smart in that knows which packages depend on which other packages, and it will account for the dependencies during the build.
 
-The script `common.bash` contains the directory structure for the build as well as the the version numbers for all the packages.  These variables may be edited may be edited if you so choose.
+The `arguments =` line in `build.bash` should be edited to indicate which packages should be installed. For example, if you only want to build PyNE, you should use `arguments = pyne` and PyNE and all its dependencies will be built.
+
+The presence of some of the arguments will affect the build of others. For example, if `openmpi`, `mcnp5`, and `dagmc` are selected, then OpenMPI and an MPI version of DAG-MCNP5 will be built. If `cgm` and `moab` are selected, then MOAB will be built against CGM. The default arguments (`openmpi cubit cgm mcnp5 geant4 fluka dagmc pyne`) will result in building the entire stack.
+
+If you are installing CUBIT, FLUKA, or MCNP5, you are required to place their tarballs in your Gluster space (`/mnt/gluster/$USER/dist`) before installation. The scripts will also look for the tarballs for the other software in your Gluster space, but if they can't be found, the scripts will download them from the internet and place them in your Gluster space.
+
+The script `common.bash` contains the directory structure for the build as well as the the version numbers for all the packages. You may edit these variables if you so choose.
 
 The build script contains instructions for compiling the following packages. The default versions are listed.
 
@@ -54,14 +56,12 @@ The build script contains instructions for compiling the following packages. The
   * specify `fluka` to build FluDAG
 23. PyNE dev
 
-The `arguments =` line should be edited to indicate which packages should be installed. For example, if you only want to build PyNE, you should use `arguments = pyne` and PyNE and all its dependencies will be built.
+Submit the submit file with `$ condor_submit build.sub`. This will build the packages and place tarballs containing the output binaries, libraries, headers, and other files for each package in `/mnt/gluster/$USER/tar_install`.
 
-The presence of some of the arguments will affect the build of others. For example, if `openmpi`, `mcnp5`, and `dagmc` are selected, then OpenMPI and an MPI version of DAG-MCNP5 will be built. If `cgm` and `moab` are selected, then MOAB will be built against CGM. The default arguments will result in building the entire stack.
-
-Submit the submit file with `$ condor_submit build.sub`. This will build the packages and place a tarball containing the output binaries, libraries, headers, and other files for each package in `/mnt/gluster/$USER/tar_install`.
-
-2. Run the DAG-MCNP tests
+2. Run the DAGMC tests
 ----------------------------------------
-The submit file `dag_mcnp_tests.sub` launches a job which copies the script `dag_mcnp_tests.bash` to an execute node. The script runs the tests in the <a href="https://github.com/ljacobson64/DAGMC-tests" target="_blank">DAGMC test suite</a>. A tarball containing the test results will be created and placed in your Gluster space. The tarball will also be copied to your home directory on the submit node.
+The submit file `dagmc_tests.sub` launches a job which copies the script `dagmc_tests.bash` to an execute node. The script runs the DAG-MCNP5 and FluDAG tests in the <a href="https://github.com/ljacobson64/DAGMC-tests" target="_blank">DAGMC test suite</a>. The script will look for GMP, MPFR, MPC, GCC, OpenMPI, CMake, and HDF5 as they would have been built by `build.bash`, and if they cannot be found, the will be built. MOAB, DAG-MCNP5, and FluDAG will be re-built every time the tests are run.
 
-You must have the MCNP data tarball `mcnp_data.tar.gz` in your Gluster space to be able to run the tests.
+You must have the MCNP data tarball `mcnp_data.tar.gz` in your Gluster space in order to be able to run the tests.
+
+When the tests have finished, a tarball containing the results will be created and placed in `/mnt/gluster/$USER/results`. The tarball filename will contain the date and time the tests were completed.
