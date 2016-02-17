@@ -14,18 +14,18 @@ requirements = (Target.HasGluster == true) && (OpSysAndVer =?= "SL6") && (IsBuil
 
 # Copy environment variables from the submit node
 getenv = True
-environment = "PATH=/bin:/usr/bin:/usr/local/bin LD_LIBRARY_PATH="
+environment = "PATH=/bin:/usr/bin:/usr/local/bin LD_LIBRARY_PATH= PYTHONPATH="
 
 # Indicate if/when files should be transfered
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 
 # Indicate the executable to be run and any other input files needed
-executable = build_compile.bash
-transfer_input_files = build_compile.bash, common.bash, versions.bash
+executable = build.bash
+transfer_input_files = build.bash, build_funcs.bash, common.bash
 
 # Command line arguments for the executable
-arguments = mpi
+arguments = openmpi cubit cgm mcnp5 geant4 fluka dagmc pyne
 
 # Don't send emails
 notification = never
