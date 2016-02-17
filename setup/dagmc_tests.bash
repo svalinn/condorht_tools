@@ -67,8 +67,8 @@ for name in "${packages[@]}"; do
 done
 
 # Re-build DAGMC
-packages=(moab mcnp5 fluka dagmc)
-for name in "${packages[@]}"; do
+packages=(openmpi moab mcnp5 fluka dagmc)
+for name in "${packages[@]:1}"; do
   eval version=\$"$name"_version
   echo Building $name-$version ...
   build_$name
