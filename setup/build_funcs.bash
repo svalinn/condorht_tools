@@ -252,7 +252,7 @@ function build_setuptools() {
   name=setuptools
   version=$setuptools_version
   folder=$name-$version
-  tarball=$name-$version.zip
+  tarball=$name-$version.tar.gz
   tar_f=$name-$version
   url=https://pypi.python.org/packages/source/s/setuptools/$tarball
 
