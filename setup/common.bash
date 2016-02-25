@@ -21,10 +21,10 @@ function set_versions() {
 
   export    openmpi_version=1.10.2
   export      cmake_version=3.4.3
-  export     python_version=2.7.10
+  export     python_version=2.7.11
   export       hdf5_version=1.8.13
 
-  export setuptools_version=20.0
+  export setuptools_version=20.1.1
   export     cython_version=0.23.4
   export      numpy_version=1.10.4
   export      scipy_version=0.16.1
@@ -36,7 +36,7 @@ function set_versions() {
   export       moab_version=4.9.0
   export     pytaps_version=master
 
-  export     geant4_version=10.00.p02
+  export     geant4_version=10.02
   export      fluka_version=2011.2c
 
   export      dagmc_version=dev
