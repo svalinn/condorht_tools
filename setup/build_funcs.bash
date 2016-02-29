@@ -596,8 +596,8 @@ function build_pyne() {
   name=pyne
   version=dev
   folder=$name-$version
-  repo=https://github.com/ljacobson64/$name  #### not main pyne repo
-  branch=condor_build  #### not develop
+  repo=https://github.com/pyne/$name
+  branch=develop
 
   setup_build repo python
 
