@@ -571,7 +571,7 @@ function build_dagmc() {
   if [[ " ${packages[@]} " =~ " geant4 " ]]; then
     cmake_string+=" "-DBUILD_GEANT4=ON
     cmake_string+=" "-DGEANT4_DIR=$install_dir/geant4
-    cmake_string+=" "-DGEANT4_CMAKE_CONFIG:PATH=$install_dir/geant4/lib64/Geant4-10.0.2
+    cmake_string+=" "-DGEANT4_CMAKE_CONFIG:PATH=$install_dir/geant4/lib64/Geant4-10.2.0
   fi
   if [[ " ${packages[@]} " =~ " fluka " ]]; then
     cmake_string+=" "-DBUILD_FLUKA=ON
