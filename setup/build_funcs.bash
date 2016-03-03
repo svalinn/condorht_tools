@@ -5,7 +5,7 @@
 # If not, build the package from source
 function ensure_build() {
   name=$1
-  version=$2
+  eval version=\$"$name"_version
   folder=$name-$version
   if [ -f $copy_dir/install_$folder.tar.gz ]; then
     cd $install_dir
@@ -26,6 +26,8 @@ function setup_build() {
       wget $url -P $dist_dir
     fi
     if [ "${tarball: -7}" == ".tar.gz" ]; then
+      tar_string="tar -xzvf"
+    elif [ "${tarball: -4}" == ".tgz" ]; then
       tar_string="tar -xzvf"
     elif [ "${tarball: -8}" == ".tar.bz2" ]; then
       tar_string="tar -xjvf"
@@ -49,12 +51,14 @@ function setup_build() {
   elif [ "$2" == "python" ]; then
     mkdir -p $install_dir/$folder/lib/python2.7/site-packages
   fi
+  cd $install_dir
+  ln -snf $folder $name
+  cd $build_dir/$folder
 }
 
 # Finalize a build
 function finalize_build() {
   cd $install_dir
-  ln -snf $folder $name
   if [ $make_install_tarballs = true ]; then
     tar -czvf install_$folder.tar.gz $name*
     mv install_$folder.tar.gz $copy_dir
@@ -62,7 +66,7 @@ function finalize_build() {
   cd $build_dir
 }
 
-# 1. Build GMP
+# Build GMP
 function build_gmp() {
   name=gmp
   version=$gmp_version
@@ -84,7 +88,7 @@ function build_gmp() {
   finalize_build
 }
 
-# 2. Build MPFR
+# Build MPFR
 function build_mpfr() {
   name=mpfr
   version=$mpfr_version
@@ -107,7 +111,7 @@ function build_mpfr() {
   finalize_build
 }
 
-# 3. Build MPC
+# Build MPC
 function build_mpc() {
   name=mpc
   version=$mpc_version
@@ -131,7 +135,7 @@ function build_mpc() {
   finalize_build
 }
 
-# 4. Build GCC
+# Build GCC
 function build_gcc() {
   name=gcc
   version=$gcc_version
@@ -156,7 +160,7 @@ function build_gcc() {
   finalize_build
 }
 
-# 5. Build OpenMPI
+# Build OpenMPI
 function build_openmpi() {
   name=openmpi
   version=$openmpi_version
@@ -178,7 +182,7 @@ function build_openmpi() {
   finalize_build
 }
 
-# 6. Build CMake
+# Build CMake
 function build_cmake() {
   name=cmake
   version=$cmake_version
@@ -200,7 +204,7 @@ function build_cmake() {
   finalize_build
 }
 
-# 7. Build Python
+# Build Python
 function build_python() {
   name=python
   version=$python_version
@@ -223,7 +227,7 @@ function build_python() {
   finalize_build
 }
 
-# 8. Build HDF5
+# Build HDF5
 function build_hdf5() {
   name=hdf5
   version=$hdf5_version
@@ -247,7 +251,30 @@ function build_hdf5() {
   finalize_build
 }
 
-# 9. Build Setuptools
+# Build LAPACK
+function build_lapack() {
+  name=lapack
+  version=$lapack_version
+  folder=$name-$version
+  tarball=$name-$version.tgz
+  tar_f=$name-$version
+  url=http://www.netlib.org/lapack/$tarball
+
+  setup_build tar
+
+  cmake_string=
+  cmake_string+=" "-DCMAKE_Fortran_COMPILER=$install_dir/gcc/bin/gfortran
+  cmake_string+=" "-DCMAKE_INSTALL_PREFIX=$install_dir/$folder
+
+  cd bld
+  cmake ../src $cmake_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build Setuptools
 function build_setuptools() {
   name=setuptools
   version=$setuptools_version
@@ -262,15 +289,12 @@ function build_setuptools() {
   setup_string+=" "--prefix=$install_dir/$folder
 
   cd $tar_f
-  PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py install $setup_string
-  PYTHONPATH=$PYTHONPATH_orig
 
   finalize_build
 }
 
-# 10. Build Cython
+# Build Cython
 function build_cython() {
   name=cython
   version=$cython_version
@@ -285,15 +309,12 @@ function build_cython() {
   setup_string+=" "--prefix=$install_dir/$folder
 
   cd $tar_f
-  PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py install $setup_string
-  PYTHONPATH=$PYTHONPATH_orig
 
   finalize_build
 }
 
-# 11. Build NumPy
+# Build NumPy
 function build_numpy() {
   name=numpy
   version=$numpy_version
@@ -308,15 +329,12 @@ function build_numpy() {
   setup_string+=" "--prefix=$install_dir/$folder
 
   cd $tar_f
-  PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py build -j $jobs install $setup_string
-  PYTHONPATH=$PYTHONPATH_orig
 
   finalize_build
 }
 
-# 12. Build SciPy
+# Build SciPy
 function build_scipy() {
   name=scipy
   version=$scipy_version
@@ -331,15 +349,32 @@ function build_scipy() {
   setup_string+=" "--prefix=$install_dir/$folder
 
   cd $tar_f
-  PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py build -j $jobs install $setup_string
-  PYTHONPATH=$PYTHONPATH_orig
 
   finalize_build
 }
 
-# 13. Build PyTables
+# Build NumExpr
+function build_numexpr() {
+  name=numexpr
+  version=$numexpr_version
+  folder=$name-$version
+  tarball=$name-$version.tar.gz
+  tar_f=$name-$version
+  url=https://pypi.python.org/packages/source/n/numexpr/$tarball
+
+  setup_build tar python
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd $tar_f
+  python setup.py install $setup_string
+
+  finalize_build
+}
+
+# Build PyTables
 function build_pytables() {
   name=pytables
   version=$pytables_version
@@ -355,15 +390,12 @@ function build_pytables() {
   setup_string+=" "--prefix=$install_dir/$folder
 
   cd $tar_f
-  PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py install $setup_string
-  PYTHONPATH=$PYTHONPATH_orig
 
   finalize_build
 }
 
-# 14. Build Nose
+# Build Nose
 function build_nose() {
   name=nose
   version=$nose_version
@@ -378,15 +410,12 @@ function build_nose() {
   setup_string+=" "--prefix=$install_dir/$folder
 
   cd $tar_f
-  PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py install $setup_string
-  PYTHONPATH=$PYTHONPATH_orig
 
   finalize_build
 }
 
-# 15. Build CUBIT
+# Build CUBIT
 function build_cubit() {
   name=cubit
   version=$cubit_version
@@ -394,15 +423,15 @@ function build_cubit() {
   tarball=Cubit_LINUX64.$version.tar.gz
 
   cd $install_dir
+  ln -snf $folder $name
   mkdir $folder
   cd $folder
-  
   tar -xzvf $dist_dir/$tarball
 
   finalize_build
 }
 
-# 16. Build CGM
+# Build CGM
 function build_cgm() {
   name=cgm
   version=$cgm_version
@@ -429,7 +458,7 @@ function build_cgm() {
   finalize_build
 }
 
-# 17. Build MOAB
+# Build MOAB
 function build_moab() {
   name=moab
   version=$moab_version
@@ -441,6 +470,8 @@ function build_moab() {
 
   config_string=
   config_string+=" "--enable-dagmc
+  config_string+=" "--enable-fbigeom
+  config_string+=" "--enable-irel
   config_string+=" "--enable-optimize
   config_string+=" "--enable-shared
   config_string+=" "--disable-debug
@@ -458,7 +489,34 @@ function build_moab() {
   finalize_build
 }
 
-# 18. Build PyTAPS
+# Build MeshKit
+function build_meshkit() {
+  name=meshkit
+  version=$meshkit_version
+  folder=$name-$version
+  repo=https://bitbucket.org/fathomteam/$name
+  branch=MeshKitv$version
+  if [ "$version" = "master" ]; then branch=master; fi
+
+  setup_build repo auto
+
+  config_string=
+  config_string+=" "--enable-optimize
+  config_string+=" "--enable-shared
+  config_string+=" "--disable-debug
+  config_string+=" "--with-igeom=$install_dir/cgm
+  config_string+=" "--with-imesh=$install_dir/moab
+  config_string+=" "--prefix=$install_dir/$folder
+
+  cd bld
+  ../src/configure $config_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build PyTAPS
 function build_pytaps() {
   name=pytaps
   version=$pytaps_version
@@ -477,21 +535,18 @@ function build_pytaps() {
   setup_string_2+=" "--prefix=$install_dir/$folder
 
   cd $name
-  PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py $setup_string install $setup_string_2
-  PYTHONPATH=$PYTHONPATH_orig
 
   finalize_build
 }
 
-# 19. Build MCNP5
+# Build MCNP5
 function build_mcnp5() {
   # build MCNP5 when we build DAGMC
   :
 }
 
-# 20. Build Geant4
+# Build Geant4
 function build_geant4() {
   name=geant4
   version=$geant4_version
@@ -516,7 +571,7 @@ function build_geant4() {
   finalize_build
 }
 
-# 21. Build FLUKA
+# Build FLUKA
 function build_fluka() {
   name=fluka
   version=$fluka_version
@@ -524,6 +579,7 @@ function build_fluka() {
   tarball=fluka$version-linux-gfor64bitAA.tar.gz
 
   cd $install_dir
+  ln -snf $folder $name
   mkdir -p $folder/bin
   cd $folder/bin
   tar -xzvf $dist_dir/$tarball
@@ -536,7 +592,7 @@ function build_fluka() {
   finalize_build
 }
 
-# 22. Build DAGMC
+# Build DAGMC
 function build_dagmc() {
   name=dagmc
   version=$dagmc_version
@@ -591,7 +647,7 @@ function build_dagmc() {
   finalize_build
 }
 
-# 23. Build PyNE
+# Build PyNE
 function build_pyne() {
   name=pyne
   version=dev
@@ -610,11 +666,8 @@ function build_pyne() {
   setup_string_2+=" "--prefix=$install_dir/$folder
 
   cd $name
-  PYTHONPATH_orig=$PYTHONPATH
-  PYTHONPATH=$install_dir/$folder/lib/python2.7/site-packages:$PYTHONPATH
   python setup.py $setup_string install $setup_string_2 -j $jobs
   nuc_data_make
-  PYTHONPATH=$PYTHONPATH_orig
 
   finalize_build
 }

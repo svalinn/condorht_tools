@@ -15,7 +15,7 @@ The submit file `build.sub` launches a job which copies the build script `build.
 
 The `arguments =` line in `build.bash` should be edited to indicate which packages should be installed. For example, if you only want to build PyNE, you should use `arguments = pyne` and PyNE and all its dependencies will be built.
 
-The presence of some of the arguments will affect the build of others. For example, if `openmpi`, `mcnp5`, and `dagmc` are selected, then OpenMPI and an MPI version of DAG-MCNP5 will be built. If `cgm` and `moab` are selected, then MOAB will be built against CGM. The default arguments (`openmpi cubit cgm mcnp5 geant4 fluka dagmc pyne`) will result in building the entire stack.
+The presence of some of the arguments will affect the build of others. For example, if `openmpi`, `mcnp5`, and `dagmc` are selected, then OpenMPI and an MPI version of DAG-MCNP5 will be built. If `cgm` and `moab` are selected, then MOAB will be built against CGM. The default arguments (`openmpi cubit cgm meshkit mcnp5 geant4 fluka dagmc pyne`) will result in building the entire stack.
 
 If you are installing CUBIT, FLUKA, or MCNP5, you are required to place their tarballs in your Gluster space (`/mnt/gluster/$USER/dist`) before installation. The scripts will also look for the tarballs for the other software in your Gluster space, but if they can't be found, the scripts will download them from the internet and place them in your Gluster space.
 
@@ -29,32 +29,35 @@ The build script contains instructions for compiling the following packages. The
 4. GCC 5.3.0
 5. OpenMPI 1.10.2
 6. CMake 3.4.3
-7. Python 2.7.10
+7. Python 2.7.11
 8. HDF5 1.8.13
-9. Setuptools 20.0
-10. Cython 0.23.4
-11. NumPy 1.10.4
-12. SciPy 0.16.1
-13. PyTables 3.2.0
-14. Nose 1.3.7
-15. CUBIT 12.2
+9. LAPACK 3.6.0
+10. Setuptools 20.2.2
+11. Cython 0.23.4
+12. NumPy 1.10.4
+13. SciPy 0.16.1
+14. NumExpr 2.5
+15. PyTables 3.2.0
+16. Nose 1.3.7
+17. CUBIT 12.2
   * must have `Cubit_LINUX64.12.2.tar.gz` or variant in Gluster
-16. CGM 12.2
+18. CGM 12.2
   * specify `cubit` to build with CUBIT
-17. MOAB 4.9.0
+19. MOAB 4.9.0
   * specify `cgm` to build with CGM
-18. PyTAPS master
-19. MCNP5 1.60
+20. MeshKit master
+21. PyTAPS master
+22. MCNP5 1.60
   * must have `mcnp5_dist.tgz` in Gluster
-20. Geant4 10.00.p02
-21. FLUKA 2011.2c
+23. Geant4 10.00.p02
+24. FLUKA 2011.2c
   * must have `fluka2011.2c-linux-gfor64bitAA.tar.gz` or variant in Gluster
-22. DAGMC dev
+25. DAGMC dev
   * specify `mcnp5` to build DAG-MCNP5
   * specify `mcnp5` and `openmpi` to build an MPI version of DAG-MCNP5
   * specify `geant4` to build DAG-Geant4
   * specify `fluka` to build FluDAG
-23. PyNE dev
+26. PyNE dev
 
 Submit the submit file with `$ condor_submit build.sub`. This will build the packages and place tarballs containing the output binaries, libraries, headers, and other files for each package in `/mnt/gluster/$USER/tar_install`.
 

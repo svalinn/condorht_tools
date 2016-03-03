@@ -11,6 +11,7 @@ function get_dependencies() {
     packages+=(cmake)
     packages+=(python)
     packages+=(hdf5)
+    packages+=(lapack)
     packages+=(setuptools)
     packages+=(cython)
     packages+=(numpy)
@@ -40,7 +41,14 @@ function get_dependencies() {
     packages+=(gcc)
     packages+=(python)
     packages+=(hdf5)
+    packages+=(lapack)
     packages+=(numpy)
+    packages+=(moab)
+  fi
+  if [[ " ${packages[@]} " =~ " meshkit " ]]; then
+    packages+=(gcc)
+    packages+=(hdf5)
+    packages+=(moab)
   fi
   if [[ " ${packages[@]} " =~ " moab " ]]; then
     packages+=(gcc)
@@ -60,19 +68,28 @@ function get_dependencies() {
     packages+=(gcc)
     packages+=(python)
     packages+=(hdf5)
+    packages+=(lapack)
     packages+=(setuptools)
     packages+=(cython)
+    packages+=(numpy)
+    packages+=(numexpr)
+  fi
+  if [[ " ${packages[@]} " =~ " numexpr " ]]; then
+    packages+=(gcc)
+    packages+=(python)
     packages+=(numpy)
   fi
   if [[ " ${packages[@]} " =~ " scipy " ]]; then
     packages+=(gcc)
     packages+=(python)
+    packages+=(lapack)
     packages+=(cython)
     packages+=(numpy)
   fi
   if [[ " ${packages[@]} " =~ " numpy " ]]; then
     packages+=(gcc)
     packages+=(python)
+    packages+=(lapack)
     packages+=(cython)
   fi
   if [[ " ${packages[@]} " =~ " cython " ]]; then
@@ -109,9 +126,9 @@ function get_dependencies() {
   fi
 
   # Put the dependencies in the correct build order
-  all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 
-                 setuptools cython numpy scipy pytables nose
-                 cubit cgm moab pytaps mcnp5 geant4 fluka dagmc pyne "
+  all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
+                 setuptools cython numpy scipy numexpr pytables nose
+                 cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne "
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then
@@ -150,7 +167,7 @@ mkdir -p $dist_dir $build_dir $install_dir $copy_dir $DATAPATH
 for name in "${packages[@]}"; do
   eval version=\$"$name"_version
   echo Ensuring build of $name-$version ...
-  ensure_build $name $version
+  ensure_build $name
 done
 
 # Cleanup the build
