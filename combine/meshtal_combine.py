@@ -283,7 +283,7 @@ class Meshtal(object):
                 file.write(' %10.5e\n'%(self.errData[ndx][num]))
         file.close()
 
-def Stream(in1,in2,outname,operation = 'add'):
+def Stream(in1,in2,outname,op = ""):
     print in1+' '+in2+' '+outname
     mesh1 = Meshtal()
     mesh2 = Meshtal()
@@ -628,7 +628,9 @@ def main():
 
     #flags
     outname = CmdLineFind('-o','COMBINEDMESH')
-    streaming = CmdLineFindIndex('-s');   
+    streaming = CmdLineFindIndex('-s');
+    add = CmdLineFindIndex('-add')
+    average = CmdLineFindIndex('-avg')
     delete = CmdLineFindIndex('-d');
     showHelp = CmdLineFindIndex('-h')
     
@@ -651,6 +653,11 @@ def main():
         help()
         sys.exit(1) 
 
+    if avg >=0  and len(sys.argv) > 2:
+        print 'Error: Averaging only supported for 2 files'
+        help()
+        sys.exit(1)
+        
     meshfiles = sys.argv[filesNdx:]
     
     if streaming < 0:
@@ -666,10 +673,13 @@ def main():
         meshtal.Write(outname)
     else:
         outnames = []
+        operation = "add" if add >= 0 else ""
+        operation = "avg" if avg >= 0 else ""
+        
         for ndx in range(2,len(meshfiles)):
             outnames.append(outname+"."+str(ndx))
         outnames.append(outname)
-        Stream(meshfiles[0],meshfiles[1],outnames[0])
+        Stream(meshfiles[0],meshfiles[1],outnames[0],op=operation)
         if delete > 0:
             subprocess.call('rm -rf '+meshfiles[0],shell=True)
             subprocess.call('rm -rf '+meshfiles[1],shell=True)
