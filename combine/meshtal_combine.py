@@ -552,7 +552,7 @@ def Stream(in1,in2,outname,op = ""):
                     errData1=float(words1[errNdx])
                     errData2=float(words2[errNdx])
 
-                    if operation is 'avg':
+                    if op is 'avg':
                         N = mesh1.numHist+mesh2.numHist
                         S1 = resData1*mesh1.numHist
                         S2 = resData2*mesh2.numHist
@@ -565,7 +565,7 @@ def Stream(in1,in2,outname,op = ""):
                             errDataOut=0
                         else:
                             errDataOut = math.sqrt(stddev2)/mean
-                    elif operation is 'add':
+                    elif op is 'add':
                         resDataOut = resData1+resData2
                         if resDataOut == 0:
                             errDataOut = 0
@@ -614,7 +614,8 @@ def CmdLineFind( tag, defaultvalue ):
 
 def help():
     print 'meshtal_combine: A tool for combining MCNP meshtal files\n'
-    print 'python meshtal_combine.py [OPTIONS] INPUT1 INPUT2 ...\n'
+    print 'python meshtal_combine.py [OPTIONS] OPERATION INPUT1 INPUT2 ...\n'
+    print 'Operations: either --add or --avg'
     print 'OPTIONS'
     print '-o OUTFILE\tSet Output file name to OUTFILE (default COMBINEDMESH)'
     print '-s\t\tStreaming Mode, for very large files'
@@ -629,8 +630,8 @@ def main():
     #flags
     outname = CmdLineFind('-o','COMBINEDMESH')
     streaming = CmdLineFindIndex('-s');
-    add = CmdLineFindIndex('-add')
-    average = CmdLineFindIndex('-avg')
+    add = CmdLineFindIndex('--add')
+    avg = CmdLineFindIndex('--avg')
     delete = CmdLineFindIndex('-d');
     showHelp = CmdLineFindIndex('-h')
     
@@ -647,6 +648,15 @@ def main():
         filesNdx += 1
     if delete > 0:
         filesNdx+=1
+    if add > 0:
+        filesNdx+=1
+    if avg > 0:
+        filesNdx+=1
+
+    if add > 0 and avg > 0:
+        print 'Error: Please choose a single operation.'
+        help()
+        sys.exit(1)
  
     if len(sys.argv)-filesNdx < 2:
         print 'Error: Not enough files'
@@ -674,7 +684,7 @@ def main():
     else:
         outnames = []
         operation = "add" if add >= 0 else ""
-        operation = "avg" if avg >= 0 else ""
+        if operation == "" and agv > 0: operation = "avg"
         
         for ndx in range(2,len(meshfiles)):
             outnames.append(outname+"."+str(ndx))
