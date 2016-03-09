@@ -143,47 +143,72 @@ class Meshtal(object):
 
         self.file.close()
 
-    def Add(self,Other):
-
-
+    def Validate_op(self,Other):
         #check that files can be validly added together
         if self.vers != Other.vers:
             print 'Versions do not match '+self.filename+': '+str(self.vers)+', '+Other.filename+': '+str(Other.vers)
-            return 
+            return False 
         if self.ld != Other.ld:
             print 'ld do not match '+self.filename+': '+str(self.ld)+', '+Other.filename+': '+str(Other.ld)
-            return
+            return False
 
         for ndx in range(len(self.type)):
             if self.meshtalNum[ndx] != Other.meshtalNum[ndx]:
                 print 'Meshtally Numbers do not match '+self.filename+': '+str(self.meshtalNum[ndx])+', '+Other.filename+': '+str(Other.meshtalNum[ndx])
-                return
+                return False
 
             if self.type[ndx] != Other.type[ndx]:
                 print 'Types do not match '+self.filename+': '+self.type[ndx]+'\n'+Other.filename+': '+Other.type[ndx]
-                return
+                return False
 
             if self.xBounds[ndx] != Other.xBounds[ndx]:
                 print 'X Bounds for tally number '+str(self.meshtalNum[ndx])+' do not match '
-                return
+                return False
 
             if self.yBounds[ndx] != Other.yBounds[ndx]:
                 print 'Y Bounds for tally number '+str(self.meshtalNum[ndx])+' do not match '
-                return
+                return False
 
             if self.zBounds[ndx] != Other.zBounds[ndx]:
                 print 'Z Bounds for tally number '+str(self.meshtalNum[ndx])+' do not match '
-                return
+                return False
 
             if self.enBounds[ndx] != Other.enBounds[ndx]:
                 print 'Energy Bounds for tally number '+str(self.meshtalNum[ndx])+' do not match '
-                return
+                return False
 
             if self.xNdx[ndx] != Other.xNdx[ndx] or self.yNdx[ndx] != Other.yNdx[ndx] or self.zNdx[ndx] != Other.zNdx[ndx] or self.enNdx[ndx] != Other.enNdx[ndx]:
                 print 'Data is ordered differently for tally number '+str(self.meshtalNum[ndx])
-                return
+                return False
 
+            return True
 
+    def Add(self,Other):
+
+        if not self.Validate_op(Other):
+            return
+
+        N = self.numHist+Other.numHist
+        for ndx in range(len(self.type)):
+
+            numData = (len(self.xBounds[ndx])-1)*(len(self.yBounds[ndx])-1)*(len(self.zBounds[ndx])-1)*(len(self.enBounds[ndx])-1)
+            for num in range((numData)):
+                R1 = self.resData[ndx][num]
+                R2 = Other.resData[ndx][num]
+                E1 = self.errData[ndx][num]
+                E2 = Other.errData[ndx][num]
+                self.resData[ndx][num] = R1+R2
+                if self.resData[ndx][num] == 0:
+                    self.errData[ndx][num] = 0
+                else:
+                    self.errData[ndx][num] = math.sqrt((R1*E1)**2+(R2*E2)**2)/(R1+R2)
+            
+        self.numHist = N
+            
+    def Avg(self,Other):
+
+        if not self.Validate_op(Other):
+            return
 
         N = self.numHist+Other.numHist
         for ndx in range(len(self.type)):
@@ -258,11 +283,10 @@ class Meshtal(object):
                 file.write(' %10.5e\n'%(self.errData[ndx][num]))
         file.close()
 
-def Stream(in1,in2,outname):
+def Stream(in1,in2,outname,op = ""):
     print in1+' '+in2+' '+outname
     mesh1 = Meshtal()
     mesh2 = Meshtal()
-
 
     try:
         mesh1.file = open(in1,'r')
@@ -527,19 +551,30 @@ def Stream(in1,in2,outname):
                     resData2=float(words2[resNdx])
                     errData1=float(words1[errNdx])
                     errData2=float(words2[errNdx])
-        
-                    N = mesh1.numHist+mesh2.numHist
-                    S1 = resData1*mesh1.numHist
-                    S2 = resData2*mesh2.numHist
-                    T1 = mesh1.numHist*resData1*resData1*(mesh1.numHist*errData1*errData1+1)
-                    T2 = mesh2.numHist*resData2*resData2*(mesh2.numHist*errData2*errData2+1)
-                    mean = (S1+S2)/N
-                    stddev2=((T1+T2)/N-mean*mean)/N
-                    resDataOut = mean
-                    if mean ==0:
-                        errDataOut=0
+
+                    if op is 'avg':
+                        N = mesh1.numHist+mesh2.numHist
+                        S1 = resData1*mesh1.numHist
+                        S2 = resData2*mesh2.numHist
+                        T1 = mesh1.numHist*resData1*resData1*(mesh1.numHist*errData1*errData1+1)
+                        T2 = mesh2.numHist*resData2*resData2*(mesh2.numHist*errData2*errData2+1)
+                        mean = (S1+S2)/N
+                        stddev2=((T1+T2)/N-mean*mean)/N
+                        resDataOut = mean
+                        if mean ==0:
+                            errDataOut=0
+                        else:
+                            errDataOut = math.sqrt(stddev2)/mean
+                    elif op is 'add':
+                        resDataOut = resData1+resData2
+                        if resDataOut == 0:
+                            errDataOut = 0
+                        else:
+                            errDataOut = math.sqrt((resData1*errData1)**2 + (resData2*errData2)**2)/resDataOut
                     else:
-                        errDataOut = math.sqrt(stddev2)/mean
+                        print 'Error: unknown operation specified'
+                        sys.exit(1)                            
+                    
                     if enNdx >=0:
                         file.write('%10s'%(enData1))
                     if xNdx >=0:
@@ -579,7 +614,8 @@ def CmdLineFind( tag, defaultvalue ):
 
 def help():
     print 'meshtal_combine: A tool for combining MCNP meshtal files\n'
-    print 'python meshtal_combine.py [OPTIONS] INPUT1 INPUT2 ...\n'
+    print 'python meshtal_combine.py [OPTIONS] OPERATION INPUT1 INPUT2 ...\n'
+    print 'Operations: either --add or --avg'
     print 'OPTIONS'
     print '-o OUTFILE\tSet Output file name to OUTFILE (default COMBINEDMESH)'
     print '-s\t\tStreaming Mode, for very large files'
@@ -593,7 +629,9 @@ def main():
 
     #flags
     outname = CmdLineFind('-o','COMBINEDMESH')
-    streaming = CmdLineFindIndex('-s');   
+    streaming = CmdLineFindIndex('-s');
+    add = CmdLineFindIndex('--add')
+    avg = CmdLineFindIndex('--avg')
     delete = CmdLineFindIndex('-d');
     showHelp = CmdLineFindIndex('-h')
     
@@ -610,28 +648,48 @@ def main():
         filesNdx += 1
     if delete > 0:
         filesNdx+=1
+    if add > 0:
+        filesNdx+=1
+    if avg > 0:
+        filesNdx+=1
+
+    if add > 0 and avg > 0:
+        print 'Error: Please choose a single operation.'
+        help()
+        sys.exit(1)
  
     if len(sys.argv)-filesNdx < 2:
         print 'Error: Not enough files'
         help()
         sys.exit(1) 
 
+    if avg >=0  and len(sys.argv) > 2:
+        print 'Error: Averaging only supported for 2 files'
+        help()
+        sys.exit(1)
+        
     meshfiles = sys.argv[filesNdx:]
-
+    
     if streaming < 0:
         meshtal = Meshtal()
         meshtal.read(meshfiles[0])
         for ndx in range(1,len(meshfiles)):
             meshtal2=Meshtal()
             meshtal2.read(meshfiles[ndx])
-            meshtal.Add(meshtal2)
+            if add:
+                meshtal.Add(meshtal2)
+            elif avg:
+                meshtal.Avg(meshtal2)
         meshtal.Write(outname)
     else:
         outnames = []
+        operation = "add" if add >= 0 else ""
+        if operation == "" and agv > 0: operation = "avg"
+        
         for ndx in range(2,len(meshfiles)):
             outnames.append(outname+"."+str(ndx))
         outnames.append(outname)
-        Stream(meshfiles[0],meshfiles[1],outnames[0])
+        Stream(meshfiles[0],meshfiles[1],outnames[0],op=operation)
         if delete > 0:
             subprocess.call('rm -rf '+meshfiles[0],shell=True)
             subprocess.call('rm -rf '+meshfiles[1],shell=True)
@@ -645,6 +703,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-	
-
