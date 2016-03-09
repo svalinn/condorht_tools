@@ -46,7 +46,7 @@ class Meshtal(object):
             print "Reading "+filename
             words = self.file.readline().split()
             self.vers=int(words[2])
-            self.ld=int(words[3][3:])
+            self.ld=str(words[3][3:])
             self.comment=self.file.readline()
             words = self.file.readline().split()
             self.numHist=float(words[-1])
@@ -279,7 +279,7 @@ def Stream(in1,in2,outname):
     try:
         words1 = mesh1.file.readline().split()
         mesh1.vers=int(words1[2])
-        mesh1.ld=int(words1[3][3:])
+        mesh1.ld=str(words1[3][3:])
         mesh1.comment=mesh1.file.readline()
         words1 = mesh1.file.readline().split()
         mesh1.numHist=float(words1[-1])
@@ -295,7 +295,7 @@ def Stream(in1,in2,outname):
     try:
         words2 = mesh2.file.readline().split()
         mesh2.vers=int(words2[2])
-        mesh2.ld=int(words2[3][3:])
+        mesh2.ld=str(words2[3][3:])
         mesh2.comment=mesh2.file.readline()
         words2 = mesh2.file.readline().split()
         mesh2.numHist=float(words2[-1])
