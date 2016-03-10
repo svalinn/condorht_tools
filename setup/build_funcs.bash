@@ -471,13 +471,13 @@ function build_moab() {
   config_string=
   config_string+=" "--enable-dagmc
   config_string+=" "--enable-fbigeom
-  config_string+=" "--enable-irel
   config_string+=" "--enable-optimize
   config_string+=" "--enable-shared
   config_string+=" "--disable-debug
   config_string+=" "--with-hdf5=$install_dir/hdf5
   if [[ " ${packages[@]} " =~ " cgm " ]]; then
     config_string+=" "--with-cgm=$install_dir/cgm
+    config_string+=" "--enable-irel
   fi
   config_string+=" "--prefix=$install_dir/$folder
 
