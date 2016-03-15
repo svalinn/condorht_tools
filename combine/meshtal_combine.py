@@ -339,7 +339,7 @@ def Stream(in1,in2,outname,op = ""):
 
     if mesh1.ld != mesh2.ld:
         print 'ld do not match '+in1+': '+str(mesh1.ld)+', '+in2+': '+str(mesh2.ld)
-        sys.exit(1)
+
 
     try:
         file = open(outname,'w')
