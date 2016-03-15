@@ -694,7 +694,7 @@ def main():
             subprocess.call('rm -rf '+meshfiles[0],shell=True)
             subprocess.call('rm -rf '+meshfiles[1],shell=True)
         for ndx in range(2,len(meshfiles)):
-            Stream(outnames[ndx-2],meshfiles[ndx],outnames[ndx-1])
+            Stream(outnames[ndx-2],meshfiles[ndx],outnames[ndx-1],op=operation)
             print 'rm -rf '+outnames[ndx-2]
             subprocess.call('rm -rf '+outnames[ndx-2],shell=True)
             if delete > 0:
