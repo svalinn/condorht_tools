@@ -339,7 +339,7 @@ def Stream(in1,in2,outname,op = ""):
 
     if mesh1.ld != mesh2.ld:
         print 'ld do not match '+in1+': '+str(mesh1.ld)+', '+in2+': '+str(mesh2.ld)
-        sys.exit(1)
+
 
     try:
         file = open(outname,'w')
@@ -694,7 +694,7 @@ def main():
             subprocess.call('rm -rf '+meshfiles[0],shell=True)
             subprocess.call('rm -rf '+meshfiles[1],shell=True)
         for ndx in range(2,len(meshfiles)):
-            Stream(outnames[ndx-2],meshfiles[ndx],outnames[ndx-1])
+            Stream(outnames[ndx-2],meshfiles[ndx],outnames[ndx-1],op=operation)
             print 'rm -rf '+outnames[ndx-2]
             subprocess.call('rm -rf '+outnames[ndx-2],shell=True)
             if delete > 0:
