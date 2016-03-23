@@ -48,6 +48,7 @@ function get_dependencies() {
   if [[ " ${packages[@]} " =~ " meshkit " ]]; then
     packages+=(gcc)
     packages+=(hdf5)
+    packages+=(cgm)
     packages+=(moab)
   fi
   if [[ " ${packages[@]} " =~ " moab " ]]; then
