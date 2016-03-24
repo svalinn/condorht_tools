@@ -288,12 +288,88 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
       else:
           pass
 
+
       file.write("#!/bin/bash"+"\n")
       file.write("# get_until_got function - keeps trying to get file with wget \n")
       file.write("# until its successful \n")
       file.write("get_until_got(){ \n")
       file.write("wget -c -t 5 --waitretry=20 --read-timeout=10 $1\n")
       file.write("}\n")
+
+      file.write("function set_env() {\n
+                 # GMP \n
+                 export LD_LIBRARY_PATH=$PWD/gmp/lib:$LD_LIBRARY_PATH\n
+                 # MPFR \n
+                 export LD_LIBRARY_PATH=$PWD/mpfr/lib:$LD_LIBRARY_PATH \n
+                 # MPC \n
+                 export LD_LIBRARY_PATH=$PWD/mpc/lib:$LD_LIBRARY_PATH \n
+                 # GCC \n
+                 export PATH=$PWD/gcc/bin:$PATH                 \n
+                 export LD_LIBRARY_PATH=$PWD/gcc/lib:$LD_LIBRARY_PATH \n
+                 export LD_LIBRARY_PATH=$PWD/gcc/lib64:$LD_LIBRARY_PATH \n
+                 # OpenMPI \n
+                 export PATH=$PWD/openmpi/bin:$PATH \n
+                 export LD_LIBRARY_PATH=$PWD/openmpi/lib:$LD_LIBRARY_PATH \n
+                 # CMake \n
+                 export PATH=$PWD/cmake/bin:$PATH \n
+                 export LD_LIBRARY_PATH=$PWD/cmake/lib:$LD_LIBRARY_PATH \n
+                 # Python \n
+                 export PATH=$PWD/python/bin:$PATH \n
+                 export LD_LIBRARY_PATH=$PWD/python/lib:$LD_LIBRARY_PATH \n
+                 # HDF5 \n
+                 export PATH=$PWD/hdf5/bin:$PATH \n
+                 export LD_LIBRARY_PATH=$PWD/hdf5/lib:$LD_LIBRARY_PATH \n
+                 # LAPACK                \n
+                 export LD_LIBRARY_PATH=$PWD/lapack/lib:$LD_LIBRARY_PATH \n
+                 # Setuptools \n
+                 export PATH=$PWD/setuptools/bin:$PATH \n
+                 export PYTHONPATH=$PWD/setuptools/lib/python2.7/site-packages:$PYTHONPATH \n
+                 # Cython \n
+                 export PATH=$PWD/cython/bin:$PATH \n
+                 export PYTHONPATH=$PWD/cython/lib/python2.7/site-packages:$PYTHONPATH \n
+                 # NumPy \n
+                 export PATH=$PWD/numpy/bin:$PATH \n
+                 export PYTHONPATH=$PWD/numpy/lib/python2.7/site-packages:$PYTHONPATH \n
+                 # SciPy \n
+                 export PATH=$PWD/pytables/bin:$PATH \n
+                 export PYTHONPATH=$PWD/scipy/lib/python2.7/site-packages:$PYTHONPATH \n
+                 # NumExpr \n
+                 export PYTHONPATH=$PWD/numexpr/lib/python2.7/site-packages:$PYTHONPATH \n
+                 # PyTables \n
+                 export PYTHONPATH=$PWD/pytables/lib/python2.7/site-packages:$PYTHONPATH \n
+                 # Nose \n
+                 export PATH=$PWD/nose/bin:$PATH \n
+                 export PYTHONPATH=$PWD/nose/lib/python2.7/site-packages:$PYTHONPATH \n
+                 # CUBIT \n
+                 export PATH=$PWD/cubit/bin:$PATH \n
+                 export LD_LIBRARY_PATH=$PWD/cubit/bin:$LD_LIBRARY_PATH \n
+                 # CGM \n
+                 export LD_LIBRARY_PATH=$PWD/cgm/lib:$LD_LIBRARY_PATH \n
+                 # MOAB \n
+                 export PATH=$PWD/moab/bin:$PATH \n
+                 export LD_LIBRARY_PATH=$PWD/moab/lib:$LD_LIBRARY_PATH \n
+                 # MeshKit \n
+                 export PATH=$PWD/meshkit/bin:$PATH \n
+                 export LD_LIBRARY_PATH=$PWD/meshkit/lib:$LD_LIBRARY_PATH \n
+                 # PyTAPS \n
+                 export PATH=$PWD/pytaps/bin:$PATH \n
+                 export PYTHONPATH=$PWD/pytaps/lib/python2.7/site-packages:$PYTHONPATH \n
+                 # Geant4 \n
+                 export PATH=$PWD/geant4/bin:$PATH \n
+                 export LD_LIBRARY_PATH=$PWD/geant4/lib:$LD_LIBRARY_PATH \n
+                 export LD_LIBRARY_PATH=$PWD/geant4/lib64:$LD_LIBRARY_PATH \n
+                 # FLUKA \n
+                 export PATH=$PWD/fluka/bin:$PATH \n
+                 export FLUFOR=gfortran \n
+                 export FLUPRO=$PWD/fluka/bin \n
+                 export FLUDAG=$PWD/dagmc/bin \n
+                 # DAGMC \n
+                 export PATH=$PWD/dagmc/bin:$PATH \n
+                 export LD_LIBRARY_PATH=$PWD/dagmc/lib:$LD_LIBRARY_PATH \n
+                 # PyNE \n
+                 export PATH=$PWD/pyne/bin:$PATH \n
+                 export PYTHONPATH=$PWD/pyne/lib/python2.7/site-packages:$PYTHONPATH \n
+                 } \n")
 
       file.write("cwd=$PWD\n")
       if filesystem == "squid":
@@ -318,24 +394,12 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
       if filesystem == "gluster":
         file.write("# copy the files for run\n")
         file.write("cp /mnt/gluster/"+username+"/"+files_for_run+" . \n")
-        file.write("cp /mnt/gluster/"+username+"/dagmc.tar.gz . \n")
-        file.write("cp /mnt/gluster/"+username+"/compile.tar.gz . \n")
-        file.write("tar -zxf dagmc.tar.gz \n")
-        file.write("tar -zxf compile.tar.gz \n")
-        file.write("# set gcc paths\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/gcc/lib\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/gcc/lib64\n")
-        file.write("export PATH=$PATH:$PWD/gcc/bin\n")
-        file.write("# set moab paths\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/moab/lib\n")
-        file.write("export PATH=$PATH:$PWD/moab/bin\n")
-        file.write("# set hdf5 paths\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/hdf5/lib\n")
-        file.write("export PATH=$PATH:$PWD/hdf5/bin\n")
-        file.write("# set dagmc paths\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/dagmc/lib\n")
-        file.write("export PATH=$PATH:$PWD/dagmc/bin\n")
-        
+        file.write("# copy the dependencies\n")        
+        file.write("cp /mnt/gluster/"+username+"/tar_install/*.tar.gz . \n")
+        file.write("# unpack the dependencies - note the below command is purposeful\n")  
+        file.write("ls mnt/gluster/$USER/tar_install/ | xargs -i tar -zxf {}")
+        file.write("# set all the library paths\n")  
+        file.write("set_env\n")
       if "FLUKA" in jobtype:
           file.write("# get and set the required fluka paths \n")
           file.write("export FLUPRO=$PWD/fluka \n")
