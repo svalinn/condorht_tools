@@ -296,83 +296,85 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
       file.write("wget -c -t 5 --waitretry=20 --read-timeout=10 $1\n")
       file.write("}\n")
 
-      file.write("function set_env() {\n
-                 # GMP \n
-                 export LD_LIBRARY_PATH=$PWD/gmp/lib:$LD_LIBRARY_PATH\n
-                 # MPFR \n
-                 export LD_LIBRARY_PATH=$PWD/mpfr/lib:$LD_LIBRARY_PATH \n
-                 # MPC \n
-                 export LD_LIBRARY_PATH=$PWD/mpc/lib:$LD_LIBRARY_PATH \n
-                 # GCC \n
-                 export PATH=$PWD/gcc/bin:$PATH                 \n
-                 export LD_LIBRARY_PATH=$PWD/gcc/lib:$LD_LIBRARY_PATH \n
-                 export LD_LIBRARY_PATH=$PWD/gcc/lib64:$LD_LIBRARY_PATH \n
-                 # OpenMPI \n
-                 export PATH=$PWD/openmpi/bin:$PATH \n
-                 export LD_LIBRARY_PATH=$PWD/openmpi/lib:$LD_LIBRARY_PATH \n
-                 # CMake \n
-                 export PATH=$PWD/cmake/bin:$PATH \n
-                 export LD_LIBRARY_PATH=$PWD/cmake/lib:$LD_LIBRARY_PATH \n
-                 # Python \n
-                 export PATH=$PWD/python/bin:$PATH \n
-                 export LD_LIBRARY_PATH=$PWD/python/lib:$LD_LIBRARY_PATH \n
-                 # HDF5 \n
-                 export PATH=$PWD/hdf5/bin:$PATH \n
-                 export LD_LIBRARY_PATH=$PWD/hdf5/lib:$LD_LIBRARY_PATH \n
-                 # LAPACK                \n
-                 export LD_LIBRARY_PATH=$PWD/lapack/lib:$LD_LIBRARY_PATH \n
-                 # Setuptools \n
-                 export PATH=$PWD/setuptools/bin:$PATH \n
-                 export PYTHONPATH=$PWD/setuptools/lib/python2.7/site-packages:$PYTHONPATH \n
-                 # Cython \n
-                 export PATH=$PWD/cython/bin:$PATH \n
-                 export PYTHONPATH=$PWD/cython/lib/python2.7/site-packages:$PYTHONPATH \n
-                 # NumPy \n
-                 export PATH=$PWD/numpy/bin:$PATH \n
-                 export PYTHONPATH=$PWD/numpy/lib/python2.7/site-packages:$PYTHONPATH \n
-                 # SciPy \n
-                 export PATH=$PWD/pytables/bin:$PATH \n
-                 export PYTHONPATH=$PWD/scipy/lib/python2.7/site-packages:$PYTHONPATH \n
-                 # NumExpr \n
-                 export PYTHONPATH=$PWD/numexpr/lib/python2.7/site-packages:$PYTHONPATH \n
-                 # PyTables \n
-                 export PYTHONPATH=$PWD/pytables/lib/python2.7/site-packages:$PYTHONPATH \n
-                 # Nose \n
-                 export PATH=$PWD/nose/bin:$PATH \n
-                 export PYTHONPATH=$PWD/nose/lib/python2.7/site-packages:$PYTHONPATH \n
-                 # CUBIT \n
-                 export PATH=$PWD/cubit/bin:$PATH \n
-                 export LD_LIBRARY_PATH=$PWD/cubit/bin:$LD_LIBRARY_PATH \n
-                 # CGM \n
-                 export LD_LIBRARY_PATH=$PWD/cgm/lib:$LD_LIBRARY_PATH \n
-                 # MOAB \n
-                 export PATH=$PWD/moab/bin:$PATH \n
-                 export LD_LIBRARY_PATH=$PWD/moab/lib:$LD_LIBRARY_PATH \n
-                 # MeshKit \n
-                 export PATH=$PWD/meshkit/bin:$PATH \n
-                 export LD_LIBRARY_PATH=$PWD/meshkit/lib:$LD_LIBRARY_PATH \n
-                 # PyTAPS \n
-                 export PATH=$PWD/pytaps/bin:$PATH \n
-                 export PYTHONPATH=$PWD/pytaps/lib/python2.7/site-packages:$PYTHONPATH \n
-                 # Geant4 \n
-                 export PATH=$PWD/geant4/bin:$PATH \n
-                 export LD_LIBRARY_PATH=$PWD/geant4/lib:$LD_LIBRARY_PATH \n
-                 export LD_LIBRARY_PATH=$PWD/geant4/lib64:$LD_LIBRARY_PATH \n
-                 # FLUKA \n
-                 export PATH=$PWD/fluka/bin:$PATH \n
-                 export FLUFOR=gfortran \n
-                 export FLUPRO=$PWD/fluka/bin \n
-                 export FLUDAG=$PWD/dagmc/bin \n
-                 # DAGMC \n
-                 export PATH=$PWD/dagmc/bin:$PATH \n
-                 export LD_LIBRARY_PATH=$PWD/dagmc/lib:$LD_LIBRARY_PATH \n
-                 # PyNE \n
-                 export PATH=$PWD/pyne/bin:$PATH \n
-                 export PYTHONPATH=$PWD/pyne/lib/python2.7/site-packages:$PYTHONPATH \n
-                 } \n")
+      file.write("function set_env() { \n")
+      file.write("# GMP \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/gmp/lib:$LD_LIBRARY_PATH\n")
+      file.write("# MPFR \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/mpfr/lib:$LD_LIBRARY_PATH \n")
+      file.write("# MPC \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/mpc/lib:$LD_LIBRARY_PATH \n")
+      file.write("# GCC \n")
+      file.write("export PATH=$PWD/gcc/bin:$PATH                 \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/gcc/lib:$LD_LIBRARY_PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/gcc/lib64:$LD_LIBRARY_PATH \n")
+      file.write("# OpenMPI \n")
+      file.write("export PATH=$PWD/openmpi/bin:$PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/openmpi/lib:$LD_LIBRARY_PATH \n")
+      file.write("# CMake \n")
+      file.write("export PATH=$PWD/cmake/bin:$PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/cmake/lib:$LD_LIBRARY_PATH \n")
+      file.write("# Python \n")
+      file.write("export PATH=$PWD/python/bin:$PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/python/lib:$LD_LIBRARY_PATH \n")
+      file.write("# HDF5 \n")
+      file.write("export PATH=$PWD/hdf5/bin:$PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/hdf5/lib:$LD_LIBRARY_PATH \n")
+      file.write("# LAPACK                \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/lapack/lib:$LD_LIBRARY_PATH \n")
+      file.write("# Setuptools \n")
+      file.write("export PATH=$PWD/setuptools/bin:$PATH \n")
+      file.write("export PYTHONPATH=$PWD/setuptools/lib/python2.7/site-packages:$PYTHONPATH \n")
+      file.write("# Cython \n")
+      file.write("export PATH=$PWD/cython/bin:$PATH \n")
+      file.write("export PYTHONPATH=$PWD/cython/lib/python2.7/site-packages:$PYTHONPATH \n")
+      file.write("# NumPy \n")
+      file.write("export PATH=$PWD/numpy/bin:$PATH \n")
+      file.write("export PYTHONPATH=$PWD/numpy/lib/python2.7/site-packages:$PYTHONPATH \n")
+      file.write("# SciPy \n")
+      file.write("export PATH=$PWD/pytables/bin:$PATH \n")
+      file.write("export PYTHONPATH=$PWD/scipy/lib/python2.7/site-packages:$PYTHONPATH \n")
+      file.write("# NumExpr \n")
+      file.write("export PYTHONPATH=$PWD/numexpr/lib/python2.7/site-packages:$PYTHONPATH \n")
+      file.write("# PyTables \n")
+      file.write("export PYTHONPATH=$PWD/pytables/lib/python2.7/site-packages:$PYTHONPATH \n")
+      file.write("# Nose \n")
+      file.write("export PATH=$PWD/nose/bin:$PATH \n")
+      file.write("export PYTHONPATH=$PWD/nose/lib/python2.7/site-packages:$PYTHONPATH \n")
+      file.write("# CUBIT \n")
+      file.write("export PATH=$PWD/cubit/bin:$PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/cubit/bin:$LD_LIBRARY_PATH \n")
+      file.write("# CGM \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/cgm/lib:$LD_LIBRARY_PATH \n")
+      file.write("# MOAB \n")
+      file.write("export PATH=$PWD/moab/bin:$PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/moab/lib:$LD_LIBRARY_PATH \n")
+      file.write("# MeshKit \n")
+      file.write("export PATH=$PWD/meshkit/bin:$PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/meshkit/lib:$LD_LIBRARY_PATH \n")
+      file.write("# PyTAPS \n")
+      file.write("export PATH=$PWD/pytaps/bin:$PATH \n")
+      file.write("export PYTHONPATH=$PWD/pytaps/lib/python2.7/site-packages:$PYTHONPATH \n")
+      file.write("# Geant4 \n")
+      file.write("export PATH=$PWD/geant4/bin:$PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/geant4/lib:$LD_LIBRARY_PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/geant4/lib64:$LD_LIBRARY_PATH \n")
+      file.write("# FLUKA \n")
+      file.write("export PATH=$PWD/fluka/bin:$PATH \n")
+      file.write("export FLUFOR=gfortran \n")
+      file.write("export FLUPRO=$PWD/fluka/bin \n")
+      file.write("export FLUDAG=$PWD/dagmc/bin \n")
+      file.write("# DAGMC \n")
+      file.write("export PATH=$PWD/dagmc/bin:$PATH \n")
+      file.write("export LD_LIBRARY_PATH=$PWD/dagmc/lib:$LD_LIBRARY_PATH \n")
+      file.write("# PyNE \n")
+      file.write("export PATH=$PWD/pyne/bin:$PATH \n")
+      file.write("export PYTHONPATH=$PWD/pyne/lib/python2.7/site-packages:$PYTHONPATH \n") 
+      file.write("# SRAG \n")
+      file.write("export GCR_SOURCE_PATH=$PWD/srag/RadSource/GCRSource/\n")
+      file.write("} \n")
 
       file.write("cwd=$PWD\n")
-      if filesystem == "squid":
+      if filesystem.lower() == "squid":
         file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files_for_run+"  \n")
         file.write("# get and set the gcc compiler suite and set ld and paths \n")
         file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/compile.tar.gz \n")
@@ -391,21 +393,21 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
         file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/moab/lib\n")
         file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/dagmc/lib\n")
 
-      if filesystem == "gluster":
+      if filesystem.lower() == "gluster":
         file.write("# copy the files for run\n")
         file.write("cp /mnt/gluster/"+username+"/"+files_for_run+" . \n")
         file.write("# copy the dependencies\n")        
         file.write("cp /mnt/gluster/"+username+"/tar_install/*.tar.gz . \n")
         file.write("# unpack the dependencies - note the below command is purposeful\n")  
-        file.write("ls mnt/gluster/$USER/tar_install/ | xargs -i tar -zxf {}")
+        file.write("ls /mnt/gluster/$USER/tar_install/ | xargs -i tar -zxf {}\n")
         file.write("# set all the library paths\n")  
         file.write("set_env\n")
       if "FLUKA" in jobtype:
           file.write("# get and set the required fluka paths \n")
-          file.write("export FLUPRO=$PWD/fluka \n")
+          file.write("export FLUPRO=$PWD/fluka/bin \n")
       if "FLUDAG" in jobtype:
           file.write("# get and set the required fluka paths \n")
-          file.write("export FLUPRO=$PWD/fluka \n")
+          file.write("export FLUPRO=$PWD/fluka/bin \n")
           file.write("export FLUDAGPATH=$PWD/dagmc/bin/mainfludag \n")
       # MCNP & DAGMCNP paths already set
       
