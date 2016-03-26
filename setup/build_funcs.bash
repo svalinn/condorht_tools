@@ -671,3 +671,35 @@ function build_pyne() {
 
   finalize_build
 }
+
+# Build SRAG
+function build_srag() {
+  folder=srag
+
+  repo=https://github.com/makeclean/SRAGCodes.git 
+  branch=fix_tests
+
+  pwd
+  cd $build_dir
+  pwd
+  mkdir srag
+  cd srag
+  mkdir bld
+
+#  mkdir -p $folder/bld
+#  cd $folder
+  git clone $repo $folder
+  cd srag
+  git checkout $branch
+  cd ../bld
+  pwd
+  CXX=/tmp/adavis23/opt/gcc/bin/g++ cmake ../srag -DCMAKE_INSTALL_PREFIX=$install_dir/$folder/
+  make
+  make test
+  make install
+  cp -r ../srag/* $install_dir/$folder/.
+  ls $install_dir
+  ls $install_dir/$folder
+  name=srag
+  finalize_build
+}

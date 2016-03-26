@@ -15,7 +15,7 @@ function set_dirs() {
 # Set package versions
 function set_versions() {
   export        gmp_version=6.1.0
-  export       mpfr_version=3.1.3
+  export       mpfr_version=3.1.4
   export        mpc_version=1.0.3
   export        gcc_version=5.3.0
 

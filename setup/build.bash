@@ -125,11 +125,18 @@ function get_dependencies() {
   if [[ " ${packages[@]} " =~ " gmp " ]]; then
     : # no dependencies
   fi
+  if [[ " ${packages[@]} " =~ " srag " ]]; then
+    packages+=(gcc)
+    packages+=(gmp)
+    packages+=(mpfr)
+    packages+=(mpc)
+    packages+=(hdf5)
+  fi
 
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
                  setuptools cython numpy scipy numexpr pytables nose
-                 cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne "
+                 cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne srag"
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then
@@ -142,7 +149,8 @@ function get_dependencies() {
 # Delete unneeded stuff
 function cleanup_build() {
   cd $orig_dir
-  rm -rf $orig_dir/* $build_dir $install_dir
+#  rm -rf $orig_dir/* $build_dir $install_dir
+  rm -rf $build_dir $install_dir
 }
 
 set -e

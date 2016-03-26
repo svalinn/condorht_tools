@@ -247,6 +247,7 @@ def build_job_cmd_file(inputfile,job_index):
       file.write(" \n")
       file.write("copy_to_spool = false \n")
       file.write("should_transfer_files = yes \n")
+#      file.write('environment = "GCR_SOURCE_DIR=""""" \n')
       file.write("when_to_transfer_output = on_exit \n")
       file.write("output = job"+str(job_index)+".out\n")
       file.write("log = job"+str(job_index)+".log\n")     
@@ -369,6 +370,9 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
                  # PyNE \n
                  export PATH=$PWD/pyne/bin:$PATH \n
                  export PYTHONPATH=$PWD/pyne/lib/python2.7/site-packages:$PYTHONPATH \n
+                 # SRAG Codes
+                 export LD_LIBRARY_PATH=$PWD/SRAGCodes/lib \n
+                 export GCR_SOURCE_PATH=$PWD/srag/RadSource/GCRSource \n
                  } \n")
 
       file.write("cwd=$PWD\n")
