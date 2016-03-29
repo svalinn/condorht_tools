@@ -214,7 +214,7 @@ def get_input_file_list(datapath):
         print input_files[0]
     return input_files
 
-def build_job_cmd_file(inputfile,job_index):
+def build_job_cmd_file(inputfile,job_index,jobtype):
       """ builds the command file for the job
 
       Parameters
@@ -245,6 +245,10 @@ def build_job_cmd_file(inputfile,job_index):
       file.write(" \n")
       file.write("executable = job"+str(job_index)+".sh \n")
       file.write(" \n")
+      if jobtype.lower() == "gluster":
+          file.write("# Require execute servers that have Gluster:\n")
+          file.write("Requirements = (Target.HasGluster == true)\n")
+
       file.write("copy_to_spool = false \n")
       file.write("should_transfer_files = yes \n")
       file.write("when_to_transfer_output = on_exit \n")
@@ -377,22 +381,11 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
       if filesystem.lower() == "squid":
         file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files_for_run+"  \n")
         file.write("# get and set the gcc compiler suite and set ld and paths \n")
-        file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/compile.tar.gz \n")
-        file.write("tar -zxf compile.tar.gz \n")
-        file.write("# set the compiler paths\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/gcc/lib\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/gcc/lib64\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/gmp/lib\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/mpc/lib\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/mpfr/lib\n") #sets the compiler paths
-        # bring moab with us
-        file.write("# get and set the moab and hdf5 libs \n")
-        file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/runtime.tar.gz \n")
-        file.write("tar -zxf dagmc.tar.gz \n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/hdf5/lib\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/moab/lib\n")
-        file.write("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/dagmc/lib\n")
-
+        file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/compiler.tar.gz \n")
+        file.write("# unpack all the dependencies\n")       
+        file.write("tar -zxf compiler.tar.gz \n")
+        file.write("# unpack all the dependencies\n")
+        file.write('ls *.tar.gz | grep -v "compiler.tar.gz" | grep -v "'+files_for_run+'" | xargs -i tar -zxvf {}\n')
       if filesystem.lower() == "gluster":
         file.write("# copy the files for run\n")
         file.write("cp /mnt/gluster/"+username+"/"+files_for_run+" . \n")
@@ -400,8 +393,10 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
         file.write("cp /mnt/gluster/"+username+"/tar_install/*.tar.gz . \n")
         file.write("# unpack the dependencies - note the below command is purposeful\n")  
         file.write("ls /mnt/gluster/$USER/tar_install/ | xargs -i tar -zxf {}\n")
-        file.write("# set all the library paths\n")  
-        file.write("set_env\n")
+
+      # always set the env
+      file.write("# set all the library paths\n")  
+      file.write("set_env\n")
       if "FLUKA" in jobtype:
           file.write("# get and set the required fluka paths \n")
           file.write("export FLUPRO=$PWD/fluka/bin \n")
@@ -558,7 +553,7 @@ generate_dag_graph(input_files,combine)
 for inputfile in input_files:
     counter+=1
     # creating the script files that are run by the cmd files
-    build_job_cmd_file(inputfile,counter)
+    build_job_cmd_file(inputfile,counter,filesystem)
     build_run_script(files_for_run,counter,inputfile,path_data,job_type,username,filesystem,num_batches)
 
 
