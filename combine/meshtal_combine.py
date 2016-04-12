@@ -659,6 +659,7 @@ def main():
     outname = CmdLineFind('-o','COMBINEDMESH')
     streaming = CmdLineFindIndex('-s');
     add = CmdLineFindIndex('--add')
+    sub = CmdLineFindIndex('--sub')
     avg = CmdLineFindIndex('--avg')
     delete = CmdLineFindIndex('-d');
     showHelp = CmdLineFindIndex('-h')
@@ -678,10 +679,12 @@ def main():
         filesNdx+=1
     if add > 0:
         filesNdx+=1
+    if sub > 0:
+        filesNdx+=1
     if avg > 0:
         filesNdx+=1
 
-    if add > 0 and avg > 0:
+    if add+avg+sub > 1:
         print 'Error: Please choose a single operation.'
         help()
         sys.exit(1)
@@ -692,6 +695,11 @@ def main():
         sys.exit(1) 
 
     meshfiles = sys.argv[filesNdx:]
+        
+    if sub >=0 and len(meshfiles) > 2:
+        print 'Error: Subtraction only supported for 2 files'
+        help()
+        sys.exit(1)
     
     if streaming < 0:
         meshtal = Meshtal()
@@ -701,14 +709,18 @@ def main():
             meshtal2.read(meshfiles[ndx])
             if add:
                 meshtal.Add(meshtal2)
+            if sub:
+                meshtal.Sub(meshtal2)
             elif avg:
                 meshtal.Avg(meshtal2)
         meshtal.Write(outname)
     else:
         outnames = []
-        operation = "add" if add >= 0 else ""
-        if operation == "" and agv > 0: operation = "avg"
-        
+        operation = ""
+        assert(add+sub+avg == 1)
+        if add >=0: operation = "add"
+        if sub >=0: operation = "sub"
+        if avg >=0: operation = "avg"
         for ndx in range(2,len(meshfiles)):
             outnames.append(outname+"."+str(ndx))
         outnames.append(outname)
