@@ -684,7 +684,7 @@ def main():
     if avg > 0:
         filesNdx+=1
 
-    if add+avg+sub > 1:
+    if add*avg*sub <= 0:
         print 'Error: Please choose a single operation.'
         help()
         sys.exit(1)
@@ -717,7 +717,7 @@ def main():
     else:
         outnames = []
         operation = ""
-        assert(add+sub+avg == 1)
+        assert(add*sub*avg >= 0)
         if add >=0: operation = "add"
         if sub >=0: operation = "sub"
         if avg >=0: operation = "avg"
