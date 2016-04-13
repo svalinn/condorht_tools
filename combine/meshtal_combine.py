@@ -183,6 +183,28 @@ class Meshtal(object):
 
             return True
 
+    def Sub(self,Other):
+
+        if not self.Validate_op(Other):
+            return
+        N = self.numHist+Other.numHist
+
+        for ndx in range(len(self.type)):
+
+            numData = (len(self.xBounds[ndx])-1)*(len(self.yBounds[ndx])-1)*(len(self.zBounds[ndx])-1)*(len(self.enBounds[ndx])-1)
+            for num in range((numData)):
+                R1 = self.resData[ndx][num]
+                R2 = Other.resData[ndx][num]
+                E1 = self.errData[ndx][num]
+                E2 = Other.errData[ndx][num]
+                self.resData[ndx][num] = R1-R2
+                if self.resData[ndx][num] == 0:
+                    self.errData[ndx][num] = 0
+                else:
+                    self.errData[ndx][num] = math.sqrt((R1*E1)**2+(R2*E2)**2)/(R1-R2)
+
+        self.numHist = N
+                    
     def Add(self,Other):
 
         if not self.Validate_op(Other):
@@ -571,6 +593,12 @@ def Stream(in1,in2,outname,op = ""):
                             errDataOut = 0
                         else:
                             errDataOut = math.sqrt((resData1*errData1)**2 + (resData2*errData2)**2)/resDataOut
+                    elif op is 'sub':
+                        resDataOut = resData1-resData2
+                        if resDataOut == 0:
+                            errDataOut = 0
+                        else:
+                            errDataOut = math.sqrt((resData1*errData1)**2 + (resData2*errData2)**2)/resDataOut                        
                     else:
                         print 'Error: unknown operation specified'
                         sys.exit(1)                            
@@ -631,6 +659,7 @@ def main():
     outname = CmdLineFind('-o','COMBINEDMESH')
     streaming = CmdLineFindIndex('-s');
     add = CmdLineFindIndex('--add')
+    sub = CmdLineFindIndex('--sub')
     avg = CmdLineFindIndex('--avg')
     delete = CmdLineFindIndex('-d');
     showHelp = CmdLineFindIndex('-h')
@@ -650,10 +679,12 @@ def main():
         filesNdx+=1
     if add > 0:
         filesNdx+=1
+    if sub > 0:
+        filesNdx+=1
     if avg > 0:
         filesNdx+=1
 
-    if add > 0 and avg > 0:
+    if add*avg*sub <= 0:
         print 'Error: Please choose a single operation.'
         help()
         sys.exit(1)
@@ -661,14 +692,19 @@ def main():
     if len(sys.argv)-filesNdx < 2:
         print 'Error: Not enough files'
         help()
-        sys.exit(1) 
-
-    if avg >=0  and len(sys.argv) > 2:
-        print 'Error: Averaging only supported for 2 files'
-        help()
         sys.exit(1)
         
     meshfiles = sys.argv[filesNdx:]
+        
+    if avg >=0  and len(meshfiles) > 2:
+        print 'Error: Averaging only supported for 2 files'
+        help()
+        sys.exit(1)
+
+    if sub >=0 and len(meshfiles) > 2:
+        print 'Error: Subtraction only supported for 2 files'
+        help()
+        sys.exit(1)
     
     if streaming < 0:
         meshtal = Meshtal()
@@ -678,14 +714,18 @@ def main():
             meshtal2.read(meshfiles[ndx])
             if add:
                 meshtal.Add(meshtal2)
+            if sub:
+                meshtal.Sub(meshtal2)
             elif avg:
                 meshtal.Avg(meshtal2)
         meshtal.Write(outname)
     else:
         outnames = []
-        operation = "add" if add >= 0 else ""
-        if operation == "" and agv > 0: operation = "avg"
-        
+        operation = ""
+        assert(add*sub*avg >= 0)
+        if add >=0: operation = "add"
+        if sub >=0: operation = "sub"
+        if avg >=0: operation = "avg"
         for ndx in range(2,len(meshfiles)):
             outnames.append(outname+"."+str(ndx))
         outnames.append(outname)
