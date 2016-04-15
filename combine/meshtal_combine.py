@@ -679,7 +679,7 @@ def main():
     else:
         outnames = []
         operation = "add" if add >= 0 else ""
-        if operation == "" and agv > 0: operation = "avg"
+        if operation == "" and avg > 0: operation = "avg"
         
         for ndx in range(2,len(meshfiles)):
             outnames.append(outname+"."+str(ndx))
