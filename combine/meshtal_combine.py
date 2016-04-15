@@ -663,11 +663,6 @@ def main():
         help()
         sys.exit(1) 
 
-    if avg >=0  and len(sys.argv) > 2:
-        print 'Error: Averaging only supported for 2 files'
-        help()
-        sys.exit(1)
-        
     meshfiles = sys.argv[filesNdx:]
     
     if streaming < 0:
