@@ -398,6 +398,27 @@ def check_and_setup(mcnp_cmd,input_dir):
     inputs = set()
 
     dag_run = False
+
+
+    # check for various command features
+    if "l=" in mcnp_cmd:
+        dag_run = True
+        # step through bits looking for g=
+        print "bob", mcnp_cmd
+        for token in mcnp_cmd.split():
+            if "l=" in token:
+                pos_in = token.find('=')
+                lcad_file = token[pos_in+1:len(token)]
+                inputs.add(lcad_file)
+                print lcad_file
+                
+        # check to see if the file exists
+        if not os.path.isfile(input_dir+'/'+lcad_file):
+            print "The dag file specified, ",lcad_file," does not exist"
+            sys.exit()
+
+        copy_and_create(input_dir,"lcad",lcad_file)
+
     
     # check for various command features
     if "g=" in mcnp_cmd:

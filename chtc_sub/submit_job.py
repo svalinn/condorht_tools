@@ -166,6 +166,9 @@ def pack_for_run(datapath,type_run):
             command += ' runtpes' # need runtpe for mcnps
         if 'DAGMCNP' in type_run:
             command += ' geometry' # need geometry for dag geom
+            # need to check for lcad directory
+            if os.path.exists('lcad'):
+                command += ' lcad'
         if 'FLUDAG' in type_run:
             command += ' geometry' # need geometry for dag geom
 
@@ -392,7 +395,7 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
         file.write("# copy the dependencies\n")        
         file.write("cp /mnt/gluster/"+username+"/tar_install/*.tar.gz . \n")
         file.write("# unpack the dependencies - note the below command is purposeful\n")  
-        file.write("ls /mnt/gluster/$USER/tar_install/ | xargs -i tar -zxf {}\n")
+        file.write("ls /mnt/gluster/"+username+"/tar_install/ | xargs -i tar -zxf {}\n")
 
       # always set the env
       file.write("# set all the library paths\n")  
@@ -417,11 +420,17 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
           file.write("cp ../runtpes/run1 run"+str(job_index)+" \n")
           file.write("geom_file=`ls ../geometry/* | grep 'h5m' | head -n1`"+"\n")
           file.write('wwinp_cmd=""\n')
+          file.write('if [ -d "../lcad" ] ; then \n')
+          file.write("    lcad_file=`ls ../lcad/* | head -n1`\n")
+          file.write('    lcad_cmd="l=$lcad_file"\n')
+          file.write('else\n')
+          file.write('    lcad_cmd=""\n')
+          file.write('fi\n')
           file.write('if [ -d "../wwinp" ] ; then \n')
           file.write("    wwinp_file=`ls ../wwinp/* | head -n1`\n")
           file.write('    wwinp_cmd="wwinp=$wwinp_file"\n')
           file.write('fi\n')
-          file.write("mcnp5 c i="+inputfile+" g=$geom_file n=job"+str(job_index)+". r=run"+str(job_index)+" $wwinp_cmd\n")
+          file.write("mcnp5 c i="+inputfile+" $lcad_command g=$geom_file n=job"+str(job_index)+". r=run"+str(job_index)+" $wwinp_cmd\n")
       elif "MCNP" in jobtype:
           file.write("cp ../runtpes/run1 run"+str(job_index)+"\n")
           file.write('wwinp_cmd=""\n')
