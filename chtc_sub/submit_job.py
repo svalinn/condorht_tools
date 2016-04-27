@@ -254,6 +254,7 @@ def build_job_cmd_file(inputfile,job_index,jobtype):
 
       file.write("copy_to_spool = false \n")
       file.write("should_transfer_files = yes \n")
+#      file.write('environment = "GCR_SOURCE_DIR=""""" \n')
       file.write("when_to_transfer_output = on_exit \n")
       file.write("output = job"+str(job_index)+".out\n")
       file.write("log = job"+str(job_index)+".log\n")     
