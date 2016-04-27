@@ -48,7 +48,7 @@ def write_collapse_fluka(filename):
       filename.write("    echo ${files[$i]} >> instructions\n")
       filename.write("done\n")
       filename.write("echo " " >> instructions\n")
-      filename.write('echo $file_token"_"$2 >> instructions\n')
+      filename.write('echo $output_name"_"$2 >> instructions\n')
       filename.write("\n")
       filename.write("# process the file\n")
       filename.write('if [ $file_type == "usrbin" ] ; then\n')
