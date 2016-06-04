@@ -44,6 +44,8 @@ function set_versions() {
 
   export      dagmc_version=dev
   export       pyne_version=dev
+
+  export              boost=1.61.0
 }
 
 # Set environment variables
@@ -144,4 +146,7 @@ function set_env() {
   # PyNE
   export PATH=$install_dir/pyne/bin:$PATH
   export PYTHONPATH=$install_dir/pyne/lib/python2.7/site-packages:$PYTHONPATH
+
+  # BOOST
+  export LD_LIBRARY_PATH=$install_dir/boost/lib:$LD_LIBRARY_PATH
 }

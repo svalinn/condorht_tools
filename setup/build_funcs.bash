@@ -671,3 +671,27 @@ function build_pyne() {
 
   finalize_build
 }
+
+# Build Boost
+function build_boost() {
+  name=boost
+  version=$boost_version
+  folder=$name-$version
+  tarball=$name_$version.tar.gz
+  tar_f=$name-$version
+  
+  tarball=`$tarball | sed s/'\.'/_/2`
+  url=https://sourceforge.net/projects/boost/files/boost/$version/$tarball
+
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd $name 
+  ./bootstrap.sh $setup_string
+  ./b2 install
+
+  finalize_build
+}
+
