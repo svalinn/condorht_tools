@@ -677,11 +677,11 @@ function build_boost() {
   name=boost
   version=$boost_version
   folder=$name-$version
-  tarball=$name_$version
+  tarball=${name}_$version
   echo $tarball
   tarball=`echo $tarball | sed s/'\.'/_/g`
   echo $tarball
-  tarball+=tar.gz
+  tarball+=.tar.gz
   tar_f=$name-$version
   
   url=https://sourceforge.net/projects/boost/files/boost/$version/$tarball
