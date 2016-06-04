@@ -45,7 +45,7 @@ function set_versions() {
   export      dagmc_version=dev
   export       pyne_version=dev
 
-  export              boost=1.61.0
+  export      boost_version=1.61.0
 }
 
 # Set environment variables
