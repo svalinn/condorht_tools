@@ -677,10 +677,12 @@ function build_boost() {
   name=boost
   version=$boost_version
   folder=$name-$version
+  tar_f=$name-$version
+  
   tarball=${name}_$version
   tarball=`echo $tarball | sed s/'\.'/_/g`
+  untar_f=$tarball
   tarball+=.tar.gz
-  tar_f=$name-$version
   
   url=https://sourceforge.net/projects/boost/files/boost/$version/$tarball
 
@@ -691,7 +693,7 @@ function build_boost() {
   setup_string+=" "--prefix=$install_dir/$folder
 
   ls 
-  cd $name 
+  cd $untar_f 
   ./bootstrap.sh $setup_string
   echo "boostrapt OK"
   ./b2 install
