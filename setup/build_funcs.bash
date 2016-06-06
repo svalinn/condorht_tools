@@ -702,8 +702,8 @@ function build_boost() {
 
 
 # Build mpfr
-function build_libmpfr() {
-  name=libmpfr
+function build_mpfr() {
+  name=mpfr
   version=$libmpfr_version
   folder=$name-$version
   tar_f=$name-$version

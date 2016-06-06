@@ -128,18 +128,21 @@ function get_dependencies() {
   if [[ " ${packages[@]} " =~ " boost " ]]; then
     : # no dependencies
   fi
-  if [[ " ${packages[@]} " =~ " libmpfr " ]]; then
+  if [[ " ${packages[@]} " =~ " mpfr " ]]; then
     packages+=(gcc)
   fi
   if [[ " ${packages[@]} " =~ " libsigcpp " ]]; then
     packages+=(gcc)
+    packages+=(mpc)
+    packages+=(gmp)
+    packages+=(mpfr)
   fi
   
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
                  setuptools cython numpy scipy numexpr pytables nose
                  cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne
-                 boosti libmpfr libsigcpp"
+                 boosti mpfr libsigcpp"
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then
