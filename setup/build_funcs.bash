@@ -704,7 +704,7 @@ function build_boost() {
 # Build mpfr
 function build_mpfr() {
   name=mpfr
-  version=$libmpfr_version
+  version=$mpfr_version
   folder=$name-$version
   tar_f=$name-$version
   tarball=${name}-$version.tar.xz
@@ -739,7 +739,7 @@ function build_sigcpp() {
   config_string+=" "--with-gmp=$install_dir/gmp
    setup_string+=" "--prefix=$install_dir/$folder
 
-  cd $folder
+  cd lib$folder
   ./configure $setup_string
   make -j $jobs
   make install
