@@ -746,8 +746,29 @@ function build_sigcpp() {
   finalize_build
 }
 
+# Build xml2
+function build_xml2() {
+  name=xml2
+  version=$xml2_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=lib${name}-$version.tar.gz
+  url=http://ftp://xmlsoft.org/libxml2/$tarball
 
-# Build Sigcpp
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd lib$folder
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build xmlpp
 function build_xmlpp() {
   name=xml++
   version=$xmlpp_version
