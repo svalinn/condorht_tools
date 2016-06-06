@@ -756,7 +756,7 @@ function build_glibmm() {
   folder=$name-$version
   tar_f=$name-$version
   tarball=${name}-$version.tar.xz
-  url=http://ftp.gnome.org/pub/GNOME/sources/$name/${version:0:-2}/$tarball
+  url=http://ftp.gnome.org/pub/GNOME/sources/$name/${#version}-2}/$tarball
 
   setup_build tar
 
