@@ -725,14 +725,13 @@ function build_mpfr() {
 
 
 # Build Sigcpp
-function build_libsigcpp() {
-  name=libsigc++
-  version=$libsigcpp_version
+function build_sigcpp() {
+  name=sigc++
+  version=$sigcpp_version
   folder=$name-$version
   tar_f=$name-$version
-  tarball=${name}-$version.tar.xz
-  echo "In sicgg" 
-  url=https://download.gnome.org/sources/$name/${version:0:4}/$tarball
+  tarball=lib${name}-$version.tar.xz
+  url=https://download.gnome.org/sources/lib$name/${version:0:4}/$tarball
 
   setup_build tar
 

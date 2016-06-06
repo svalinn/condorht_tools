@@ -47,7 +47,7 @@ function set_versions() {
 
   export      boost_version=1.61.0
   export       mpfr_version=3.1.4
-  export  libsigcpp_version=2.99.6
+  export     sigcpp_version=2.99.6
 }
 
 # Set environment variables
@@ -153,7 +153,7 @@ function set_env() {
   export LD_LIBRARY_PATH=$install_dir/boost/lib:$LD_LIBRARY_PATH
 
   # SIGC++
-  export LD_LIBRARY_PATH=$install_dir/libsigc++/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$install_dir/sigc++/lib:$LD_LIBRARY_PATH
   
   # MPFR
   export LD_LIBRARY_PATH=$install_dir/mpfr/lib:$LD_LIBRARY_PATH
