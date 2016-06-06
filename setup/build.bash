@@ -126,9 +126,6 @@ function get_dependencies() {
     : # no dependencies
   fi
   if [[ " ${packages[@]} " =~ " boost " ]]; then
-    : # no dependencies
-  fi
-  if [[ " ${packages[@]} " =~ " mpfr " ]]; then
     packages+=(gcc)
   fi
   if [[ " ${packages[@]} " =~ " sigcpp " ]]; then

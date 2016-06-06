@@ -693,8 +693,11 @@ function build_boost() {
 
   setup_string=
   setup_string+=" "--prefix=$install_dir/$folder
-
-  cp -r $untar_f $install_dir/$folder 
+  
+  cd ${tarball:0:12}
+  ./bootstrap.sh
+  ./b2 install $steup_string
+#  cp -r $untar_f $install_dir/$folder 
 
   finalize_build
 }
@@ -734,6 +737,7 @@ function build_xml2() {
   setup_build tar
 
   setup_string=
+  setup_string+=" "--with-python=no
   setup_string+=" "--prefix=$install_dir/$folder
 
   cd lib$folder
