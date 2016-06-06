@@ -46,6 +46,7 @@ function set_versions() {
   export       pyne_version=dev
 
   export      boost_version=1.61.0
+  export    libmpfr_version=3.1.4
   export  libsigcpp_version=2.99.6
 }
 
@@ -153,4 +154,7 @@ function set_env() {
 
   # SIGC++
   export LD_LIBRARY_PATH=$install_dir/libsigc++/lib:$LD_LIBRARY_PATH
+  
+  # LIBMPFR
+  export LD_LIBRARY_PATH=$install_dir/libmpfr/lib:$LD_LIBRARY_PATH
 }

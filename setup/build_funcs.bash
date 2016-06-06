@@ -33,8 +33,7 @@ function setup_build() {
     elif [ "${tarball: -8}" == ".tar.bz2" ]; then
       tar_string="tar -xjvf"
     elif [ "${tarball: -7}" == ".tar.xz" ]; then
-      tar_string=" tar -xJvf":w
-
+      tar_string=" tar -xJvf"
     elif [ "${tarball: -4}" == ".zip" ]; then
       tar_string="unzip"
     fi
@@ -700,20 +699,46 @@ function build_boost() {
   finalize_build
 }
 
+
+
+# Build mpfr
+function build_libmpfr() {
+  name=libmpfr
+  version=$libmpfr_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tar.xz
+  url=http://www.mpfr.org/mpfr-current/$tarball
+
+  setup_build tar
+
+  setup_string=
+   setup_string+=" "--prefix=$install_dir/$folder
+
+  cd $folder
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+
 # Build Sigcpp
 function build_libsigcpp() {
   name=libsigc++
-  version=$sigcpp_version
+  version=$libsigcpp_version
   folder=$name-$version
   tar_f=$name-$version
-  tarball=${name}_$version.tar.gz
+  tarball=${name}-$version.tar.xz
   echo "In sicgg" 
   url=https://download.gnome.org/sources/$name/${version:0:4}/$tarball
 
   setup_build tar
 
   setup_string=
-  setup_string+=" "--prefix=$install_dir/$folder
+  config_string+=" "--with-gmp=$install_dir/gmp
+   setup_string+=" "--prefix=$install_dir/$folder
 
   cd $folder
   ./configure $setup_string
