@@ -691,7 +691,6 @@ function build_boost() {
   url=https://sourceforge.net/projects/boost/files/boost/$version/$tarball
 
   setup_build tar
-  echo "untar OK"
 
   setup_string=
   setup_string+=" "--prefix=$install_dir/$folder
@@ -708,7 +707,7 @@ function build_sigcpp() {
   folder=$name-$version
   tar_f=$name-$version
   tarball=${name}_$version.tar.gz
-  
+  echo "In sicgg" 
   url=https://download.gnome.org/sources/libsigc++/$version/$tarball
 
   setup_build tar

@@ -151,6 +151,6 @@ function set_env() {
   # BOOST
   export LD_LIBRARY_PATH=$install_dir/boost/lib:$LD_LIBRARY_PATH
 
-  # SICGpp
-  export LD_LIBRARY_PATH=$install_dir/sigcpp/lib:$LD_LIBRARY_PATH
+  # SIGC++
+  export LD_LIBRARY_PATH=$install_dir/sigc++/lib:$LD_LIBRARY_PATH
 }
