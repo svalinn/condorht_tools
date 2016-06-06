@@ -748,6 +748,31 @@ function build_xml2() {
   finalize_build
 }
 
+# Build glibmm
+function build_glibmm() {
+  name=glibmm
+  version=$glibmm_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tar.xz
+  url=http://ftp.gnome.org/pub/GNOME/sources/glibmm/2.48/glibmm-2.48.1.tar.xz
+  url=http://ftp.gnome.org/pub/GNOME/sources/$name/${version:0:-2}/$tarball
+
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd lib$folder
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+
+
 # Build xmlpp
 function build_xmlpp() {
   name=xml++

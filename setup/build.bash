@@ -142,8 +142,12 @@ function get_dependencies() {
     packages+=(mpc)
     packages+=(mpfr)
     packages+=(gmp)
-    packages+=(python)
-    packages+=(setuptools)
+  fi
+  if [[ " ${packages[@]} " =~ " glibmm " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
   fi
   if [[ " ${packages[@]} " =~ " xmlpp " ]]; then
     packages+=(gcc)
@@ -151,12 +155,13 @@ function get_dependencies() {
     packages+=(mpfr)
     packages+=(gmp)
     packages+=(xml2)
+    packages+=(glibmm)
   fi
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
                  setuptools cython numpy scipy numexpr pytables nose
                  cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne
-                 boost sigcpp xml2 xmlpp "
+                 boost sigcpp xml2 glibmm xmlpp "
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then

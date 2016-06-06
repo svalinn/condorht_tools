@@ -48,6 +48,7 @@ function set_versions() {
   export      boost_version=1.61.0
   export     sigcpp_version=2.99.6
   export       xml2_version=2.9.4
+  export     glibmm_version=2.48.1
   export      xmlpp_version=2.36.0
 }
 
@@ -156,9 +157,11 @@ function set_env() {
   # SIGC++
   export LD_LIBRARY_PATH=$install_dir/sigc++/lib:$LD_LIBRARY_PATH
   
-  
   # XML2
   export LD_LIBRARY_PATH=$install_dir/xml2/lib:$LD_LIBRARY_PATH
+  
+  # GLIBMM
+  export LD_LIBRARY_PATH=$install_dir/glibmm/lib:$LD_LIBRARY_PATH
   
   # XMLPP
   export LD_LIBRARY_PATH=$install_dir/xml++/lib:$LD_LIBRARY_PATH
