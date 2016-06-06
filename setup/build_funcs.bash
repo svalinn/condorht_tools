@@ -693,11 +693,11 @@ function build_boost() {
 
   setup_string=
   setup_string+=" "--prefix=$install_dir/$folder
-  
+  setup_string+=" "--with-libraries=program_options,filesystem,system
+
   cd ${tarball:0:12}
   ./bootstrap.sh $setup_string
   ./b2 install 
-  #  cp -r $untar_f $install_dir/$folder 
 
   finalize_build
 }
