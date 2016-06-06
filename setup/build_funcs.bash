@@ -8,6 +8,7 @@ function ensure_build() {
   eval version=\$"$name"_version
   folder=$name-$version
   if [ -f $copy_dir/install_$folder.tar.gz ]; then
+    echo Build found for $name-$version
     cd $install_dir
     tar -xzvf $copy_dir/install_$folder.tar.gz
   else
@@ -702,13 +703,13 @@ function build_boost() {
 
 # Build Sigcpp
 function build_sigcpp() {
-  name=sigcpp
+  name=sigc++
   version=$sigcpp_version
   folder=$name-$version
   tar_f=$name-$version
   tarball=${name}_$version.tar.gz
   
-  url=https://download.gnome.org/sources/libsigcpp/$version/$tarball
+  url=https://download.gnome.org/sources/libsigc++/$version/$tarball
 
   setup_build tar
 
