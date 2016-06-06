@@ -563,7 +563,7 @@ function build_geant4() {
   cmake_string=
   cmake_string+=" "-DGEANT4_USE_SYSTEM_EXPAT=OFF
   cmake_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
-  cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/gpp
   cmake_string+=" "-DCMAKE_INSTALL_PREFIX=$install_dir/$folder
 
   cd bld
@@ -637,7 +637,7 @@ function build_dagmc() {
     cmake_string+=" "-DFLUKA_DIR=$install_dir/fluka/bin
   fi
   cmake_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
-  cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/gpp
   cmake_string+=" "-DCMAKE_Fortran_COMPILER=$install_dir/gcc/bin/gfortran
   cmake_string+=" "-DCMAKE_INSTALL_PREFIX=$install_dir/$folder
   cmake_string+=" "$build_dir/$folder/src
@@ -662,7 +662,7 @@ function build_pyne() {
 
   setup_string=
   setup_string+=" "-DMOAB_INCLUDE_DIR=$install_dir/moab/include
-  setup_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  setup_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/gpp
   setup_string+=" "-DCMAKE_Fortran_COMPILER=$install_dir/gcc/bin/gfortran
   setup_string_2=
   #setup_string_2+=" "--bootstrap
@@ -700,15 +700,15 @@ function build_boost() {
   finalize_build
 }
 
-# Build Sigc++
-function build_sigc++() {
-  name=sigc++
-  version=$sigc++_version
+# Build Sigcpp
+function build_sigcpp() {
+  name=sigcpp
+  version=$sigcpp_version
   folder=$name-$version
   tar_f=$name-$version
   tarball=${name}_$version.tar.gz
   
-  url=https://download.gnome.org/sources/libsigc++/$version/$tarball
+  url=https://download.gnome.org/sources/libsigcpp/$version/$tarball
 
   setup_build tar
 
