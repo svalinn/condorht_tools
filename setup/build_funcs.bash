@@ -701,14 +701,14 @@ function build_boost() {
 }
 
 # Build Sigcpp
-function build_sigcpp() {
-  name=sigc++
+function build_libsigcpp() {
+  name=libsigc++
   version=$sigcpp_version
   folder=$name-$version
   tar_f=$name-$version
   tarball=${name}_$version.tar.gz
   echo "In sicgg" 
-  url=https://download.gnome.org/sources/libsigc++/$version/$tarball
+  url=https://download.gnome.org/sources/$name/${version:0:4}/$tarball
 
   setup_build tar
 
