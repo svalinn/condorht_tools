@@ -126,7 +126,7 @@ function get_dependencies() {
     : # no dependencies
   fi
   if [[ " ${packages[@]} " =~ " boost " ]]; then
-    : # no dependencies
+    packages+=(mpc)
   fi
   
   # Put the dependencies in the correct build order
