@@ -695,9 +695,9 @@ function build_boost() {
   setup_string+=" "--prefix=$install_dir/$folder
   
   cd ${tarball:0:12}
-  ./bootstrap.sh
-  ./b2 install $steup_string
-#  cp -r $untar_f $install_dir/$folder 
+  ./bootstrap.sh $setup_string
+  ./b2 install 
+  #  cp -r $untar_f $install_dir/$folder 
 
   finalize_build
 }
