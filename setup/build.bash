@@ -196,4 +196,4 @@ for name in "${packages[@]}"; do
 done
 
 # Cleanup the build
-cleanup_build
+#cleanup_build
