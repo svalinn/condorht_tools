@@ -31,6 +31,9 @@ function setup_build() {
       tar_string="tar -xzvf"
     elif [ "${tarball: -8}" == ".tar.bz2" ]; then
       tar_string="tar -xjvf"
+    elif [ "${tarball: -7}" == ".tar.xz" ]; then
+      tar_string=" tar -xJvf":w
+
     elif [ "${tarball: -4}" == ".zip" ]; then
       tar_string="unzip"
     fi
@@ -692,15 +695,30 @@ function build_boost() {
   setup_string=
   setup_string+=" "--prefix=$install_dir/$folder
 
-  ls -al
-  pwd
   cp -r $untar_f $install_dir/$folder 
- #./bootstrap.sh $setup_string
-  #echo "boostrapt OK"
-  
-  #./b2 install
 
-  echo "install ok"
   finalize_build
 }
 
+# Build Sigc++
+function build_sigc++() {
+  name=sigc++
+  version=$sigc++_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}_$version.tar.gz
+  
+  url=https://download.gnome.org/sources/libsigc++/$version/$tarball
+
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd $folder
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}

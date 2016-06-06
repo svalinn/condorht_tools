@@ -128,6 +128,9 @@ function get_dependencies() {
   if [[ " ${packages[@]} " =~ " boost " ]]; then
     : #packages+=(mpc)
   fi
+  if [[ " ${packages[@]} " =~ " sicg++ " ]]; then
+    packages+=(gmp)
+  fi
   
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack

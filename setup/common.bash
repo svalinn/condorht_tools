@@ -46,6 +46,7 @@ function set_versions() {
   export       pyne_version=dev
 
   export      boost_version=1.61.0
+  export     sigc++_version=2.99.6
 }
 
 # Set environment variables
@@ -149,4 +150,7 @@ function set_env() {
 
   # BOOST
   export LD_LIBRARY_PATH=$install_dir/boost/lib:$LD_LIBRARY_PATH
+
+  # SICG++
+  export LD_LIBRARY_PATH=$install_dir/sigc++/lib:$LD_LIBRARY_PATH
 }
