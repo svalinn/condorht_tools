@@ -139,12 +139,18 @@ function get_dependencies() {
   fi
   if [[ " ${packages[@]} " =~ " xml2 " ]]; then
     packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
+    packages+=(python)
+    packages+=(setuptools)
   fi
   if [[ " ${packages[@]} " =~ " xmlpp " ]]; then
     packages+=(gcc)
     packages+=(mpc)
     packages+=(mpfr)
     packages+=(gmp)
+    packages+=(xml2)
   fi
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack

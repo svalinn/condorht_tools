@@ -700,30 +700,6 @@ function build_boost() {
 }
 
 
-
-# Build mpfr
-function build_mpfr() {
-  name=mpfr
-  version=$mpfr_version
-  folder=$name-$version
-  tar_f=$name-$version
-  tarball=${name}-$version.tar.xz
-  url=http://www.mpfr.org/mpfr-current/$tarball
-
-  setup_build tar
-
-  setup_string=
-  setup_string+=" "--prefix=$install_dir/$folder
-
-  cd $folder
-  ./configure $setup_string
-  make -j $jobs
-  make install
-
-  finalize_build
-}
-
-
 # Build Sigcpp
 function build_sigcpp() {
   name=sigc++
@@ -753,7 +729,7 @@ function build_xml2() {
   folder=$name-$version
   tar_f=$name-$version
   tarball=lib${name}-$version.tar.gz
-  url=http://ftp://xmlsoft.org/libxml2/$tarball
+  url=ftp://xmlsoft.org/libxml2/$tarball
 
   setup_build tar
 
