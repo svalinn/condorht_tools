@@ -694,12 +694,11 @@ function build_boost() {
 
   ls -al
   pwd
-  cd $folder
   cd $untar_f 
- # ./bootstrap.sh $setup_string
+ ./bootstrap.sh $setup_string
   echo "boostrapt OK"
   
-  #./b2 install
+  ./b2 install
 
   echo "install ok"
   finalize_build
