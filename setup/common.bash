@@ -48,6 +48,7 @@ function set_versions() {
   export      boost_version=1.61.0
   export       mpfr_version=3.1.4
   export     sigcpp_version=2.99.6
+  export     xmlppp_version=2.36.0
 }
 
 # Set environment variables
@@ -157,4 +158,7 @@ function set_env() {
   
   # MPFR
   export LD_LIBRARY_PATH=$install_dir/mpfr/lib:$LD_LIBRARY_PATH
+  
+  # XMLPP
+  export LD_LIBRARY_PATH=$install_dir/xml++/lib:$LD_LIBRARY_PATH
 }

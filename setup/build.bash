@@ -138,11 +138,14 @@ function get_dependencies() {
     packages+=(mpfr)
   fi
   
+  if [[ " ${packages[@]} " =~ " xmlpp " ]]; then
+    packages+=(gcc)
+  fi
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
                  setuptools cython numpy scipy numexpr pytables nose
                  cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne
-                 boosti mpfr sigcpp"
+                 boosti mpfr sigcpp xmlpp "
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then

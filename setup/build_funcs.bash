@@ -713,7 +713,7 @@ function build_mpfr() {
   setup_build tar
 
   setup_string=
-   setup_string+=" "--prefix=$install_dir/$folder
+  setup_string+=" "--prefix=$install_dir/$folder
 
   cd $folder
   ./configure $setup_string
@@ -736,8 +736,30 @@ function build_sigcpp() {
   setup_build tar
 
   setup_string=
-  config_string+=" "--with-gmp=$install_dir/gmp
-   setup_string+=" "--prefix=$install_dir/$folder
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd lib$folder
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+
+# Build Sigcpp
+function build_xmlpp() {
+  name=xml++
+  version=$xmlpp_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=lib${name}-$version.tar.xz
+  url=http://ftp.gnome.org/pub/GNOME/sources/lib$name/${xmlpp_version:0:4}/$tarball
+
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
 
   cd lib$folder
   ./configure $setup_string
