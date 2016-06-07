@@ -901,3 +901,37 @@ function build_sqlite() {
 
   finalize_build
 }
+
+
+# Build Cyclus
+function build_cyclus() {
+  name=cyclus
+  version=dev
+  folder=$name-$version
+  repo=https://github.com/cyclus/$name
+  branch=develop
+
+  echo $LD_LIBRARY_PATH
+
+  setup_build repo python
+
+  setup_string+=" "--hdf5_root=$install_dir/hdf5
+  setup_string+=" "--coin_root=$install_dir/cbc
+  setup_string+=" "--boost_root=$install_dir/boost
+  setup_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
+  setup_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  
+  setup_string_2=
+  setup_string_2+=" "--build_dir=$install_dir/$folder
+
+  cd $name
+  python install.py $setup_string  $setup_string_2 -j $jobs
+  #mkdir bld
+  #cd bld
+  #cmake .. 
+  
+
+
+
+  finalize_build
+}

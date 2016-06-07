@@ -53,7 +53,7 @@ function set_versions() {
   export       xml2_version=2.9.4
   export      xmlpp_version=2.91.3
   export     sqlite_version=3130000
-  export        cbc_version=2.9.8
+  export        Cbc_version=2.9.8
 }
 
 # Set environment variables
@@ -159,7 +159,7 @@ function set_env() {
   export LD_LIBRARY_PATH=$install_dir/boost/lib:$LD_LIBRARY_PATH
 
   # SIGC++
-  export LD_LIBRARY_PATH=$install_dir/sigcpp/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$install_dir/sigc++/lib:$LD_LIBRARY_PATH
   
   # PCRE
   export LD_LIBRARY_PATH=$install_dir/pcre/lib:$LD_LIBRARY_PATH
@@ -181,4 +181,7 @@ function set_env() {
   
   # CBC
   export LD_LIBRARY_PATH=$install_dir/cbc/lib:$LD_LIBRARY_PATH
+
+  echo $LD_LIBRARY_PATH
+
 }
