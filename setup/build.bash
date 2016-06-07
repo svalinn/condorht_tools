@@ -131,7 +131,7 @@ function get_dependencies() {
     packages+=(gmp)
     packages+=(mpfr)
   fi
-  if [[ " ${packages[@]} " =~ " sigc++ " ]]; then
+  if [[ " ${packages[@]} " =~ " sigcpp " ]]; then
     packages+=(gcc)
     packages+=(mpc)
     packages+=(gmp)
@@ -148,9 +148,9 @@ function get_dependencies() {
     packages+=(mpc)
     packages+=(mpfr)
     packages+=(gmp)
-    packages+=(sigc++)
+    packages+=(sigcpp)
   fi
-  if [[ " ${packages[@]} " =~ " xml++ " ]]; then
+  if [[ " ${packages[@]} " =~ " xmlpp " ]]; then
     packages+=(gcc)
     packages+=(mpc)
     packages+=(mpfr)
@@ -162,7 +162,7 @@ function get_dependencies() {
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
                  setuptools cython numpy scipy numexpr pytables nose
                  cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne
-                 boost sigc++ glibmm xml2 xml++ "
+                 boost sigcpp glibmm xml2 xmlpp "
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then

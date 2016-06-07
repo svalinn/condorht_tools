@@ -704,13 +704,14 @@ function build_boost() {
 
 
 # Build Sigc++
-function build_sigc++() {
-  name=sigc++
+function build_sigcpp() {
+  name=sigcpp
+  name_=sigc++
   version=$sigcpp_version
-  folder=$name-$version
-  tar_f=$name-$version
-  tarball=lib${name}-$version.tar.xz
-  url=https://download.gnome.org/sources/lib$name/${version}/$tarball
+  folder=$name_-$version
+  tar_f=$name_-$version
+  tarball=lib${name_}-$version.tar.xz
+  url=https://download.gnome.org/sources/lib$name_/${version}/$tarball
 
   setup_build tar
 
@@ -774,13 +775,14 @@ function build_glibmm() {
 
 
 # Build xml++
-function build_xml++() {
+function build_xmlpp() {
   name=xml++
+  name_=xmlpp
   version=$xmlpp_version
-  folder=$name-$version
-  tar_f=$name-$version
-  tarball=lib${name}-$version.tar.xz
-  url=http://ftp.gnome.org/pub/GNOME/sources/lib$name/${xmlpp_version:0:4}/$tarball
+  folder=$name_-$version
+  tar_f=$name_-$version
+  tarball=lib${name_}-$version.tar.xz
+  url=http://ftp.gnome.org/pub/GNOME/sources/lib$name_/${xmlpp_version:0:4}/$tarball
 
   setup_build tar
 
