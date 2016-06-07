@@ -51,7 +51,7 @@ function set_versions() {
   export       glib_version=2.48.1
   export     glibmm_version=2.48.1
   export       xml2_version=2.9.4
-  export      xmlpp_version=2.91.3
+  export      xmlpp_version=2.40.1
   export     sqlite_version=3130000
   export        Cbc_version=2.9.8
 }

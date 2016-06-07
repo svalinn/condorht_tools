@@ -189,15 +189,25 @@ function get_dependencies() {
     packages+=(gmp)
   fi
   if [[ " ${packages[@]} " =~ " cyclus " ]]; then
+    packages+=(python)
+    
     packages+=(gcc)
     packages+=(mpc)
     packages+=(mpfr)
     packages+=(gmp)
+    
     packages+=(hdf5)
-    packages+=(sigcpp)
-    packages+=(Cbc)
-    packages+=(glibmm)
     packages+=(boost)
+    packages+=(Cbc)
+    
+    packages+=(sigcpp)
+    packages+=(sqlite)
+    
+    packages+=(xml2)
+    packages+=(pcre)
+    packages+=(glib)
+    packages+=(glibmm)
+    packages+=(xmlpp)
   fi
   
   # Put the dependencies in the correct build order

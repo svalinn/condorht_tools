@@ -154,7 +154,7 @@ function build_gcc() {
   config_string+=" "--with-mpfr=$install_dir/mpfr
   config_string+=" "--with-mpc=$install_dir/mpc
   config_string+=" "--prefix=$install_dir/$folder
-
+  config_string+=" "--enable-threads
   cd bld
   ../src/configure $config_string
   make -j $jobs
@@ -693,9 +693,10 @@ function build_boost() {
 
   setup_string=
   setup_string+=" "--prefix=$install_dir/$folder
-  setup_string+=" "--with-libraries=program_options,filesystem,system
+  setup_string+=" "--with-libraries=program_options,filesystem,system,thread,serialization
 
   cd ${tarball:0:12}
+  #./bootstrap.sh  --show-libraries
   ./bootstrap.sh $setup_string
   ./b2 install 
 
@@ -911,21 +912,32 @@ function build_cyclus() {
   repo=https://github.com/cyclus/$name
   branch=develop
 
-  echo $LD_LIBRARY_PATH
+
+  export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
+  CMAKE_PREFIX_PATH+=":"$install_dir/sigcpp
+  CMAKE_PREFIX_PATH+=":"$install_dir/glib
+  CMAKE_PREFIX_PATH+=":"$install_dir/pcre
+  CMAKE_PREFIX_PATH+=":"$install_dir/glibmm
+  CMAKE_PREFIX_PATH+=":"$install_dir/xml2
+  CMAKE_PREFIX_PATH+=":"$install_dir/xmlpp
+  CMAKE_PREFIX_PATH+=":"$install_dir/sqlite
+  CMAKE_PREFIX_PATH+=":"$install_dir/boost
+
 
   setup_build repo python
 
   setup_string+=" "--hdf5_root=$install_dir/hdf5
-  setup_string+=" "--coin_root=$install_dir/cbc
+  setup_string+=" "--coin_root=$install_dir/Cbc
   setup_string+=" "--boost_root=$install_dir/boost
   setup_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
   setup_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  setup_string+=" "-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
   
   setup_string_2=
   setup_string_2+=" "--build_dir=$install_dir/$folder
 
   cd $name
-  python install.py $setup_string  $setup_string_2 -j $jobs
+  python install.py $setup_string  $setup_string_2 #-j $jobs
   #mkdir bld
   #cd bld
   #cmake .. 
