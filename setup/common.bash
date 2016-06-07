@@ -46,7 +46,7 @@ function set_versions() {
   export       pyne_version=dev
 
   export      boost_version=1.61.0
-  export     sigc++_version=2.8.0
+  export     sigcpp_version=2.8.0
   export       xml2_version=2.9.4
   export     glibmm_version=2.48.1
   export      xmlpp_version=2.36.0
