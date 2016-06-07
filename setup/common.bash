@@ -54,6 +54,9 @@ function set_versions() {
   export      xmlpp_version=2.40.1
   export     sqlite_version=3130000
   export        Cbc_version=2.9.8
+  
+  export     cyclus_version=dev
+  export   cycamore_version=dev
 }
 
 # Set environment variables
@@ -182,6 +185,7 @@ function set_env() {
   # CBC
   export LD_LIBRARY_PATH=$install_dir/cbc/lib:$LD_LIBRARY_PATH
 
-  echo $LD_LIBRARY_PATH
+  # cyclus
+  export LD_LIBRARY_PATH=$install_dir/cyclus/lib:$LD_LIBRARY_PATH
 
 }

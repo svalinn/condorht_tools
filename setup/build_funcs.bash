@@ -693,10 +693,10 @@ function build_boost() {
 
   setup_string=
   setup_string+=" "--prefix=$install_dir/$folder
-  setup_string+=" "--with-libraries=program_options,filesystem,system,thread,serialization
+  setup_string+=" "--with-libraries=program_options,filesystem,system,serialization,regex
 
   cd ${tarball:0:12}
-  #./bootstrap.sh  --show-libraries
+  ./bootstrap.sh  --show-libraries
   ./bootstrap.sh $setup_string
   ./b2 install 
 
@@ -937,13 +937,45 @@ function build_cyclus() {
   setup_string_2+=" "--build_dir=$install_dir/$folder
 
   cd $name
-  python install.py $setup_string  $setup_string_2 #-j $jobs
-  #mkdir bld
-  #cd bld
-  #cmake .. 
+  python install.py $setup_string  $setup_string_2 -j $jobs
   
+  finalize_build
+}
 
 
+# Build Cycamore
+function build_cycamore() {
+  name=cycamore
+  version=condor_test
+  folder=$name-$version
+  repo=https://github.com/Baaaaam//$name
+  branch=condor_test
 
+
+  export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
+  CMAKE_PREFIX_PATH+=":"$install_dir/sigcpp
+  CMAKE_PREFIX_PATH+=":"$install_dir/glib
+  CMAKE_PREFIX_PATH+=":"$install_dir/pcre
+  CMAKE_PREFIX_PATH+=":"$install_dir/glibmm
+  CMAKE_PREFIX_PATH+=":"$install_dir/xml2
+  CMAKE_PREFIX_PATH+=":"$install_dir/xmlpp
+  CMAKE_PREFIX_PATH+=":"$install_dir/sqlite
+  CMAKE_PREFIX_PATH+=":"$install_dir/boost
+  CMAKE_PREFIX_PATH+=":"$install_dir/cyclus
+  CMAKE_PREFIX_PATH+=":"$install_dir/gcc
+  export CMAKE_INCLUDE_PATH+=":"$install_dir/boost/include
+
+  setup_build repo python
+
+  setup_string+=" "--coin_root=$install_dir/Cbc
+  setup_string+=" "--boost_root=$install_dir/boost
+  setup_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
+  setup_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  setup_string+=" "-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
+  setup_string+=" "-DCMAKE_INCLUDE_PATH=$CMAKE_INCLUDE_PATH
+
+  cd $name
+  python install.py $setup_string  $setup_string_2 -j $jobs
+  
   finalize_build
 }

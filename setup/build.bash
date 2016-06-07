@@ -209,12 +209,36 @@ function get_dependencies() {
     packages+=(glibmm)
     packages+=(xmlpp)
   fi
+  if [[ " ${packages[@]} " =~ " cycamore " ]]; then
+    packages+=(python)
+    
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
+    
+    packages+=(hdf5)
+    packages+=(boost)
+    packages+=(Cbc)
+    
+    packages+=(sigcpp)
+    packages+=(sqlite)
+    
+    packages+=(xml2)
+    packages+=(pcre)
+    packages+=(glib)
+    packages+=(glibmm)
+    packages+=(xmlpp)
+
+    packages+=(cyclus)
+  fi
   
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
                  setuptools cython numpy scipy numexpr pytables nose
                  cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne
-                 boost sigcpp pcre glib glibmm xml2 xmlpp sqlite Cbc cyclus"
+                 boost sigcpp pcre glib glibmm xml2 xmlpp sqlite Cbc 
+		 cyclus cycamore "
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then
