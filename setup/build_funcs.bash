@@ -727,6 +727,79 @@ function build_sigcpp() {
   finalize_build
 }
 
+# Build pcre
+function build_pcre() {
+  name=pcre
+  version=$pcre_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tar.gz
+  url=ftp://ftp.csx.cam.ac.uk/pub/software/programming/$name/$tarball
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+  setup_string+=" "--enable-utf
+  setup_string+=" "--enable-unicode-properties
+  
+  cd $name-$version
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build glib
+function build_glib() {
+  name=glib
+  version=$glib_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tar.xz
+  url=http://ftp.gnome.org/pub/gnome/sources/$name/${version: : ${#version}-2}/$tarball
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+  setup_string+=" "PKG_CONFIG_PATH=$install_dir/pcre/lib/pkgconfig
+  
+  cd $name-$version
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build glibmm
+function build_glibmm() {
+  name=glibmm
+  version=$glibmm_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tar.xz
+  url=http://ftp.gnome.org/pub/GNOME/sources/$name/${version: : ${#version}-2}/$tarball
+
+  setup_build tar
+  
+  export PKG_CONFIG_PATH=$PKG_CONFIG_PATH
+  PKG_CONFIG_PATH+=":"$install_dir/sigcpp/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/glib/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/pcre/lib/pkgconfig
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+  
+  cd $folder
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+
 # Build xml2
 function build_xml2() {
   name=xml2
@@ -751,34 +824,10 @@ function build_xml2() {
 }
 
 
-# Build glibmm
-function build_glibmm() {
-  name=glibmm
-  version=$glibmm_version
-  folder=$name-$version
-  tar_f=$name-$version
-  tarball=${name}-$version.tar.xz
-  url=http://ftp.gnome.org/pub/GNOME/sources/$name/${version: : ${#version}-2}/$tarball
-
-  setup_build tar
-
-  setup_string=
-  setup_string+=" "--prefix=$install_dir/$folder
-  setup_string+=" "PKG_CONFIG_PATH=$install_dir/sigcpp/lib/pkgconfig/
-
-  cd $folder
-  ./configure $setup_string
-  make -j $jobs
-  make install
-
-  finalize_build
-}
-
-
 # Build xml++
 function build_xmlpp() {
-  name=xml++
-  name_=xmlpp
+  name=xmlpp
+  name_=xml++
   version=$xmlpp_version
   folder=$name-$version
   folder_=$name_-$version
@@ -787,12 +836,65 @@ function build_xmlpp() {
   url=http://ftp.gnome.org/pub/GNOME/sources/lib$name_/${xmlpp_version:0:4}/$tarball
 
   setup_build tar
-  
+ 
+  export PKG_CONFIG_PATH=$PKG_CONFIG_PATH
+  PKG_CONFIG_PATH+=":"$install_dir/sigcpp/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/glib/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/pcre/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/glibmm/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/xml2/lib/pkgconfig
+ 
   setup_string=
-  setup_string+=" "PKG_CONFIG_PATH=$install_dir/xml2
   setup_string+=" "--prefix=$install_dir/$folder
 
   cd lib$folder_
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+
+
+# Build cbc
+function build_Cbc() {
+  name=Cbc
+  version=$cbc_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tgz
+  url=http://www.coin-or.org/download/source/$name/$tarball
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd $name-$version
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build sqlite
+function build_sqlite() {
+  name=sqlite
+  version=$sqlite_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=$name-autoconf-$version.tar.gz
+  url=https://www.sqlite.org/2016/$tarball
+  
+
+
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd $name-autoconf-$version
   ./configure $setup_string
   make -j $jobs
   make install

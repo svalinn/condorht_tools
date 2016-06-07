@@ -137,11 +137,18 @@ function get_dependencies() {
     packages+=(gmp)
     packages+=(mpfr)
   fi
-  if [[ " ${packages[@]} " =~ " xml2 " ]]; then
+  if [[ " ${packages[@]} " =~ " pcre " ]]; then
     packages+=(gcc)
     packages+=(mpc)
-    packages+=(mpfr)
     packages+=(gmp)
+    packages+=(mpfr)
+  fi
+  if [[ " ${packages[@]} " =~ " glib " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(gmp)
+    packages+=(mpfr)
+    packages+=(pcre)
   fi
   if [[ " ${packages[@]} " =~ " glibmm " ]]; then
     packages+=(gcc)
@@ -149,6 +156,14 @@ function get_dependencies() {
     packages+=(mpfr)
     packages+=(gmp)
     packages+=(sigcpp)
+    packages+=(pcre)
+    packages+=(glib)
+  fi
+  if [[ " ${packages[@]} " =~ " xml2 " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
   fi
   if [[ " ${packages[@]} " =~ " xmlpp " ]]; then
     packages+=(gcc)
@@ -156,13 +171,29 @@ function get_dependencies() {
     packages+=(mpfr)
     packages+=(gmp)
     packages+=(xml2)
+    packages+=(sigcpp)
+    packages+=(pcre)
+    packages+=(glib)
     packages+=(glibmm)
   fi
+  if [[ " ${packages[@]} " =~ " sqlite " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
+  fi
+  if [[ " ${packages[@]} " =~ " Cbc " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
+  fi
+  
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
                  setuptools cython numpy scipy numexpr pytables nose
                  cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne
-                 boost sigcpp glibmm xml2 xmlpp "
+                 boost sigcpp pcre glib glibmm xml2 xmlpp sqlite Cbc "
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then

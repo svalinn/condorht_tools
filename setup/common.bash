@@ -47,9 +47,13 @@ function set_versions() {
 
   export      boost_version=1.61.0
   export     sigcpp_version=2.8.0
-  export       xml2_version=2.9.4
+  export       pcre_version=8.38
+  export       glib_version=2.48.1
   export     glibmm_version=2.48.1
-  export      xmlpp_version=2.36.0
+  export       xml2_version=2.9.4
+  export      xmlpp_version=2.91.3
+  export     sqlite_version=3130000
+  export        cbc_version=2.9.8
 }
 
 # Set environment variables
@@ -155,14 +159,26 @@ function set_env() {
   export LD_LIBRARY_PATH=$install_dir/boost/lib:$LD_LIBRARY_PATH
 
   # SIGC++
-  export LD_LIBRARY_PATH=$install_dir/sigc++/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$install_dir/sigcpp/lib:$LD_LIBRARY_PATH
   
-  # XML2
-  export LD_LIBRARY_PATH=$install_dir/xml2/lib:$LD_LIBRARY_PATH
+  # PCRE
+  export LD_LIBRARY_PATH=$install_dir/pcre/lib:$LD_LIBRARY_PATH
+  
+  # GLIB
+  export LD_LIBRARY_PATH=$install_dir/glib/lib:$LD_LIBRARY_PATH
   
   # GLIBMM
   export LD_LIBRARY_PATH=$install_dir/glibmm/lib:$LD_LIBRARY_PATH
   
+  # XML2
+  export LD_LIBRARY_PATH=$install_dir/xml2/lib:$LD_LIBRARY_PATH
+  
   # XMLPP
   export LD_LIBRARY_PATH=$install_dir/xml++/lib:$LD_LIBRARY_PATH
+  
+  # SQLITE
+  export LD_LIBRARY_PATH=$install_dir/sqlite/lib:$LD_LIBRARY_PATH
+  
+  # CBC
+  export LD_LIBRARY_PATH=$install_dir/cbc/lib:$LD_LIBRARY_PATH
 }
