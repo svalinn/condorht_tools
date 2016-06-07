@@ -703,21 +703,21 @@ function build_boost() {
 }
 
 
-# Build Sigcpp
-function build_sigcpp() {
+# Build Sigc++
+function build_sigc++() {
   name=sigc++
   version=$sigcpp_version
   folder=$name-$version
   tar_f=$name-$version
   tarball=lib${name}-$version.tar.xz
-  url=https://download.gnome.org/sources/lib$name/${version:0:4}/$tarball
+  url=https://download.gnome.org/sources/lib$name/${version}/$tarball
 
   setup_build tar
 
   setup_string=
   setup_string+=" "--prefix=$install_dir/$folder
 
-  cd lib$folder
+  cd lib${folder}
   ./configure $setup_string
   make -j $jobs
   make install
@@ -740,7 +740,7 @@ function build_xml2() {
   setup_string+=" "--with-python=no
   setup_string+=" "--prefix=$install_dir/$folder
 
-  cd lib$folder
+  cd lib$name-$version
   ./configure $setup_string
   make -j $jobs
   make install
@@ -756,14 +756,15 @@ function build_glibmm() {
   folder=$name-$version
   tar_f=$name-$version
   tarball=${name}-$version.tar.xz
-  url=http://ftp.gnome.org/pub/GNOME/sources/$name/${#version}-2}/$tarball
+  url=http://ftp.gnome.org/pub/GNOME/sources/$name/${version: : ${#version}-2}/$tarball
 
   setup_build tar
 
   setup_string=
   setup_string+=" "--prefix=$install_dir/$folder
+  setup_string+=" "PKG_CONFIG_PATH=$install_dir/sigc++/lib/pkgconfig/
 
-  cd lib$folder
+  cd $folder
   ./configure $setup_string
   make -j $jobs
   make install
@@ -772,8 +773,8 @@ function build_glibmm() {
 }
 
 
-# Build xmlpp
-function build_xmlpp() {
+# Build xml++
+function build_xml++() {
   name=xml++
   version=$xmlpp_version
   folder=$name-$version
