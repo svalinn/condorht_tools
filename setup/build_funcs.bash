@@ -7,6 +7,7 @@ function ensure_build() {
   name=$1
   eval version=\$"$name"_version
   folder=$name-$version
+  echo $copy_dir/install_$folder.tar.gz
   if [ -f $copy_dir/install_$folder.tar.gz ]; then
     echo Build found for $name-$version
     cd $install_dir
@@ -909,9 +910,9 @@ function build_cyclus() {
   name=cyclus
   version=dev
   folder=$name-$version
+  cyclus_folder=$name-$version
   repo=https://github.com/cyclus/$name
   branch=develop
-
 
   export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
   CMAKE_PREFIX_PATH+=":"$install_dir/sigcpp
@@ -923,9 +924,10 @@ function build_cyclus() {
   CMAKE_PREFIX_PATH+=":"$install_dir/sqlite
   CMAKE_PREFIX_PATH+=":"$install_dir/boost
 
-
   setup_build repo python
-
+ 
+	
+  setup_string=
   setup_string+=" "--hdf5_root=$install_dir/hdf5
   setup_string+=" "--coin_root=$install_dir/Cbc
   setup_string+=" "--boost_root=$install_dir/boost
@@ -934,23 +936,19 @@ function build_cyclus() {
   setup_string+=" "-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
   
   setup_string_2=
-  setup_string_2+=" "--build_dir=$install_dir/$folder
+  setup_string_2+=" "--build_dir=cyclus_bld
+  setup_string_2+=" "--prefix=$install_dir/cyclus
+
 
   cd $name
   python install.py $setup_string  $setup_string_2 -j $jobs
-  
-  finalize_build
-}
-
-
-# Build Cycamore
-function build_cycamore() {
+ 
+ 
   name=cycamore
-  version=condor_test
+  version=dev
   folder=$name-$version
-  repo=https://github.com/Baaaaam//$name
+  repo=https://github.com/Baaaaam/$name
   branch=condor_test
-
 
   export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
   CMAKE_PREFIX_PATH+=":"$install_dir/sigcpp
@@ -965,17 +963,27 @@ function build_cycamore() {
   CMAKE_PREFIX_PATH+=":"$install_dir/gcc
   export CMAKE_INCLUDE_PATH+=":"$install_dir/boost/include
 
+
   setup_build repo python
 
+  setup_string=
   setup_string+=" "--coin_root=$install_dir/Cbc
   setup_string+=" "--boost_root=$install_dir/boost
+  setup_string+=" "--cyclus_root=$install_dir/$cyclus_folder/cyinstall
   setup_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
   setup_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
   setup_string+=" "-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
   setup_string+=" "-DCMAKE_INCLUDE_PATH=$CMAKE_INCLUDE_PATH
 
+  setup_string_2=
+  setup_string_2+=" "--build_dir=cycamore_bld
+  setup_string_2+=" "--prefix=$install_dir/cyclus
+  
   cd $name
   python install.py $setup_string  $setup_string_2 -j $jobs
-  
+
+
+
+  folder=$cyclus_folder  
   finalize_build
 }

@@ -9,8 +9,7 @@ error = process_$(Cluster)_$(Process).err
 log = process_$(Cluster)_$(Process).log
 
 # Indicate this is a build job
-+IsBuildJob = true
-requirements = (Target.HasGluster == true) && (OpSysAndVer =?= "SL6") && (IsBuildSlot == true)
+requirements = (Target.HasGluster == true) && (OpSysAndVer =?= "SL6")
 
 # Copy environment variables from the submit node
 getenv = True
@@ -22,7 +21,7 @@ when_to_transfer_output = ON_EXIT
 
 # Indicate the executable to be run and any other input files needed
 executable = cyclus_tests.bash
-transfer_input_files = cyclus_tests.bash, build_funcs.bash, common.bash
+transfer_input_files = cyclus_tests.bash, build.bash, build_funcs.bash, common.bash
 
 # Command line arguments for the executable
 arguments =

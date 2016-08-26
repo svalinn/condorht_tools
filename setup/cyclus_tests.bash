@@ -25,12 +25,19 @@ for name in "${packages[@]}"; do
 done
 
 # recover cyclus and cycamore
-packages=(cyclus cycamore)
-for name in "${packages[@]:1}"; do
+packages=(cyclus)
+for name in "${packages[@]}"; do
   eval version=\$"$name"_version
   echo Ensuring build of $name-$version ...
   ensure_build $name $version
 done
 
-cyclus_unit_test
-cycamore_unit_test
+
+echo $PATH
+echo "running unit test"
+
+echo "cyclus"
+
+/tmp/mouginot/opt/cyclus/cyinstall/bin/cyclus_unit_tests
+echo "cycamore"
+cycamore_unit_tests

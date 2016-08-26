@@ -186,6 +186,7 @@ function set_env() {
   export LD_LIBRARY_PATH=$install_dir/cbc/lib:$LD_LIBRARY_PATH
 
   # cyclus
-  export LD_LIBRARY_PATH=$install_dir/cyclus/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$install_dir/cyclus/cyinstall/lib/:$LD_LIBRARY_PATH
+  export PATH=$install_dir/cyclus/cyinstall/bin:$PATH
 
 }
