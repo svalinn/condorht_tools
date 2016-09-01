@@ -987,3 +987,21 @@ function build_cyclus() {
   folder=$cyclus_folder  
   finalize_build
 }
+
+
+# Build HTC
+function build_HTC() {
+  name=HTC_tool
+  version=dev
+  folder=$name-$version
+  repo=https://github.com/Baaaaam/HTC_tool
+  branch=htc
+
+  setup_build repo
+
+  cd $name
+  mkdir -p $install_dir/$folder
+  cp cloudlus/* $install_dir/$folder
+
+  finalize_build
+}

@@ -21,7 +21,7 @@ when_to_transfer_output = ON_EXIT
 
 # Indicate the executable to be run and any other input files needed
 executable = cyclus_tests.bash
-transfer_input_files = cyclus_tests.bash, build.bash, build_funcs.bash, common.bash, cloudlus, cloudlus_run.bash
+transfer_input_files = cyclus_load.bash, cyclus_tests.bash, build.bash, build_funcs.bash, common.bash
 
 # Command line arguments for the executable
 arguments =
@@ -30,8 +30,8 @@ arguments =
 notification = never
 
 # Request resources
-request_cpus = 1
-request_memory = 4GB
+request_cpus = 12
+request_memory = 8GB
 request_disk = 32GB
 
 queue

@@ -214,8 +214,8 @@ function get_dependencies() {
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
                  setuptools cython numpy scipy numexpr pytables nose
                  cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne
-                 boost sigcpp pcre glib glibmm xml2 xmlpp sqlite Cbc 
-		 cyclus"
+                 boost sigcpp pcre glib glibmm xml2 xmlpp sqlite Cbc cyclus
+                 HTC"
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then
