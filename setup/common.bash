@@ -48,7 +48,7 @@ function set_versions() {
   export      boost_version=1.61.0
   export     sigcpp_version=2.8.0
   export       pcre_version=8.38
-  export       glib_version=2.48.1
+  export       glib_version=2.48.2
   export     glibmm_version=2.48.1
   export       xml2_version=2.9.4
   export      xmlpp_version=2.40.1

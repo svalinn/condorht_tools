@@ -911,7 +911,7 @@ function build_cyclus() {
   version=dev
   folder=$name-$version
   cyclus_folder=$name-$version
-  repo=https://github.com/cyclus/$name
+  repo=https://github.com/Baaaaam/$name
   branch=develop
 
   export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
@@ -948,7 +948,7 @@ function build_cyclus() {
   version=dev
   folder=$name-$version
   repo=https://github.com/Baaaaam/$name
-  branch=condor_test
+  branch=develop
 
   export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
   CMAKE_PREFIX_PATH+=":"$install_dir/sigcpp
