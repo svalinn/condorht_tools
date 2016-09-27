@@ -203,10 +203,10 @@ function get_dependencies() {
     packages+=(sigcpp)
     packages+=(sqlite)
     
-    packages+=(xml2)
     packages+=(pcre)
     packages+=(glib)
     packages+=(glibmm)
+    packages+=(xml2)
     packages+=(xmlpp)
   fi
   
