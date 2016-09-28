@@ -914,6 +914,13 @@ function build_cyclus() {
   repo=https://github.com/Baaaaam/$name
   branch=develop
 
+  export PKG_CONFIG_PATH=$PKG_CONFIG_PATH
+  PKG_CONFIG_PATH+=":"$install_dir/sigcpp/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/glib/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/pcre/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/glibmm/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/xml2/lib/pkgconfig
+  
   export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
   CMAKE_PREFIX_PATH+=":"$install_dir/sigcpp
   CMAKE_PREFIX_PATH+=":"$install_dir/glib
@@ -924,8 +931,8 @@ function build_cyclus() {
   CMAKE_PREFIX_PATH+=":"$install_dir/sqlite
   CMAKE_PREFIX_PATH+=":"$install_dir/boost
 
-  setup_build repo python
- 
+  setup_build repo
+  mkdir -p $install_dir/$folder/ 
 	
   setup_string=
   setup_string+=" "--hdf5_root=$install_dir/hdf5
@@ -964,7 +971,7 @@ function build_cyclus() {
   export CMAKE_INCLUDE_PATH+=":"$install_dir/boost/include
 
 
-  setup_build repo python
+  setup_build repo
 
   setup_string=
   setup_string+=" "--coin_root=$install_dir/Cbc
@@ -984,13 +991,14 @@ function build_cyclus() {
 
 
 
-  folder=$cyclus_folder  
+  folder=$cyclus_folder 
+  name=cyclus
   finalize_build
 }
 
 
 # Build HTC
-function build_HTC() {
+function build_HTC_tool() {
   name=HTC_tool
   version=dev
   folder=$name-$version

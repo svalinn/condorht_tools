@@ -31,8 +31,8 @@ arguments = libgcpp
 notification = never
 
 # Request resources
-request_cpus = 2
-request_memory = 2GB
-request_disk = 4GB
+request_cpus = 8
+request_memory = 4GB
+request_disk = 8GB
 
 queue

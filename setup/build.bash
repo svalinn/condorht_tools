@@ -215,7 +215,7 @@ function get_dependencies() {
                  setuptools cython numpy scipy numexpr pytables nose
                  cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne
                  boost sigcpp pcre glib glibmm xml2 xmlpp sqlite Cbc cyclus
-                 HTC"
+                 HTC_tool"
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then

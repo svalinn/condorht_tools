@@ -57,6 +57,7 @@ function set_versions() {
   
   export     cyclus_version=dev
   export   cycamore_version=dev
+  export   HTC_tool_version=dev
 }
 
 # Set environment variables
