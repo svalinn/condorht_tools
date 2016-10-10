@@ -57,6 +57,7 @@ function set_versions() {
   
   export     cyclus_version=dev
   export   cycamore_version=dev
+  export      glibc_version=2.14
   export   HTC_tool_version=dev
 }
 
@@ -192,4 +193,6 @@ function set_env() {
   # cyclus
   export PATH=$install_dir/HTC_tool:$PATH
 
+  # GLIBC
+  export LD_LIBRARY_PATH=$install_dir/glibc/lib:$LD_LIBRARY_PATH
 }

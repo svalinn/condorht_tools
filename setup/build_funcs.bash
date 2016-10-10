@@ -996,6 +996,29 @@ function build_cyclus() {
   finalize_build
 }
 
+# Build glib
+function build_glibc() {
+  name=glibc
+  version=$glibc_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tar.xz
+  url=http://ftp.gnu.org/gnu/$name/$tarball
+  setup_build tar
+	unset LD_LIBRARY_PATH
+  
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+  
+  cd $name-$version
+  mkdir autoconf
+  cd autoconf
+  ../configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
 
 # Build HTC
 function build_HTC_tool() {

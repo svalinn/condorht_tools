@@ -210,12 +210,16 @@ function get_dependencies() {
     packages+=(xmlpp)
   fi
   
+  if [[ " ${packages[@]} " =~ " HTC_tool " ]]; then
+    packages+=(gcc)
+    packages+=(glibc)
+  fi
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
                  setuptools cython numpy scipy numexpr pytables nose
                  cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne
                  boost sigcpp pcre glib glibmm xml2 xmlpp sqlite Cbc cyclus
-                 HTC_tool"
+                 glibc HTC_tool"
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then
