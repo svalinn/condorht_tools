@@ -7,7 +7,9 @@ function ensure_build() {
   name=$1
   eval version=\$"$name"_version
   folder=$name-$version
+  echo $copy_dir/install_$folder.tar.gz
   if [ -f $copy_dir/install_$folder.tar.gz ]; then
+    echo Build found for $name-$version
     cd $install_dir
     tar -xzvf $copy_dir/install_$folder.tar.gz
   else
@@ -31,6 +33,8 @@ function setup_build() {
       tar_string="tar -xzvf"
     elif [ "${tarball: -8}" == ".tar.bz2" ]; then
       tar_string="tar -xjvf"
+    elif [ "${tarball: -7}" == ".tar.xz" ]; then
+      tar_string=" tar -xJvf"
     elif [ "${tarball: -4}" == ".zip" ]; then
       tar_string="unzip"
     fi
@@ -151,7 +155,7 @@ function build_gcc() {
   config_string+=" "--with-mpfr=$install_dir/mpfr
   config_string+=" "--with-mpc=$install_dir/mpc
   config_string+=" "--prefix=$install_dir/$folder
-
+  config_string+=" "--enable-threads
   cd bld
   ../src/configure $config_string
   make -j $jobs
@@ -560,7 +564,7 @@ function build_geant4() {
   cmake_string=
   cmake_string+=" "-DGEANT4_USE_SYSTEM_EXPAT=OFF
   cmake_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
-  cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/gpp
   cmake_string+=" "-DCMAKE_INSTALL_PREFIX=$install_dir/$folder
 
   cd bld
@@ -634,7 +638,7 @@ function build_dagmc() {
     cmake_string+=" "-DFLUKA_DIR=$install_dir/fluka/bin
   fi
   cmake_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
-  cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/gpp
   cmake_string+=" "-DCMAKE_Fortran_COMPILER=$install_dir/gcc/bin/gfortran
   cmake_string+=" "-DCMAKE_INSTALL_PREFIX=$install_dir/$folder
   cmake_string+=" "$build_dir/$folder/src
@@ -659,7 +663,7 @@ function build_pyne() {
 
   setup_string=
   setup_string+=" "-DMOAB_INCLUDE_DIR=$install_dir/moab/include
-  setup_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  setup_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/gpp
   setup_string+=" "-DCMAKE_Fortran_COMPILER=$install_dir/gcc/bin/gfortran
   setup_string_2=
   #setup_string_2+=" "--bootstrap
@@ -668,6 +672,367 @@ function build_pyne() {
   cd $name
   python setup.py $setup_string install $setup_string_2 -j $jobs
   nuc_data_make
+
+  finalize_build
+}
+
+# Build Boost
+function build_boost() {
+  name=boost
+  version=$boost_version
+  folder=$name-$version
+  tar_f=$name-$version
+  
+  tarball=${name}_$version
+  tarball=`echo $tarball | sed s/'\.'/_/g`
+  untar_f=$tarball
+  tarball+=.tar.gz
+  
+  url=https://sourceforge.net/projects/boost/files/boost/$version/$tarball
+
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+  setup_string+=" "--with-libraries=program_options,filesystem,system,serialization,regex
+
+  cd ${tarball:0:12}
+  ./bootstrap.sh  --show-libraries
+  ./bootstrap.sh $setup_string
+  ./b2 install 
+
+  finalize_build
+}
+
+
+# Build Sigc++
+function build_sigcpp() {
+  name=sigcpp
+  name_=sigc++
+  version=$sigcpp_version
+  folder=$name-$version
+  folder_=$name_-$version
+  tar_f=$name_-$version
+  tarball=lib${name_}-$version.tar.xz
+  url=https://download.gnome.org/sources/lib$name_/${version}/$tarball
+
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd lib${folder_}
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build pcre
+function build_pcre() {
+  name=pcre
+  version=$pcre_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tar.gz
+  url=ftp://ftp.csx.cam.ac.uk/pub/software/programming/$name/$tarball
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+  setup_string+=" "--enable-utf
+  setup_string+=" "--enable-unicode-properties
+  
+  cd $name-$version
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build glib
+function build_glib() {
+  name=glib
+  version=$glib_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tar.xz
+  url=http://ftp.gnome.org/pub/gnome/sources/$name/${version: : ${#version}-2}/$tarball
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+  setup_string+=" "PKG_CONFIG_PATH=$install_dir/pcre/lib/pkgconfig
+  
+  cd $name-$version
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build glibmm
+function build_glibmm() {
+  name=glibmm
+  version=$glibmm_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tar.xz
+  url=http://ftp.gnome.org/pub/GNOME/sources/$name/${version: : ${#version}-2}/$tarball
+
+  setup_build tar
+  
+  export PKG_CONFIG_PATH=$PKG_CONFIG_PATH
+  PKG_CONFIG_PATH+=":"$install_dir/sigcpp/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/glib/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/pcre/lib/pkgconfig
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+  
+  cd $folder
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+
+# Build xml2
+function build_xml2() {
+  name=xml2
+  version=$xml2_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=lib${name}-$version.tar.gz
+  url=ftp://xmlsoft.org/libxml2/$tarball
+
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--with-python=no
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd lib$name-$version
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+
+# Build xml++
+function build_xmlpp() {
+  name=xmlpp
+  name_=xml++
+  version=$xmlpp_version
+  folder=$name-$version
+  folder_=$name_-$version
+  tar_f=$name_-$version
+  tarball=lib${name_}-$version.tar.xz
+  url=http://ftp.gnome.org/pub/GNOME/sources/lib$name_/${xmlpp_version:0:4}/$tarball
+
+  setup_build tar
+ 
+  export PKG_CONFIG_PATH=$PKG_CONFIG_PATH
+  PKG_CONFIG_PATH+=":"$install_dir/sigcpp/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/glib/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/pcre/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/glibmm/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/xml2/lib/pkgconfig
+ 
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd lib$folder_
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+
+
+# Build cbc
+function build_Cbc() {
+  name=Cbc
+  version=$cbc_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tgz
+  url=http://www.coin-or.org/download/source/$name/$tarball
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd $name-$version
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build sqlite
+function build_sqlite() {
+  name=sqlite
+  version=$sqlite_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=$name-autoconf-$version.tar.gz
+  url=https://www.sqlite.org/2016/$tarball
+  
+
+
+  setup_build tar
+
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+
+  cd $name-autoconf-$version
+  ./configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+
+# Build Cyclus
+function build_cyclus() {
+  name=cyclus
+  version=dev
+  folder=$name-$version
+  cyclus_folder=$name-$version
+  repo=https://github.com/Baaaaam/$name
+  branch=develop
+
+  export PKG_CONFIG_PATH=$PKG_CONFIG_PATH
+  PKG_CONFIG_PATH+=":"$install_dir/sigcpp/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/glib/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/pcre/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/glibmm/lib/pkgconfig
+  PKG_CONFIG_PATH+=":"$install_dir/xml2/lib/pkgconfig
+  
+  export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
+  CMAKE_PREFIX_PATH+=":"$install_dir/sigcpp
+  CMAKE_PREFIX_PATH+=":"$install_dir/glib
+  CMAKE_PREFIX_PATH+=":"$install_dir/pcre
+  CMAKE_PREFIX_PATH+=":"$install_dir/glibmm
+  CMAKE_PREFIX_PATH+=":"$install_dir/xml2
+  CMAKE_PREFIX_PATH+=":"$install_dir/xmlpp
+  CMAKE_PREFIX_PATH+=":"$install_dir/sqlite
+  CMAKE_PREFIX_PATH+=":"$install_dir/boost
+
+  setup_build repo
+  mkdir -p $install_dir/$folder/ 
+	
+  setup_string=
+  setup_string+=" "--hdf5_root=$install_dir/hdf5
+  setup_string+=" "--coin_root=$install_dir/Cbc
+  setup_string+=" "--boost_root=$install_dir/boost
+  setup_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
+  setup_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  setup_string+=" "-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
+  
+  setup_string_2=
+  setup_string_2+=" "--build_dir=cyclus_bld
+  setup_string_2+=" "--prefix=$install_dir/cyclus
+
+
+  cd $name
+  python install.py $setup_string  $setup_string_2 -j $jobs
+ 
+ 
+  name=cycamore
+  version=dev
+  folder=$name-$version
+  repo=https://github.com/Baaaaam/$name
+  branch=managerinst_deploying
+
+  export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
+  CMAKE_PREFIX_PATH+=":"$install_dir/sigcpp
+  CMAKE_PREFIX_PATH+=":"$install_dir/glib
+  CMAKE_PREFIX_PATH+=":"$install_dir/pcre
+  CMAKE_PREFIX_PATH+=":"$install_dir/glibmm
+  CMAKE_PREFIX_PATH+=":"$install_dir/xml2
+  CMAKE_PREFIX_PATH+=":"$install_dir/xmlpp
+  CMAKE_PREFIX_PATH+=":"$install_dir/sqlite
+  CMAKE_PREFIX_PATH+=":"$install_dir/boost
+  CMAKE_PREFIX_PATH+=":"$install_dir/cyclus
+  CMAKE_PREFIX_PATH+=":"$install_dir/gcc
+  export CMAKE_INCLUDE_PATH+=":"$install_dir/boost/include
+
+
+  setup_build repo
+
+  setup_string=
+  setup_string+=" "--coin_root=$install_dir/Cbc
+  setup_string+=" "--boost_root=$install_dir/boost
+  setup_string+=" "--cyclus_root=$install_dir/$cyclus_folder/cyinstall
+  setup_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
+  setup_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  setup_string+=" "-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
+  setup_string+=" "-DCMAKE_INCLUDE_PATH=$CMAKE_INCLUDE_PATH
+
+  setup_string_2=
+  setup_string_2+=" "--build_dir=cycamore_bld
+  setup_string_2+=" "--prefix=$install_dir/cyclus
+  
+  cd $name
+  python install.py $setup_string  $setup_string_2 -j $jobs
+
+
+
+  folder=$cyclus_folder 
+  name=cyclus
+  finalize_build
+}
+
+# Build glib
+function build_glibc() {
+  name=glibc
+  version=$glibc_version
+  folder=$name-$version
+  tar_f=$name-$version
+  tarball=${name}-$version.tar.xz
+  url=http://ftp.gnu.org/gnu/$name/$tarball
+  setup_build tar
+	unset LD_LIBRARY_PATH
+  
+  setup_string=
+  setup_string+=" "--prefix=$install_dir/$folder
+  
+  cd $name-$version
+  mkdir autoconf
+  cd autoconf
+  ../configure $setup_string
+  make -j $jobs
+  make install
+
+  finalize_build
+}
+
+# Build HTC
+function build_HTC_tool() {
+  name=HTC_tool
+  version=dev
+  folder=$name-$version
+  repo=https://github.com/Baaaaam/HTC_tool
+  branch=htc
+
+  setup_build repo
+
+  cd $name
+  mkdir -p $install_dir/$folder
+  cp cloudlus/* $install_dir/$folder
 
   finalize_build
 }

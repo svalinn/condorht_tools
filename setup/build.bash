@@ -125,11 +125,101 @@ function get_dependencies() {
   if [[ " ${packages[@]} " =~ " gmp " ]]; then
     : # no dependencies
   fi
-
+  if [[ " ${packages[@]} " =~ " boost " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(gmp)
+    packages+=(mpfr)
+  fi
+  if [[ " ${packages[@]} " =~ " sigcpp " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(gmp)
+    packages+=(mpfr)
+  fi
+  if [[ " ${packages[@]} " =~ " pcre " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(gmp)
+    packages+=(mpfr)
+  fi
+  if [[ " ${packages[@]} " =~ " glib " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(gmp)
+    packages+=(mpfr)
+    packages+=(pcre)
+  fi
+  if [[ " ${packages[@]} " =~ " glibmm " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
+    packages+=(sigcpp)
+    packages+=(pcre)
+    packages+=(glib)
+  fi
+  if [[ " ${packages[@]} " =~ " xml2 " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
+  fi
+  if [[ " ${packages[@]} " =~ " xmlpp " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
+    packages+=(xml2)
+    packages+=(sigcpp)
+    packages+=(pcre)
+    packages+=(glib)
+    packages+=(glibmm)
+  fi
+  if [[ " ${packages[@]} " =~ " sqlite " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
+  fi
+  if [[ " ${packages[@]} " =~ " Cbc " ]]; then
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
+  fi
+  if [[ " ${packages[@]} " =~ " cyclus " ]]; then
+    packages+=(python)
+    
+    packages+=(gcc)
+    packages+=(mpc)
+    packages+=(mpfr)
+    packages+=(gmp)
+    
+    packages+=(hdf5)
+    packages+=(boost)
+    packages+=(Cbc)
+    
+    packages+=(sigcpp)
+    packages+=(sqlite)
+    
+    packages+=(pcre)
+    packages+=(glib)
+    packages+=(glibmm)
+    packages+=(xml2)
+    packages+=(xmlpp)
+  fi
+  
+  if [[ " ${packages[@]} " =~ " HTC_tool " ]]; then
+    packages+=(gcc)
+    packages+=(glibc)
+  fi
   # Put the dependencies in the correct build order
   all_packages=" gmp mpfr mpc gcc openmpi cmake python hdf5 lapack
                  setuptools cython numpy scipy numexpr pytables nose
-                 cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne "
+                 cubit cgm moab meshkit pytaps mcnp5 geant4 fluka dagmc pyne
+                 boost sigcpp pcre glib glibmm xml2 xmlpp sqlite Cbc cyclus
+                 glibc HTC_tool"
   packages_ordered=()
   for package in $all_packages; do
     if [[ " ${packages[@]} " =~ " ${package} " ]]; then
@@ -172,4 +262,4 @@ for name in "${packages[@]}"; do
 done
 
 # Cleanup the build
-cleanup_build
+#cleanup_build

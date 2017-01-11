@@ -25,14 +25,14 @@ executable = build.bash
 transfer_input_files = build.bash, build_funcs.bash, common.bash
 
 # Command line arguments for the executable
-arguments = openmpi cubit cgm meshkit mcnp5 geant4 fluka dagmc pyne
+arguments = libgcpp 
 
 # Don't send emails
 notification = never
 
 # Request resources
-request_cpus = 12
-request_memory = 2GB
-request_disk = 4GB
+request_cpus = 2
+request_memory = 4GB
+request_disk = 8GB
 
 queue
