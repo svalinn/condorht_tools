@@ -31,6 +31,6 @@ for name in "${packages[@]}"; do
   echo Ensuring build of $name-$version ...
   ensure_build $name $version
 done
-echo $PATH
+cyclus_unit_test
 
-cloudlus -addr dory.fuelcycle.org:3030 work -interval 3s -whitelist cyclus cyan
+cycamore_unit_test
