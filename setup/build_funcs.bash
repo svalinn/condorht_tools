@@ -7,7 +7,8 @@ function ensure_build() {
   name=$1
   eval version=\$"$name"_version
   folder=$name-$version
-  if [ -f $copy_dir/install_$folder.tar.gz ]; then
+  echo $folder
+  if [ -f $copy_dir/install_$folder.tar.gz ] ; then
     cd $install_dir
     tar -xzvf $copy_dir/install_$folder.tar.gz
   else
@@ -34,6 +35,10 @@ function setup_build() {
     elif [ "${tarball: -4}" == ".zip" ]; then
       tar_string="unzip"
     fi
+    echo "tar_string" $tar_string 
+    echo "dist_dir" $dist_dir 
+    echo "tarball" $tarball
+
     $tar_string $dist_dir/$tarball
     ln -s $tar_f src
   elif [ "$1" == "repo" ]; then
@@ -160,6 +165,34 @@ function build_gcc() {
   finalize_build
 }
 
+# build ld
+function build_binutils() {
+  name=binutils
+  version=$binutils_version
+  echo "version" $version
+  folder=$name
+  tarball=$name-$version.tar.bz2
+  tar_f=$name-$version
+  echo "folder" $folder
+  #repo=git://sourceware.org/git/binutils-gdb.git
+  url=ftp://sourceware.org/pub/binutils/snapshots/binutils-2.28.90.tar.bz2
+
+  setup_build tar
+
+  config_string=
+  config_string+=" "--with-gmp=$install_dir/gmp
+  config_string+=" "--with-mpfr=$install_dir/mpfr
+  config_string+=" "--with-mpc=$install_dir/mpc
+  config_string+=" "--prefix=$install_dir/$folder
+
+  cd bld
+  ../src/configure $config_string
+  make -j $jobs
+  make install
+ 
+  finalize_build
+}
+
 # Build OpenMPI
 function build_openmpi() {
   name=openmpi
@@ -230,11 +263,12 @@ function build_python() {
 # Build HDF5
 function build_hdf5() {
   name=hdf5
+  minor=1.8
   version=$hdf5_version
   folder=$name-$version
   tarball=$name-$version.tar.gz
   tar_f=$name-$version
-  url=https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-$version/src/$tarball
+  url=https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-$minor/hdf5-$version/src/$tarball
 
   setup_build tar
 
@@ -561,6 +595,8 @@ function build_geant4() {
   cmake_string+=" "-DGEANT4_USE_SYSTEM_EXPAT=OFF
   cmake_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
   cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
+  cmake_string+=" "-DGEANT4_INSTALL_DATADIR=$install_dir/$folder
+  cmake_string+=" "-DGEANT4_INSTALL_DATA=ON
   cmake_string+=" "-DCMAKE_INSTALL_PREFIX=$install_dir/$folder
 
   cd bld
@@ -597,17 +633,18 @@ function build_dagmc() {
   name=dagmc
   version=$dagmc_version
   folder=$name-$version
-  repo=https://github.com/svalinn/$name
-  branch=develop
+  repo=https://github.com/makeclean/$name
+#  branch=nasa_specific
+#  repo=https://github.com/svalinn/dagmc
+  branch=add_g4hier
   mcnp5_tarball=mcnp5_dist.tgz
 
   setup_build repo
 
   if [[ " ${packages[@]} " =~ " mcnp5 " ]]; then
-    cd $name/mcnp5
+    cd $name/mcnp/mcnp5
     tar -xzvf $dist_dir/$mcnp5_tarball Source
-    cd Source
-    patch -p2 < ../patch/dagmc.patch.5.1.60
+    patch -p0 < patch/dagmc.patch.5.1.60
     cd ../../..
   fi
   if [[ " ${packages[@]} " =~ " fluka " ]]; then
@@ -620,6 +657,7 @@ function build_dagmc() {
   if [[ " ${packages[@]} " =~ " mcnp5 " ]]; then
     cmake_string+=" "-DBUILD_MCNP5=ON
     cmake_string+=" "-DMCNP5_DATAPATH=$DATAPATH
+    cmake_string+=" "-DBUILD_SOURCES=ON
     if [[ " ${packages[@]} " =~ " openmpi " ]]; then
       cmake_string+=" "-DMPI_BUILD=ON
     fi
@@ -633,9 +671,11 @@ function build_dagmc() {
     cmake_string+=" "-DBUILD_FLUKA=ON
     cmake_string+=" "-DFLUKA_DIR=$install_dir/fluka/bin
   fi
+  #cmake_string+=" "-DNASA=ON
   cmake_string+=" "-DCMAKE_C_COMPILER=$install_dir/gcc/bin/gcc
   cmake_string+=" "-DCMAKE_CXX_COMPILER=$install_dir/gcc/bin/g++
   cmake_string+=" "-DCMAKE_Fortran_COMPILER=$install_dir/gcc/bin/gfortran
+  cmake_string+=" "-DCMAKE_LINKER=$install_dir/binutils-gdb/bin/ld
   cmake_string+=" "-DCMAKE_INSTALL_PREFIX=$install_dir/$folder
   cmake_string+=" "$build_dir/$folder/src
 
@@ -677,7 +717,7 @@ function build_srag() {
   folder=srag
 
   repo=https://github.com/makeclean/SRAGCodes.git 
-  branch=fix_tests
+  branch=update_build
 
   pwd
   cd $build_dir
@@ -686,20 +726,26 @@ function build_srag() {
   cd srag
   mkdir bld
 
-#  mkdir -p $folder/bld
-#  cd $folder
   git clone $repo $folder
   cd srag
   git checkout $branch
   cd ../bld
   pwd
   CXX=/tmp/adavis23/opt/gcc/bin/g++ cmake ../srag -DCMAKE_INSTALL_PREFIX=$install_dir/$folder/
+  export LD_LIBRARY_PATH=$install_dir/$folder/lib:$LD_LIBRARY_PATH
+  export SRAGCODE_DIR=$install_dir/$folder/
   make
-  make test
+#  make test
   make install
   cp -r ../srag/* $install_dir/$folder/.
   ls $install_dir
   ls $install_dir/$folder
+  cd ..
+  cd srag
+  pwd
+  echo $install_dir/hdf5
+  ./build_fluka $install_dir/hdf5
+  cp flukahp $install_dir/$folder/.
   name=srag
   finalize_build
 }

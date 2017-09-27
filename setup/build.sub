@@ -25,7 +25,7 @@ executable = build.bash
 transfer_input_files = build.bash, build_funcs.bash, common.bash
 
 # Command line arguments for the executable
-arguments = gmp mpfr mpc gcc cmake hdf5 lapack moab geant4 fluka dagmc srag
+arguments = gmp mpfr mpc gcc cmake hdf5 lapack moab mcnp5 geant4 fluka dagmc srag
 
 # Don't send emails
 notification = never

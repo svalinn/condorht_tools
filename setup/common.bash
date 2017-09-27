@@ -15,14 +15,14 @@ function set_dirs() {
 # Set package versions
 function set_versions() {
   export        gmp_version=6.1.0
-  export       mpfr_version=3.1.4
+  export       mpfr_version=3.1.5
   export        mpc_version=1.0.3
-  export        gcc_version=5.3.0
-
+  export        gcc_version=4.8.4
+  export    binutils_version=2.28.90
   export    openmpi_version=1.10.2
   export      cmake_version=3.4.3
   export     python_version=2.7.11
-  export       hdf5_version=1.8.13
+  export       hdf5_version=1.8.19
   export     lapack_version=3.6.0
 
   export setuptools_version=20.2.2
@@ -35,14 +35,14 @@ function set_versions() {
 
   export      cubit_version=12.2
   export        cgm_version=12.2
-  export       moab_version=4.9.0
+  export       moab_version=master
   export    meshkit_version=master
   export     pytaps_version=master
 
   export     geant4_version=10.02
   export      fluka_version=2011.2c
-
-  export      dagmc_version=dev
+#  export      dagmc_version=nasa_specific
+  export      dagmc_version=develop
   export       pyne_version=dev
 }
 
@@ -61,6 +61,10 @@ function set_env() {
   export PATH=$install_dir/gcc/bin:$PATH
   export LD_LIBRARY_PATH=$install_dir/gcc/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$install_dir/gcc/lib64:$LD_LIBRARY_PATH
+
+  # binutils
+  export PATH=$install_dir/binutils/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/binutils/lib:$LD_LIBRARY_PATH
 
   # OpenMPI
   export PATH=$install_dir/openmpi/bin:$PATH

@@ -4,468 +4,384 @@ import sys
 from os import listdir
 from os.path import isfile, join
 from os import system
+
 import re
 import getpass
 
-## script to take a given directory, get the run files and determine the DAG graph to collapse the data
-## down into its averaged parts
+class Job:
+    def __init__(self):
+        self.name = ""
+        self.parent1 = ""
+        self.parent2 = ""
+        self.file1 = ""
+        self.file2 = ""
 
-def build_graph(file_list):
-    """
-    builds a dot graph of the file collapse hierarchy
-    
-    Parameters
-    ----------
-    file_list : string[][] :: array of files produced by generation
-    
-    Returns
-    ---------
-    Nothing
+        # data related to the writing of files
+        self.filepath = ""
+        self.code_type = ""
+        self.code_options = []
+        self.username = ""
 
-    """
-    file_name = "graph.dot"
-    try:
-        file = open(file_name,'w')
-    except:
-        print "Could not open file ", file_name, " to write to"
-        exit()
-    else:
-        pass 
+    def set_filepath(self,filepath):
+        self.filepath = filepath
 
-    file.write("digraph G {")
-    # loop over files in this generation
-    for i in range(1,len(file_list)):
-        j=0
-        for j in range(0,len(file_list[i])):
-            file.write('"'+file_list[i-1][2*j]+'"->"'+file_list[i][j]+'"')
-            file.write('"'+file_list[i-1][(2*j)+1]+'"->"'+file_list[i][j]+'"')
-    file.write('}')
-    file.close()
-    return
+    def set_code_type(self,code_type):
+        self.code_type = code_type
 
+    def set_code_options(self,code_options):
+        self.code_options = code_options
 
-def get_username():
-    """ determines user name
+    def set_username(self,username):
+        self.username = username
 
-    Paramaters
-    ----------
-    null
-    
-    Returns
-    ---------
-    username :: string
-    """
+    def set_name(self,name):
+        self.name = name
 
-    return getpass.getuser()
+    def set_output_name(self,name):
+        self.output_name = name
 
-def get_generation_iteration(tar_gz_name):
-    """ determines the generation and iteration number given the filename
+    def set_parents(self,parent1,parent2):
+        self.parent1 = parent1
+        self.parent2 = parent2
 
-    Paramaters
-    ----------
-    tar_gz_name : string : filename of the tar_gz_file
-    
-    Returns
-    ---------
-    gen : integer : generation number
-    iteration : integer : iteration number
-    """
-    
-    name = tar_gz_name
-    name = name.split("_")
-    gen = name[1]
-    part_2 = name[2]
-    part_2 = part_2.split(".")
-    iteration = part_2[0]
+    def set_child(self,child_name):
+        self.child = child_name
 
-    return (gen,iteration)
+    def set_files(self,file1,file2):
+        self.file1 = file1
+        self.file2 = file2
 
+    # print the job name line of a CONDOR job file
+    def print_dag_line(self,filestream):
+        filestream.write("JOB "+self.name+" "+self.name+".cmd\n")
+        filestream.write("RETRY "+self.name+" 5\n")
 
-def num_2_alpha(integer):
-    """ takes an interger and encodes to letter 
+    # print the parent child line of a CONDOR DAG file
+    def print_parent_child_line(self,filestream):
+        # it may be the case that either parent may have job"
+        # in the name, if this is the case then there is really 
+        # only one parent
+        filestream.write("PARENT ")
+        if "job" not in self.parent1:
+            filestream.write(self.parent1+" ")
+        if "job" not in self.parent2:
+            filestream.write(self.parent2+" ")
+        filestream.write("CHILD "+self.name+"\n")
 
-    Paramaters
-    ----------
-    integer :: integer :: (0-25)
-    
-    Returns
-    ---------
-    character
-    """
+    def write_job_script(self):
 
-    return chr(97+integer-1)
+        """ builds the script to combine the MC data
 
+        Parameters
+        ----------
+        code_type : string :: type of code (MCNP, FLUKA)
+        code_options : string[n] :: options associated with the code type
+        username : string :: username
+        """        
 
-def build_dag_graph(dag_names):
-    """
-    Builds the DAG graph of the problem set
-    Parameters
-    ----------
-    dag_graph :: list of lists :: contains the names of the DAG jobs
-    
-    Returns
-    ---------
-    Nothing
-
-    """
-
-    file_name = "dagman.dag"
-    try:
-        file = open(file_name,'w')
-    except:
-        print "Could not open file ", file_name, " to write to"
-        exit()
-    else:
-        pass 
-    
-    job_names=[]
-
-    # create alias list of job names for DAG
-    for i in range(0,len(dag_names)):
-        job_names.append([])
-        for j in range(0,len(dag_names[i])):
-            job_names[i].append("job_"+str(i)+"_"+str(j))
-            file.write("JOB "+job_names[i][j]+" "+dag_names[i][j]+"\n")
-
-            
-    # determine when we get an odd job (add to next generation)
-    counter_a=0
-    for i in range(0,len(dag_names)):
-        for j in range(0,len(dag_names[i])):
+        try:
+            file = open(self.name+".sh",'w')
+        except:
+            print "Could not open file ", file_name, " to write to"
+            exit()
+        else:
             pass
-        # if we have an odd number
-        if len(dag_names[i])%2 == 1 and counter_a == 0:
-            remainder = job_names[i][j]
-            counter_a += 1
-            print remainder
 
-    count = 0
-    for i in range(1,len(dag_names)):
-        for j in range(0,len(dag_names[i])):
-#            print "PARENT "+dag_names[i-1][2*j]+" "+dag_names[i-1][(2*j)+1]+" CHILD "+dag_names[i][j]
-            file.write("PARENT "+job_names[i-1][2*j]+" "+job_names[i-1][(2*j)+1]+" CHILD "+job_names[i][j]+"\n")
-
-        if len(dag_names[i])%2 == 1:
-            count+=1
-        if len(dag_names[i])%2 == 1 and count == 2:
-            job_names[i].append(remainder)
-
-
-    file.close() #close the dagman file
-    return
-
-"""
-def build_dag_graph(dag_names):
-
-    Builds the DAG graph of the problem set
-    Parameters
-    ----------
-    dag_graph :: list of lists :: contains the names of the DAG jobs
-    
-    Returns
-    ---------
-    Nothing
-
-
-
-    file_name = "dagman.dag"
-    try:
-        file = open(file_name,'w')
-    except:
-        print "Could not open file ", file_name, " to write to"
-        exit()
-    else:
-        pass 
-    
-    for gen in range(0,len(dag_names)):
-        for entry in range(0,(len(dag_names[gen]))/2):
-            file.write("PARENT "+dag_names[gen][2*entry]+" "+dag_names[gen][(2*entry)+1]+" CHILD "+dag_names[gen+1][entry]+"\n")
-
-    file.close()
-"""
-
-def build_dag_names(gen,number_batch,list_of_names):
-    """ Builds the list of DAG jobs of the problem from the input set 
-
-    Parameters
-    ----------
-    gen :: int :: generation number in the graph
-    number_batch :: int :: number in the batch
-    list_of_names :: list :: names of the dag elements
-
-    Returns
-    ----------
-    
-    """
-
-    list_of_names.append([])
-    for i in range(1,number_batch+1):
-        gen_name = num_2_alpha(gen)
-        string="job"+gen_name+str(i)
-        list_of_names[gen-1].append(string)
-
-    return list_of_names
-
-
-def left_over(list_of_files):
-    """ determines if we have an even or odd number of files in this generation
-    
-    Parameters
-    ----------
-    list_of_files : string[] :: list of files produced in the last generation
-    
-    Returns
-    ----------
-    number of files produced in the last generation
-    """
-    if(len(list_of_files)%2 != 0):
-           return 1
-    else:
-           return 0
-
-def generation(files,name,path_data,gen):
-    """ prints the files to be combined in this generation
-    
-    Parameters
-    ----------
-    files : string[array] :: list of file names
-    name : string :: file name to append
-    path_data : string :: path to the file to create
-
-    Returns
-    ----------
-    nothing
-
-    """  
-
-    # following the first batch will have files names
-    # there will be len(files)/2 to create
-
-    files = get_results(name,path_data)
-
-    if (len(files) % 2) != 0:
-        add_file=(len(files)/2)+1
-        # in order to copy file
-        name=''
-        for i in range(0,gen):
-            name+="_1"
-        name+="_combined.tar.gz"
-        touch_file(str(add_file)+name)
-        remaining_files = (len(files)/2)+1
-    else:
-        remainder = len(files)/2
-        remaining_files = (len(files)/2)       
-
-    name=''
-    for i in range(0,gen):
-        name+="_1"
-    name+="_combined.tar.gz"
-
-    gen_files(name,len(files)/2)
-    gen+=1
-
-    return (gen,remaining_files)
-
-
-def gen_files(name,num):
-    for i in range(0,num):
-        touch_file(str(i+1)+name)
-    return
-
-
-def touch_file(filename):
-    """ prints instructions on how to use
-    
-    Parameters
-    ----------
-    filename : string :: filename of file to create
-
-    Returns
-    ----------
-    nothing
-    """
-    system("touch "+filename)
-
-    return
-
-
-def build_job_cmd_file(filename,gen,job_index):
-      """ builds the command file for the job
-
-      Parameters
-      ----------
-      inputfile: string : name of the input file the command file is being built for
-      gen : int :: generation number
-      run_index: int : the integer id of the run
-      
-      Returns
-      ----------
-      nothing: writes out job command file
-      """  
-      file_name = filename
-      try:
-          file = open(file_name,'w')
-      except:
-          print "Could not open file ", file_name, " to write to"
-          exit()
-      else:
-          pass
-
-      # write the cmd file
-      file.write("########################################### \n")
-      file.write("#                                         # \n")
-      file.write("#  Combine script automatically created   # \n")
-      file.write("#                                         # \n")
-      file.write("########################################### \n")
-      
-      file.write(" \n")
-      if gen == 0:
-          file.write("executable = combine_"+str(job_index)+".sh \n")
-      else:
-          file.write("executable = combine_"+str(gen)+"_"+str(job_index)+".sh \n")
-
-      file.write(" \n")
-      file.write("copy_to_spool = false \n")
-      file.write("should_transfer_files = yes \n")
-      file.write("when_to_transfer_output = on_exit \n")
-      if gen == 0:
-          file.write("output = combine_"+str(job_index)+".out\n")
-      else:
-          file.write("output = combine_"+str(gen)+"_"+str(job_index)+".out\n")
-
-      if gen == 0:
-          file.write("error = combine_"+str(job_index)+".err\n")
-      else:
-          file.write("error = combine_"+str(gen)+"_"+str(job_index)+".err\n")
-
-      if gen == 0:
-          file.write("transfer_input_files = combine_"+str(job_index)+".sh\n")
-      else:
-          file.write("transfer_input_files = combine_"+str(gen)+"_"+str(job_index)+".sh\n")
-
-      file.write("+AccountingGroup = EngrPhysics_Wilson \n")
-      
-      file.write("Queue \n")
-      file.close()
-
-      return
-
-def build_combine_script(filename,gen,count,code_type,code_options,username,files):
-      """ builds the script to combine the MC data
-
-      Parameters
-      ----------
-      filename : string :: name of the input file the command file is being built for
-      code_type : string :: type of code (MCNP, FLUKA)
-      code_options : string[n] :: options associated with the code type
-      username : string :: username
-      files: string[2] :: name of the results tar.gz to combine
-
-      Returns
-      ----------
-      collapse_files :: string :: name of the resultant collapse files
-      """  
-
-      file_name = filename
-      try:
-          file = open(file_name,'w')
-      except:
-          print "Could not open file ", file_name, " to write to"
-          exit()
-      else:
-          pass
-
-      collapse_files=[]
-
-      if "MCNP" in code_type:
-          meshtal = False
-          mctal = False
-          for option in code_options:
-              if "mctal" in option:
-                  mctal = True
-              if "meshtal" in option:
-                  meshtal = True
+        if "MCNP" in self.code_type:
+            meshtal = False
+            mctal = False
+            for option in self.code_options:
+                if "mctal" in option:
+                    mctal = True
+                if "meshtal" in option:
+                    meshtal = True
                   
 
-          file.write("#!/bin/bash"+"\n")         
-          file.write("# get_until_got function - keeps trying to get file with wget \n")
-          file.write("# until its successful \n")
-          file.write("get_until_got(){ \n")
-#          wget -c -t 5 --waitretry=20 --read-timeout=10
-          file.write("wget -c -t 5 --waitretry=20 --read-timeout=10 $1 \n")
-          file.write("}\n")
-          file.write("cwd=$PWD\n")
-          file.write("# copy the data to compress\n")
-#          print files[0],files[1]
-          file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files[0]+"  \n")
-          file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+files[1]+"  \n")
-          file.write("# get the merge tools \n")
-          file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+"merge_tools.tar.gz \n")
-          file.write("# unzip the data files\n")
-          file.write("tar -zxf "+files[0]+" \n")
-          file.write("tar -zxf "+files[1]+" \n")
-          file.write("# unzip the merge tools \n")
-          file.write("tar -zxf merge_tools.tar.gz \n")
-          file.write("# combine the mctal files \n")
+        file.write("#!/bin/bash"+"\n")         
+        file.write("# get_until_got function - keeps trying to get file with wget \n")
+        file.write("# until its successful \n")
+        file.write("get_until_got(){ \n")
+        file.write("wget -c -t 5 --waitretry=20 --read-timeout=10 $1 \n")
+        file.write("}\n")
+        file.write("cwd=$PWD\n")
+        file.write("# copy the data to compress\n")
+
+        if filesystem == "squid":
+            file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+self.file1+"  \n")
+            file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+self.file2+"  \n")
+            file.write("# get the merge tools \n")
+            file.write("get_until_got http://proxy.chtc.wisc.edu/SQUID/"+username+"/"+"merge_tools.tar.gz \n")
+            file.write("# unzip the merge tools \n")
+            file.write("tar -zxf merge_tools.tar.gz \n")
+
+        if filesystem == "gluster":
+            file.write("cp "+self.filepath+"/"+self.file1+" .\n")
+            file.write("cp "+self.filepath+"/"+self.file2+" .\n")
+
+        file.write("# get the merge tools \n")
+        file.write("git clone https://github.com/svalinn/condorht_tools.git\n")
+        file.write("cp $PWD/condorht_tools/combine/meshtal_combine.py . \n")
+        file.write("cp $PWD/condorht_tools/combine/mctal_combine.py . \n")
+
+        file.write("# unzip the data files\n")
+        file.write("tar -zxf "+self.file1+" \n")
+        file.write("tar -zxf "+self.file2+" \n")
+
+        file.write("# combine the mctal files \n")
+
+        if "job" in self.file1:
+            pos_under = self.file1.index("_")
+            file1 = self.file1[0:pos_under]+"/meshtal"
+        else:
+            file1 = "mesh_"+self.file1[:-7]+".m"
+        
+        if "job" in self.file2:
+            pos_under = self.file2.index("_")
+            file2 = self.file2[0:pos_under]+"/meshtal"
+        else:
+            file2 = "mesh_"+self.file2[:-7]+".m"
+
+        # set the common output stem
+        outputfile_stem = self.output_name
+
+        if mctal:
+            file.write("# merge the mctal \n")
+            file.write("./mctal_combine.py -o "+outputfile_stem+".m "+dir_name[0]+"/"+dir_name[0]+".m "+dir_name[1]+"/"+dir_name[1]+".m \n")
+        if meshtal:
+            file.write("# merge the meshtal \n")
+            file.write("./meshtal_combine.py -o mesh_"+outputfile_stem+".m -s --avg "+file1+" "+file2+" \n")
+
+
+        # check to make sure that data was produced
+        if mctal:
+            file.write("if [ ! -s "+outputfile_stem+".m ] ; then \n")
+            file.write("    rm -rf *\n")
+            file.write("    echo 'mctal file not found'\n")
+            file.write("    exit 1\n")
+            file.write("fi\n")
+        if meshtal:
+            file.write("if [ ! -s mesh_"+outputfile_stem+".m ] ; then \n")
+            file.write("    rm -rf *\n")
+            file.write("    echo 'meshtal file not found'\n")
+            file.write("    exit 1\n")
+            file.write("fi\n")
+
+        # create tar file
+        file.write("tar -cvf "+outputfile_stem+".tar --files-from=/dev/null\n") # creates the tar file
+        if mctal:
+            file.write("tar -rvf "+outputfile_stem+".tar "+outputfile_stem+".m \n") #add the mctal if it exists
+        if meshtal:
+            file.write("tar -rvf "+outputfile_stem+".tar mesh_"+outputfile_stem+".m \n") #add the meshtal if it exists
+        # pack up the the data
+        file.write("gzip "+outputfile_stem+".tar \n") # zips the file
+
+        # add this ot the collapsed filesnames
+        file.write("ls | grep -v "+outputfile_stem+".tar.gz | xargs rm -rf \n")
+        file.write("mv "+outputfile_stem+".tar.gz "+self.filepath+"\n")
+        file.close()
+
+        if "FLUKA" in self.code_type:
+            return
+
+    def write_command_file(self):
+        """ builds the command file for the job
+        
+        Parameters
+        ----------
+        nothing: all stored in self
+        
+        Returns
+        ----------
+        nothing: writes out job command file
+        """  
+
+        try:
+            file = open(self.name+".cmd",'w')
+        except:
+            print "Could not open file ", file_name, " to write to"
+            exit()
+        else:
+            pass
+
+        # write the cmd file
+        file.write("########################################### \n")
+        file.write("#                                         # \n")
+        file.write("#  Combine script automatically created   # \n")
+        file.write("#                                         # \n")
+        file.write("########################################### \n")
+        
+        file.write(" \n")
+        file.write("executable = "+self.name+".sh \n")
+        file.write("copy_to_spool = false \n")
+        file.write("should_transfer_files = yes \n")
+        file.write("when_to_transfer_output = on_exit \n")
+        
+        file.write("# Require execute servers that have Gluster:\n")
+        file.write("Requirements = (Target.HasGluster == true)\n")
+        file.write("request_cpus = 1\n")
+        file.write("request_memory = 12GB\n")
+        file.write("request_disk = 20GB\n")
+        
+        file.write("output = "+self.name+".out\n")
+        file.write("error = "+self.name+".err\n")
+        file.write("transfer_input_files = "+self.name+".sh\n")
           
-          dir_name = []
-          name = files[0]
-          name=name.split("_")
-          dir_name.append(name[0])
-          name = files[1]
-          name=name.split("_")                  
-          dir_name.append(name[0])
+        file.write("+AccountingGroup = EngrPhysics_Wilson \n")
+        file.write("Queue \n")
+        file.close()
+
+class JobManager:
+    def __init__(self):
+        self.job_list = []
+        self.jobs = []
+        self.file_list = []
+        self.generation = 0
+        self.job_manager = 0
+        
+        # data related to the writing of files
+        self.filepath = ""
+        self.code_type = ""
+        self.code_options = []
+        self.username = ""
+
+    def set_filepath(self,filepath):
+        self.filepath = filepath
+
+    def set_code_type(self,code_type):
+        self.code_type = code_type
+
+    def set_code_options(self,code_options):
+        self.code_options = code_options
+
+    def set_username(self,username):
+        self.username = username
+
+    def set_generation(self,gen):
+        self.generation = gen
+
+    def set_files(self,file_list):
+        self.file_list = file_list
+
+    def set_jobs(self,job_list):
+        self.job_list = job_list
+
+    def _make_pairs(self):
+        count = 0
+        while(len(self.file_list) > 1):
+            job = Job()
+            count += 1
+            # set the job name
+            job.set_name("output_"+str(self.generation)+"_"+str(count))
+            # set the input files
+            file1 = self.file_list.pop(1)
+            file2 = self.file_list.pop(0)
+            # set the parent job names
+            job.set_parents(file1,file2)           
+            # set the input files
+            job.set_files(file1+".tar.gz",file2+".tar.gz")
+            # set the output file name
+            job.set_output_name("output_"+str(self.generation)+"_"+str(count))
+
+            # set job specific details
+            job.set_filepath(self.filepath)
+            job.set_code_type(self.code_type)
+            job.set_code_options(self.code_options)
+            job.set_username(self.username)
+
+            # append to list
+            self.job_list.append(job)
+
+        # add the new files to the list
+        new_files = []
+        for i in range(len(self.job_list)):
+            new_files.append(self.job_list[i].output_name)
+
+        # we have a straggler file, add it to the list 
+        if(len(self.file_list) == 1):
+            new_files.append(self.file_list[0])
+
+        # if there are no new files, then we are done
+        if(len(new_files) == 1 ):
+            return
+
+        # make a new manager with the new files
+        self.job_manager = JobManager()
+        self.job_manager.set_filepath(self.filepath)
+        self.job_manager.set_code_type(self.code_type)
+        self.job_manager.set_code_options(self.code_options)
+        self.job_manager.set_username(self.username)
+
+        gen = self.generation + 1
+        self.job_manager.set_generation(gen)
+        self.job_manager.set_files(new_files)
+        self.job_manager.collapse()
+
+    # make the pairs for the current file
+    def collapse(self):
+        if len(self.file_list) == 0:
+            print "No jobs to collapse"
+            return
+
+        self._make_pairs()
+
+    # print the job list for the current manager
+    def print_jobs(self):
+        print "job list"
+        for i in range(len(self.job_list)):
+            print self.job_list[i].name
+            print self.job_list[i].file1, self.job_list[i].file2
+            print self.job_list[i].output_name       
+
+    # print the dag joblist  portion for the current job manager
+    def _print_dag_joblist(self,filestream):
+        for i in range(len(self.job_list)):
+            self.job_list[i].print_dag_line(filestream)
+
+    # print the dag parent-child portion for the current job manager
+    def _print_dag_parent_child(self,filestream):
+        for i in range(len(self.job_list)):
+            self.job_list[i].print_parent_child_line(filestream)
+    
+    # prints the complete dag 
+    def print_daggraph(self):
+        # first print all the job memebers
+        f = open("dagman.dag","w")
+        jobm = self
+        while ( jobm.job_manager != 0 ):
+            jobm._print_dag_joblist(f)
+            jobm = jobm.job_manager
+        jobm._print_dag_joblist(f)
+
+        # now print parent_child links
+        jobm = self.job_manager # skip the first one
+        while ( jobm.job_manager != 0 ):
+            jobm._print_dag_parent_child(f)
+            jobm = jobm.job_manager
+        jobm._print_dag_parent_child(f)
+        f.close()
+
+    # prints the complete job list
+    def print_joblist(self):
+        jobm = self
+        while ( jobm.job_manager != 0 ):
+            jobm.print_jobs()
+            jobm = jobm.job_manager
+        jobm.print_jobs()
 
 
-          if gen == 0:
-              if mctal:
-                  file.write("# merge the mctal \n")
-                  file.write("./mctal_combine.py -o combined_"+str(gen)+"_"+str(count)+".m "+dir_name[0]+"/"+dir_name[0]+".m "+dir_name[1]+"/"+dir_name[1]+".m \n")
-              if meshtal:
-                  file.write("# merge the meshtal \n")
-                  file.write("./meshtal_combine.py -o mesh_combined_"+str(gen)+"_"+str(count)+".m "+dir_name[0]+"/meshtal "+dir_name[1]+"/meshtal \n")
-              file.write("# zip up the output data \n")
-              file.write("rm -rf "+dir_name[0]+" "+dir_name[1]+"\n")
-              # create tar file
-#              file.write("tar -pczf combined_"+str(gen)+"_"+str(count)+".tar.gz combined_"+str(gen)+"_"+str(count)+".m "+"mesh_combined_"+str(gen)+"_"+str(count)+" \n")
-              # pack up the the data
-              file.write("tar -cvf combined_"+str(gen)+"_"+str(count)+".tar --files-from=/dev/null\n") # creates the tar file
-              if mctal:
-                  file.write("tar -rvf combined_"+str(gen)+"_"+str(count)+".tar combined_"+str(gen)+"_"+str(count)+".m \n") #add the mctal if it exists
-              if meshtal:
-                  file.write("tar -rvf combined_"+str(gen)+"_"+str(count)+".tar mesh_combined_"+str(gen)+"_"+str(count)+".m \n") #add the meshtal if it exists
-              file.write("gzip combined_"+str(gen)+"_"+str(count)+".tar \n") # zips the file
-               # add this ot the collapsed filesnames
-              collapse_files="combined_"+str(gen)+"_"+str(count)+".tar.gz" 
-          else:
-              (gen1,iter1)=get_generation_iteration(files[0])
-              (gen2,iter2)=get_generation_iteration(files[1])
-              if mctal:
-                  file.write("# merge the mctal \n")
-                  file.write("./mctal_combine.py -o combined_"+str(gen)+"_"+str(count)+".m combined_"+str(gen1)+"_"+str(iter1)+".m combined_"+str(gen2)+"_"+str(iter2)+".m \n")
-              if meshtal:
-                  file.write("# merge the meshtal \n")
-                  file.write("./meshtal_combine.py -o mesh_combined_"+str(gen)+"_"+str(count)+" mesh_combined_"+str(gen1)+"_"+str(iter1)+" mesh_combined_"+str(gen2)+"_"+str(iter2)+" \n")
-              file.write("# zip up the output data \n")
-              file.write("rm -rf "+dir_name[0]+" "+dir_name[1]+"\n")
-              # pack up the combined results
-              file.write("tar -cvf combined_"+str(gen)+"_"+str(count)+".tar --files-from=/dev/null \n") # creates an empty the tar file
-              if mctal:
-                  file.write("tar -rvf combined_"+str(gen)+"_"+str(count)+".tar combined_"+str(gen)+"_"+str(count)+".m \n") #add the mctal if it exists
-              if meshtal:
-                  file.write("tar -rvf combined_"+str(gen)+"_"+str(count)+".tar mesh_combined_"+str(gen)+"_"+str(count)+".m \n") #add the meshtal if it exists
-              file.write("gzip combined_"+str(gen)+"_"+str(count)+".tar \n") # zips the file
-#              file.write("tar -pczf combined_"+str(gen)+"_"+str(count)+".tar.gz combined_"+str(gen)+"_"+str(count)+".m "+"mesh_combined_"+str(gen)+"_"+str(count)+" \n")
-              collapse_files="combined_"+str(gen)+"_"+str(count)+".tar.gz"
-              
-          file.write("ls | grep -v combined_"+str(gen)+"_"+str(count)+".tar.gz | xargs rm -rf \n")
-          file.close()
+    # print the job files for the current job manager
+    def print_jobfiles(self):
+        for i in range(len(self.job_list)):
+            self.job_list[i].write_job_script()
+            self.job_list[i].write_command_file()
 
-          return collapse_files
-
-      if "FLUKA" in code_type:
-          return
-      return
+    # prints all job files
+    def print_job_files(self):
+        jobm = self
+        while ( jobm.job_manager != 0 ):
+            jobm.print_jobfiles()
+            jobm = jobm.job_manager
+        jobm.print_jobfiles()
 
 def print_help():
     """ prints instructions on how to use
@@ -485,32 +401,6 @@ def print_help():
     print "--batch < number to collapse per session>"
     print " "
     sys.exit()
-
-def convert_int(string):
-    """ convert parsed string to int, return 0 if failed
-    
-    Parameters
-    ----------
-    string: string to try to convert into int
-
-    Returns
-    ----------
-    Returns the int version of string if successful, otherwise
-    raises an exception
-    """
-
-    try:
-        integer = int(string)
-        return integer
-    except:
-        print string, " is not a valid int"
-        exit()
-
-def numericalSort(value):
-    numbers = re.compile(r'(\d+)')
-    parts = numbers.split(value)
-    parts[1::2] = map(int, parts[1::2])
-    return parts
 
 def get_results(search_string,dir_path):
     """ determines the initial results files to condense, takes dirpath as arg
@@ -541,9 +431,19 @@ def get_results(search_string,dir_path):
         
     # remove those that dont have "results" 
     no_res = [ f for f in list_of_files if search_string in f ]
-        
+
+    # strip the .tar.gz from each item in the list
+    for item in range(len(no_res)):
+        file_name = no_res[item]
+        file_name = file_name[:-7]
+        no_res[item] = file_name
     return no_res
 
+def numericalSort(value):
+    numbers = re.compile(r'(\d+)')
+    parts = numbers.split(value)
+    parts[1::2] = map(int, parts[1::2])
+    return parts
 
 ############################################################
 #
@@ -566,6 +466,8 @@ for arg in range(0,len(sys.argv)):
         print_help()
         sys.exit()
 
+job_options = []
+
 #loop over the args      
 for arg in range(0,len(sys.argv)):
     if '--job' in sys.argv[arg]:
@@ -575,93 +477,40 @@ for arg in range(0,len(sys.argv)):
     # look for the path to data
        path_data = sys.argv[arg+1]
     if '--batch' in sys.argv[arg]:
-       int_t = convert_int(sys.argv[arg+1])
+       int_t = int(sys.argv[arg+1])
        num_batches = int_t
+    if '--filesystem' in sys.argv[arg]:
+        if 'squid' in sys.argv[arg+1].lower():
+            filesystem = "squid"
+        else:
+            filesystem = "gluster"
+    if '--tally' in sys.argv[arg]:
+        if 'mctal' in sys.argv[arg+1]:
+            job_options.append('mctal')
+        if 'meshtal' in sys.argv[arg+1]:
+            job_options.append('meshtal')
+
 
 # used for filenaming conventions
-user_name = get_username()
-
-# for the DAG 
-dag_names=[]
+user_name = getpass.getuser()
 
 # get the inputs to combine
 files = get_results("results.tar.gz",path_data)
-count=0
-#(gen,remaining)=generation(files,"results.tar.gz",path_data,0)
-collapse_files=[]
-gen=0
 
+# list of tallies to combine
 command_list=[]
 command_list.append([])
 
-job_options=[]
-job_options.append("mctal")
+jobmanager = JobManager()
+jobmanager.set_files(files)
+jobmanager.set_username(user_name)
+jobmanager.set_filepath(path_data)
+jobmanager.set_code_type(job_type)
+jobmanager.set_code_options(job_options)
 
-#### from here
-file_list=[]
-for i in range(0,len(files)):
-    file_list.append([])
-    file_list[0].append(files[i])
-#### to here is used to produce data for graph plot
-
-# first generation 
-for file in range(0,len(files)/2):
-    count+=1
-    job_files=[]
-    filename = "combine_"+str(file+1)+".sh"
-    # append targz to job_files is str[2]
-    job_files.append(files[2*file])
-    job_files.append(files[(2*file)+1])
-
-
-    # get back list of new files,  and build script that combined its parents
-    new_files = build_combine_script(filename,gen,count,job_type,job_options,user_name,job_files)
-
-    ### used to produce graph plot
-    file_list[1].append(new_files)
-    ### used to produce graph plot
-
-    collapse_files.append(new_files) # add files to list
-    filename = "combine_"+str(file+1)+".cmd"
-    build_job_cmd_file(filename,gen,count) # build the command file for this generation
-    command_list[0].append(filename)
-
-# while there are files to collapse
-while len(collapse_files) > 1: 
-    gen+=1
-    next_gen_files=[]
-    count = 0
-
-    file_list.append([]) #list of files for dot graph
-    command_list.append([]) # list of cmd files
-    # loop over the files in this generation
-    for file in range(0,len(collapse_files)/2):
-        count+=1 #increment file counter
-        filename = "combine_"+str(gen)+"_"+str(file+1)+".sh"
-        job_files[0]=collapse_files[2*file]
-        job_files[1]=collapse_files[(2*file)+1]
-       
-        # build the combine script
-        new_files = build_combine_script(filename,gen,count,job_type,job_options,user_name,job_files)
-        file_list[gen+1].append(new_files) #used to produce plot
-        next_gen_files.append(new_files)
-        filename = "combine_"+str(gen)+"_"+str(file+1)+".cmd"
-        build_job_cmd_file(filename,gen,count)
-        command_list[gen].append(filename)
-    # copy the list of new files to that of the next generation
-    if left_over(collapse_files) == 1:
-        next_gen_files.append(collapse_files[len(collapse_files)-1]) #append the last one to the list
-
-    # update the collapse files
-    collapse_files = next_gen_files
-#    sys.exit()
-       
-
-build_dag_graph(command_list)
-
-#build_graph(file_list)
-
-sys.exit()
-
-
-
+# make the tree
+jobmanager.collapse()
+# print the dag graph
+jobmanager.print_daggraph()
+# print the job file
+jobmanager.print_job_files()
