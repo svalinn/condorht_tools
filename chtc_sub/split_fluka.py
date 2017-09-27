@@ -3,6 +3,7 @@
 import os
 import sys
 import shutil
+import argparse
 
 #from random import seed, randint
 import random
@@ -87,24 +88,19 @@ def generate_seed_random():
 ###################################################  
 # start
 
-if (len(sys.argv) < 2):
-    print "No arguments provided"
-    sys.exit()
-    # loop over the args and check for the keywords    
+parser = argparse.ArgumentParser(description='Splits a Fluka input into several sequentially numbered runs, each with a unique seed')
+parser.add_argument('-i','--input', type=str, help="The Fluka input file to split", required=True)
+parser.add_argument('-c','--cpu', type=int, help="The number of CPU's this calculation will run on", required=True)
+parser.add_argument('-s','--seed', type=int,  help="Set a non-default random number seed, default is 54217137")
 
-seed = 0
+args = parser.parse_args()
+input = args.input
+num_cpu = args.cpu
+seed = args.seed
 
-for arg in range(1,len(sys.argv)):
-    if "--input" in sys.argv[arg]:
-        input=sys.argv[arg+1]
-    if "--cpu" in sys.argv[arg]:
-        num_cpu = sys.argv[arg+1]        
-    if "--seed" in sys.argv[arg]:
-        seed = int(sys.argv[arg+1])
-
-if seed == 0:
+if not seed:
     seed = 54217137
-
+   
 # set the seed for python rn
 random.seed(seed)
 
