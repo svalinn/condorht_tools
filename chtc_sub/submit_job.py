@@ -76,6 +76,7 @@ def check_valid_job(string):
     job_list.append("DAGMCNP")
     job_list.append("FLUKA")
     job_list.append("FLUDAG")
+    job_list.append("DAGGEANT4")
 
     for item in job_list:
         if string in item:
@@ -183,6 +184,21 @@ def pack_for_run(datapath,type_run):
                 print "                ERROR "
                 print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                 exit()
+                
+        if 'DAGGEANT4' in type_run:
+            command += ' geometry' # need geometry for dag geom
+
+        if 'DAGGEANT4' in type_run or 'DAGMCNP' in type_run:
+            try:
+                test = listdir(datapath+'/geometry')
+            except:
+                print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                print "                ERROR "
+                print "The geometry subdirectory has not been found, "
+                print " this is required for a DAG type run "
+                print "                ERROR "
+                print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                exit()
         # only MCNP & DAGMC can use wwinps
         if 'MCNP' in type_run or 'DAGMCNP' in type_run:
             # see if there is a wwinp file
@@ -252,7 +268,6 @@ def build_job_cmd_file(inputfile,job_index,jobtype):
           file.write("# Require execute servers that have Gluster:\n")
           file.write("Requirements = (Target.HasGluster == true)\n")
 
-      file.write("copy_to_spool = false \n")
       file.write("should_transfer_files = yes \n")
 #      file.write('environment = "GCR_SOURCE_DIR=""""" \n')
       file.write("when_to_transfer_output = on_exit \n")
@@ -261,7 +276,7 @@ def build_job_cmd_file(inputfile,job_index,jobtype):
       file.write("error = job"+str(job_index)+".err\n")
       file.write("transfer_input_files = job"+str(job_index)+".sh\n")
       file.write("+AccountingGroup = EngrPhysics_Wilson \n")
-      file.write(" request_cpus = 1\n")
+      file.write("request_cpus = 1\n")
       file.write("request_memory = 12GB\n")
       file.write("request_disk = 20GB\n")
 
@@ -440,12 +455,19 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
           file.write('    wwinp_cmd="wwinp=$wwinp_file"\n')
           file.write('fi\n')
           file.write("mcnp5 c i="+inputfile+" n=job"+str(job_index)+". r=run"+str(job_index)+" $wwinp_cmd\n")
+          
       if "FLUKA" in jobtype:
           file.write("$FLUPRO/flutil/rfluka -M"+str(num_batches)+" "+inputfile+"\n")
       if "FLUDAG" in jobtype:
-          file.write("cp ../geometry/* ."+"\n")
-          file.write("geom_file=`ls * | grep 'h5m' | head -n1`"+"\n")
-          file.write("$FLUPRO/flutil/rfluka -e $FLUDAGPATH -d $geom_file -N0 -M"+str(num_batches)+" "+inputfile+"\n")
+          file.write("geom_file=`ls ../geometry/* | grep 'h5m' | head -n1`"+"\n")
+          file.write("ln -s $geom_file dagmc.h5m \n")
+          file.write("$FLUPRO/flutil/rfluka -e $FLUDAGPATH -N0 -M"+str(num_batches)+" "+inputfile+"\n")
+
+      if "DAGGEANT4" in jobtype:
+          file.write("geom_file=`ls ../geometry/* | grep 'h5m' | head -n1`"+"\n")
+          file.write("ln -s $geom_file dagmc.h5m \n")
+          file.write("source ../geant4/bin/geant4.sh\n")
+          file.write("DagGeant4 dagmc.h5m "+inputfile+"\n")
        
       # may need to remove all original input data
       if "DAGMCNP" in jobtype:
