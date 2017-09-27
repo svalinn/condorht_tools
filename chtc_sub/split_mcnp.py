@@ -3,28 +3,9 @@
 import os
 import sys
 import shutil
+import argparse
 
 from subprocess import call
-
-# print help, how to use etc
-def print_help():
-    """ print help
-
-    Parameters
-    -------------
-    None
-
-    Returns
-    --------------
-    Doesnt
-    """
-
-    print "split_mcnp "
-    print "--nps the number of particles to simulate" 
-    print "--mcnp the command you would launch to run this input"  
-    print "--cpu the number of splits you would like"  
-    print "--seed the starting RN seed, if left blanks defaults" 
-    sys.exit()
 
 # takes string, and if last char is '/' removes it
 def remove_slash(string):
@@ -42,30 +23,6 @@ def remove_slash(string):
         string=string[:-1]
 
     return string
-
-
-# a pre initialisation script the produces runtpe files appropriate for use in
-# calculations in condor
-
-def convert_int(string):
-    """ convert parsed string to int, return 0 if failed
-    
-    Parameters
-    ----------
-    string: string to try to convert into int
-
-    Returns
-    ----------
-    Returns the int version of string if successful, otherwise
-    raises an exception
-    """
-
-    try:
-        integer = int(string)
-	return integer
-    except:
-        print string, " is not a valid int"
-        exit()
 
 def create_mcnp_input(input_dir,mcnp_input,rundir,run_num):
     """
@@ -239,13 +196,12 @@ def run_mcnp_input(mcnp_command):
     os.chdir('..') #go back to original cwd
     return
 
-def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,instructions,nps):
+def generate_runtapes(num_cpus,input_dir,rundir,seed,mcnp_command,instructions,nps):
     """
     Arguments
     --------------------
     num_cpus - the number of cpu's the problem will be divided into
     input_dir - the directory containing the input deck
-    mcnp_input - the name of the mcnp input deck
     rundir - the directory where the run will take place
     seed : int :: seed the rn seed of the problem
     mcnp_command : string :: command to launch mcnp 
@@ -257,7 +213,6 @@ def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,ins
     """
 
     # run the problem generate seed runtpe file 
-    print mcnp_command
     run_mcnp_input(mcnp_command)  
 
     # builds the continue run files
@@ -267,45 +222,7 @@ def generate_runtapes(num_cpus,input_dir,mcnp_input,rundir,seed,mcnp_command,ins
             os.mkdir(input_dir+'/input')
         generate_mcnp_inputs(input_dir+'/input',mcnp_fname,i,num_cpus,nps,seed)
 
-
     return
-"""
-    for i in range(1,num_cpus+1):
-        # loop over each input deck in the problem
-        if i == 1:
-            nps=create_mcnp_input(input_dir+'/input',mcnp_input,rundir,i) # create the input deck 
-        else:
-            pass
-
-        # modify the mcnp command line to reflect the fact that we now have n input decks
-        cmd=""
-        for token in instructions.split():
-            if "i=" in token:
-                cmd=token+str(i)+" "
-            else:
-                cmd+=token+" "
-
-        if "g=" in cmd:
-            pos_in = cmd.find('g=')
-            part1=cmd[0:pos_in+2]
-            part2=cmd[pos_in+2:len(cmd)]
-            if not os.path.exists('../geometry'):
-                os.makedirs('../geometry')
-            cmd=part1+'../geometry/'+part2
- 
-        cmd+=' r=run'+str(i)
-
-        if i == 1:
-            print input_dir
-#            sys.exit()
-#            run_mcnp_input(input_dir+'/input',mcnp_command,cmd,i)  
-        else:
-            pass
-
-        mcnp_fname = "job" + str(i)
-        generate_mcnp_inputs(input_dir+'/input',mcnp_fname,i,num_cpus,nps,seed)
-    return
-"""
 
 def generate_mcnp_inputs(rundir,mcnpfname,cpu_id,n_cpu,nps,seed):
     """
@@ -499,77 +416,38 @@ def check_and_setup(mcnp_cmd,input_dir):
 ###################################################  
 # start
 
-seed=""
+parser = argparse.ArgumentParser(description = 'Splits a MCNP input file into several input decks, with a strided seed and rand card so that it is equivalent to a MCNP input problem with a single run')
+parser.add_argument('--mcnp','-m',type=str,help='The MCNP command used to run the problem, this is needed so as to produce a number of runtpe files', required = True)
+parser.add_argument('--cpu', '-c', type=int, help='The number of CPU\'s the problem will run on', required=True)
+parser.add_argument('--seed', '-s', type=int, help='The starting random number seed, the default is 12512813139')
+parser.add_argument('--nps','-n', type=int, help='The number of particles to simulate',required=True)
+        
+args = parser.parse_args()
 
-if (len(sys.argv) < 2):
-    print "No arguments provided"
-    sys.exit()
-    # loop over the args and check for the keywords    
-
-# check for help first
-for arg in range(1,len(sys.argv)):
-    print sys.argv[arg]
-    if "--help"  in sys.argv[arg]:
-        print_help()
-# set input args
-nps=0
-for arg in range(1,len(sys.argv)):
-    if "--mcnp" in sys.argv[arg]:
-        mcnp_cmd = sys.argv[arg+1]
-        print mcnp_cmd
-    if "--cpu" in sys.argv[arg]:
-        num_cpu = sys.argv[arg+1]        
-    if "--seed" in sys.argv[arg]:
-        seed = sys.argv[arg+1]
-    if "--nps" in sys.argv[arg]:
-        nps = sys.argv[arg+1]
-
-
-# basic checks
-if not num_cpu:
-    print "Num Cpu not set"
-    sys.exit()
-if not mcnp_cmd:
-    print "MCNP command not set"
-    sys.exit()
-if nps == 0:
-    print "NPS == 0!!!"
-    sys.exit()
-
-
-# input dir is always the cwd
+# input dir is always the
 input_dir = os.getcwd()
-print "input_dir = ",input_dir
+
 # get the mcnp command
 instructions=""
-if "mcnp" in mcnp_cmd:
-    for token in mcnp_cmd.split():
-        if "mcnp" in token:
-            mcnp_command = token
-        else:
-            instructions+=token+" "
 
-print input_dir, mcnp_cmd
-inputs = check_and_setup(mcnp_cmd,input_dir)
+# get the individual tokens, like i= g= etc
+for token in args.mcnp.split():
+    if "mcnp" in token:
+        mcnp_command = token
+    else:
+        instructions+=token+" "
 
-print inputs
+# check and setup directories and inputs
+inputs = check_and_setup(args.mcnp,input_dir)
 
-num_cpu = convert_int(num_cpu)
 # if seed not defined
-if not seed:
+if not args.seed:
     seed = 12512813139
 else:
-    seed = convert_int(seed)
-
+    seed = args.seed
 
 # generate runtpe files
 rundir=input_dir+"/runtpes"
-mcnp_input=''
-generate_runtapes(num_cpu,input_dir,mcnp_input,rundir,seed,mcnp_cmd,instructions,nps)
+generate_runtapes(args.cpu,input_dir,rundir,seed,args.mcnp,instructions,args.nps)
 
 
-#for arg in range(1,len(sys.argv)):
-#    print sys.argv[arg]
-
-
-#generate_runtapes(30,'/home/davisa/condorht_tools/chtc_submit/test','divertor_sim','/home/davisa/condorht_tools/chtc_submit/run_dir','/home/davisa/dagmc/mcnp5src/bin/mcnp5')
