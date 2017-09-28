@@ -1,9 +1,0 @@
-number = 500
-directory = part
-events = 1080t
-input = V6_w1
-output = bttest
-restart = restart.bin
-mctal = mctal_test
-meshtal = meshtal_test
-~
