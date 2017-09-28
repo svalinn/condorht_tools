@@ -5,39 +5,9 @@ import os
 from os import listdir
 from os.path import isfile, join
 import random
+import argparse
+
 from subprocess import call
-
-
-def print_help():
-    """ prints instructions on how to use
-    
-    Parameters
-    ----------
-    None:
-
-    Returns
-    ----------
-    Does not return, exits program
-    """
-    print "HELP."
-    print "============================="
-    print "--path <path_to_data>"
-    print "--job <type of job> "
-    print "--batch < number of jobs to run>"
-    print "--combine if you would or would not like the results combined"
-    print "--filesystem if you want to select gluster or SQUID"
-    print "--user specify the username for Condor"
-    print " "
-    print "Directory structure expected"
-    print " "
-    print " ---+--> cwd"
-    print "    | "
-    print "    +------> input where we keep the code input files" 
-    print "    +------> geometry where we keep the dag geometry if any"
-    print "    +------> wwinp where we keep the weight windows if there are any"
-    print "    +------> meshes where we keep meshes if any"
-    exit()
-
 
 def convert_int(string):
     """ convert parsed string to int, return 0 if failed
@@ -515,66 +485,69 @@ def build_run_script(files_for_run,job_index,inputfile,pathdata,jobtype,username
 # etc 
 ################################################
 
-print 'Number of arguments:', len(sys.argv), 'arguments.'
-print 'Argument List:', str(sys.argv)
-
-if len(sys.argv) <= 2:
-    print_help()
-
-# check to see if help has been asked for first
-for arg in range(0,len(sys.argv)):
-    if '--help'  in sys.argv[arg] or '-h' in sys.argv[arg]:
-        print_help()
-
 combine = False
-filesystem = "gluster"
 # default to the current username if unspecified
 username = os.getlogin()
 
-#loop over the args      			
-for arg in range(0,len(sys.argv)):
-    if '--job' in sys.argv[arg]:
-    # look for job type
-       job_type = sys.argv[arg+1]
-    if '--path' in sys.argv[arg]:
-    # look for the path to data
-       path_data = sys.argv[arg+1]						
-    if '--batch' in sys.argv[arg]:
-    # set the number of batches
-       int_t = convert_int(sys.argv[arg+1])
-       num_batches = int_t
-    if '--combine' in sys.argv[arg]:
-    # set wether we want to combine the output data
-        combine = True
-    if '--filesystem' in sys.argv[arg]:
-    # set whether we want to use the gluster or squid filesystem
-        filesystem = sys.argv[arg+1]
-    if '--user' in sys.argv[arg]:
-    # set whether we want to use the current usnername, or a specified one
-        username = sys.argv[arg+1]
+parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                 description="Submits a collection of jobs",
+                                 epilog=
+""" Accoring to a predescribed setup, using the appropriate split.py script, 
+ the split functions for split_fluka and split_geant4, will create directories for
+ the input directory, containing the split runs to use. If using a DAGMC enabled
+ calculation, the geometry directory must also exist and contain a geometry file 
+ called dagmc.h5m. If you are using an MCNP or DAG-MCNP5 calculation, then you should
+ also create the wwinp directory containing a file called wwinp if you need a mesh
+ based weight window input file and if using DAGMC advanced tetmesh tallies, then
+ also create the meshes directory, containing the mesh as named in the input deck
 
-# ensure all vars exist
-if not job_type:
-    print "The job type has not been defined"
-    sys.exit()
-elif num_batches < 1:
-    print "there are no jobs to run, batches < 1"
-    sys.exit()
-elif not check_valid_job(job_type):
-    print job_type, " is not a valid job name"
+ Directory structure expected 
+ ---+--> cwd 
+    | 
+    +------> input where we keep the code input files 
+    +------> geometry where we keep the dag geometry if any 
+    +------> wwinp where we keep the weight windows if there are any  
+    +------> meshes where we keep meshes if any
+
+ From the cwd, run this script and the needed DAG and input scripts for CHTC will
+ be created. Copy all the input *.sh, *.cmd and DAG files to the run folder on CHTC,
+ also copy the tar.gz with the really long alphanumeric name to squid or gluster
+ depending upon where you will be running the calculation
+
+""")
+
+
+parser.add_argument('-j','--job',type=str,help='Sets the job type, allowed values are MCNP,DAGMCNP,FLUKA,FLUDAG,DAGGEANT4',required=True)
+parser.add_argument('-b','--batch',type=int,help='Sets the number of batches in this run')
+parser.add_argument('-c','--combine',type=bool,help='Determines if combination will be done a the end of the script')
+parser.add_argument('-f','--filesystem',type=str,help='Which filesystem will be used, gluster or squid',required=True)
+parser.add_argument('-u','--user',type=str,help='The username of the user in the CHTC system, if different from the current systems username')
+
+args = parser.parse_args()
+if not check_valid_job(args.job):
+    print args.job, " is not a valid job name"
     sys.exit()
 else:
     pass
+
+# if combining
+if args.combine:
+    combine = True
+    
+# if no batch arg
+if not args.batch:
+    num_batches = 1
+else:
+    num_batches = args.batch
 
 path_data = os.getcwd()
 # get the input files from the path+'/input'
 input_files = get_input_file_list(path_data+'/input')
 
-print input_files
-
+# generate dag graph of the inputs to run
 generate_dag_graph(input_files,combine)
 print "Zipping files for run..."
-files_for_run = pack_for_run(path_data,job_type)
+files_for_run = pack_for_run(path_data,args.job)
 
 counter=0
 
@@ -585,8 +558,8 @@ generate_dag_graph(input_files,combine)
 for inputfile in input_files:
     counter+=1
     # creating the script files that are run by the cmd files
-    build_job_cmd_file(inputfile,counter,filesystem)
-    build_run_script(files_for_run,counter,inputfile,path_data,job_type,username,filesystem,num_batches)
+    build_job_cmd_file(inputfile,counter,args.filesystem)
+    build_run_script(files_for_run,counter,inputfile,path_data,args.job,username,args.filesystem,num_batches)
 
 
 # 
